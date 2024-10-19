@@ -1,0 +1,19 @@
+---
+
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets'
+
+interface Props {
+   imagePath: string;
+   altText: string;
+}
+   const { imagePath, altText } = Astro.props;
+   const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}')
+   if (!images[imagePath]) throw new Error(`"${imagePath}" does not exist in glob: "src/assets/*.{jpeg,jpg,png,gif}"`);
+
+---
+<nav class="bg-[#FBFFF1] py-[5px] w-screen fixed z-10">
+    <Image src={images[imagePath]()} alt={altText} class="w-[56px] h-[49px] mx-auto" />
+    
+</nav>
+<

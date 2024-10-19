@@ -1,5 +1,10 @@
 ---
-
+import Navigation from "../components/layout/Navigation.astro"
+import Hero from "../components/layout/Hero.astro"
+import DondeEstamos from "../components/layout/DondeEstamos.astro"
+import Servicios from "../components/layout/Servicios.astro"
+import Nosotros from "../components/layout/Nosotros.astro"
+import Footer from "../components/layout/Footer.astro"
 ---
 
 <html lang="en">
@@ -10,7 +15,19 @@
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro</title>
 	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+	<Navigation 
+		imagePath="/src/assets/stylosLogo.png"
+		altText="logo de stylo's barber"
+	/>
+	<Hero
+		title="Al servicio de tu Stylo"
+		buttonText = "Quiero un turno"
+		buttonLink = "#"
+	/>
+	<main class=" bg-gradient-to-b from-[rgba(36,35,49,1)] from-20% via-[rgba(55,54,76,1)] via-50% to-[rgba(36,35,49,1)] to-60% text-[#B4C5E3] flex flex-col items-center px-4 ">
+		<DondeEstamos/>
+		<Servicios/>
+		<Nosotros/>
+	</main>
+	<Footer/>
 </html>

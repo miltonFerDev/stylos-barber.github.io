@@ -1,0 +1,36 @@
+---
+import FooterItem from "../FooterItem.astro";
+---
+
+<footer class="w-full bg-[#14141C] text-[#B4C5E3] font-gothic">
+    <div id="links" class="py-10">
+      <div class="grid justify-center gap-4">
+      <FooterItem 
+        imagePath= "/src/assets/Whatsapp.svg";
+        altText= "Whatsapp logo";
+        linkString= "+54 11 3230-3565";
+        linkPath= "#";
+      />
+      <FooterItem 
+        imagePath= "/src/assets/Instagram.svg";
+        altText= "Instagram logo";
+        linkString= "@stylos.barber1";
+        linkPath= "https://www.instagram.com/stylosbarber1/";
+      />
+      <FooterItem 
+        imagePath= "/src/assets/Gmail.svg";
+        altText= "Gmail logo";
+        linkString= "stylos.barber1@gmail.com";
+        linkPath= "#";
+      />
+      </div>
+    </div>
+    <div id="pie" class="flex flex-col items-center text-center  py-5">
+      <div class="py-2">
+        <p class="text-[10px] md:text-xl font-semibold">Desarrollado por <a target="_blank" href="https://github.com/miltonFerDev">@miltonFerDev</a></p>
+        <p class="text-[10px] font-semibold">Todos los derechos reservados │ Stylo's Barber </p>
+      </div>
+     
+      <img class="w-[31px] h-[17px]" src="src/assets/Malvinas.png" alt="Islas Malvinas Argentinas">
+    </div>
+  </footer>

@@ -1,0 +1,24 @@
+---
+import Button from "../Button.astro"
+import '@fontsource/gothic-a1';
+
+// Los valores por defecto para el título, texto del botón, y enlace
+---
+
+<section class="bg-[#242331B8] font-gothic">
+  <video autoplay loop muted playsinline src="/video/4178109-hd_1920_1080_30fps.mp4"
+    class="h-dvh w-full fixed right-0 bottom-0 z-[-1] object-cover"></video>
+  
+  <div class="h-dvh relative mx-4 flex flex-col sm:justify-center sm:items-center">
+    <h1 class="text-7xl md:text-9xl md:tracking-wide text-[#FBFFF1] uppercase text-left sm:text-center font-extrabold absolute top-28 md:top-[20%] lg:top-[30%]">
+        Al <br class="md:hidden">
+        servicio <br>de tu <br class="md:hidden"> Stylo
+    </h1>
+    
+    <Button 
+      classString="inline-block text-center text-[16px] sm:text-[24px] py-4 w-full max-w-[400px] bg-[#3E52D5] hover:bg-[#586DF3] transition-colors rounded-xl text-white font-extrabold uppercase absolute bottom-10"
+      buttonText="Quiero un turno"
+      buttonLink="https://www.fresha.com/es/a/stylos-barber-ituzaingo-general-miguel-soler-398-jtabqara/booking?allOffer=true&menu=true"
+    />
+  </div>
+</section>

@@ -2,7 +2,11 @@
 export default {
 	content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
 	theme: {
-		extend: {},
+		extend: {
+			fontFamily: {
+				gothic: ['"Gothic A1"', 'sans-serif'], // Define tu fuente personalizada
+			  },
+		},
 	},
 	plugins: [],
 }

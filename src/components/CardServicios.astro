@@ -1,0 +1,17 @@
+---
+interface Props {
+    serviceTitle: string;
+    serviceText: string;
+}
+
+const { serviceTitle, serviceText } = Astro.props;
+---
+
+<div>
+    <h4
+        class="text-2xl font-semibold pb-3 md:pb-5 lg:pb-8 md:text-4xl lg:text-5xl"
+    >
+        {serviceTitle}
+    </h4>
+    <p class="md:text-2xl lg:text-3xl md:px-10 lg:px-24">{serviceText}</p>
+</div>

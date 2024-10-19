@@ -1,0 +1,24 @@
+---
+import Button from "../Button.astro"
+import CardServicios from "../CardServicios.astro"
+---
+<section class="mx-4 w-full px-4 my-10 md:my-20 lg:my-36 grid lg:grid-cols-3 lg:grid-rows-2 gap-11 lg:gap-8 text-center font-gothic">
+    <h2 class="font-bold text-4xl md:text-5xl lg:text-7xl uppercase lg:py-14 lg:mb-20 md:col-span-2 lg:col-span-3">Servicios</h2>
+    <CardServicios 
+        serviceTitle="Corte │ $8.000"
+        serviceText= "Corte del estilo que desees, terminación con cera o gel."
+    />
+    <CardServicios 
+        serviceTitle="Barba │ $4500"
+        serviceText= "Servicio de barba completo, incluye servicio de toalla caliente."
+    />
+    <CardServicios 
+        serviceTitle="C + B │ $9000"
+        serviceText= "Corte y barba completos, incluye servicio de toalla caliente"
+    />
+    <Button 
+        buttonText="Pedir turno"
+        buttonLink="https://www.fresha.com/es/a/stylos-barber-ituzaingo-general-miguel-soler-398-jtabqara/booking?allOffer=true&menu=true"
+        classString="md:col-span-2 lg:col-span-3 m-auto my-20 inline-block text-center text-[16px] sm:text-[24px] py-4 w-full md:max-w-[400px] bg-[#3E52D5] hover:bg-[#586DF3] transition-colors rounded-[10px] text-white font-extrabold uppercase"
+    />
+  </section>

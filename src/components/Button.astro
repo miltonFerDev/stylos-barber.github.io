@@ -1,0 +1,14 @@
+---
+interface Props {
+  buttonText: string;
+  buttonLink: string;
+  classString: string;
+}
+
+const { buttonText = "Quiero un turno", buttonLink = "#", classString = "inline-block text-center text-[16px] sm:text-[24px] py-4 w-full max-w-[400px] bg-[#3E52D5] hover:bg-[#586DF3] transition-colors rounded-xl text-white font-extrabold uppercase absolute bottom-10"} = Astro.props;
+---
+
+<a
+href={buttonLink} target="_blank" class={classString}>
+{buttonText}
+</a>
