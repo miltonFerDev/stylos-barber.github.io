@@ -1,6 +1,6 @@
 ---
-import type { ImageMetadata } from 'astro';
-import { Image } from 'astro:assets'
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
 
 interface Props {
   imagePath: string;
@@ -9,17 +9,28 @@ interface Props {
   cardDescription: string;
 }
 
-const { imagePath, altText, cardName, cardDescription} = Astro.props;
-const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}')
-   if (!images[imagePath]) throw new Error(`"${imagePath}" does not exist in glob: "src/assets/*.{jpeg,jpg,png,gif}"`);
+const { imagePath, altText, cardName, cardDescription } = Astro.props;
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  "/src/assets/*.{jpeg,jpg,png,gif}",
+);
+if (!images[imagePath])
+  throw new Error(
+    `"${imagePath}" does not exist in glob: "src/assets/*.{jpeg,jpg,png,gif}"`,
+  );
 ---
 
-<div class="relative  h-[451px] group">
-    <!-- Imagen -->
-    <Image src={images[imagePath]()} alt={altText} class="w-full h-full object-cover rounded-xl" />
-    <!-- Contenido que aparece en hover -->
-    <div class="rounded-xl absolute inset-0 bg-black bg-opacity-70 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4">
-      <h3 class="text-4xl font-semibold mb-2">{cardName}</h3>
-      <p class="text-sm">{cardDescription}</p>
-    </div>
+<div data-animate class="relative h-[451px] group opacity-0 transform">
+  <!-- Imagen -->
+  <Image
+    src={images[imagePath]()}
+    alt={altText}
+    class="w-full h-full object-cover rounded-xl"
+  />
+  <!-- Contenido que aparece en hover -->
+  <div
+    class="rounded-xl absolute inset-0 bg-black bg-opacity-70 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4"
+  >
+    <h3 class="text-4xl font-semibold mb-2">{cardName}</h3>
+    <p class="text-sm">{cardDescription}</p>
   </div>
+</div>
