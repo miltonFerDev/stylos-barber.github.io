@@ -1,9 +1,9 @@
 ---
-import Navigation from "../components/layout/Navigation.astro"
-import Hero from "../components/layout/Hero.astro"
-import DondeEstamos from "../components/layout/DondeEstamos.astro"
-import Servicios from "../components/layout/Servicios.astro"
-import Footer from "../components/layout/Footer.astro"
+import Navigation from "../components/layout/Navigation.astro";
+import Hero from "../components/layout/Hero.astro";
+import DondeEstamos from "../components/layout/DondeEstamos.astro";
+import Servicios from "../components/layout/Servicios.astro";
+import Footer from "../components/layout/Footer.astro";
 ---
 
 <html lang="es" class="scroll-smooth">
@@ -11,20 +11,56 @@ import Footer from "../components/layout/Footer.astro"
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/png" href="/stylosLogo.png" />
 		<meta name="viewport" content="width=device-width" />
-		<title>Stylo's Barber - Calidad y calidez al servicio de tu cabello</title>
-		<meta name="description" content="Vení a Stylo's Barber en Ituzaingó. Cortes clásicos, modernos, fades, diseño de barba y más. Atención personalizada y técnica de primera. Reservá tu turno.">
+		<title>
+			Stylo's Barber - Calidad y calidez al servicio de tu cabello
+		</title>
+		<meta
+			name="description"
+			content="Vení a Stylo's Barber en Ituzaingó. Cortes clásicos, modernos, fades, diseño de barba y más. Atención personalizada y técnica de primera. Reservá tu turno."
+		/>
 		<meta name="generator" content={Astro.generator} />
+		<meta property="og:title" content="Stylo’s Barber" />
+		<meta
+			property="og:description"
+			content="Barbería en Ituzaingó. Reservá tu turno online."
+		/>
+		<meta
+			property="og:image"
+			content="https://stylosbarber.com.ar/og-image.png"
+		/>
+		<meta property="og:url" content="https://stylosbarber.com.ar" />
+		<meta property="og:type" content="website" />
+		<script type="application/ld+json">
+			{
+			  "@context": "https://schema.org",
+			  "@type": "BarberShop",
+			  "name": "Stylo’s Barber",
+			  "image": "https://stylosbarber.com.ar/og-image.jpg",
+			  "address": {
+				"@type": "PostalAddress",
+				"streetAddress": "General Miguel Soler 398",
+				"addressLocality": "Ituzaingó",
+				"addressCountry": "AR"
+			  },
+			  "telephone": "+5491132303565",
+			  "url": "https://stylosbarber.com.ar",
+			  "openingHours": "Tu-Sa 09:30-20:00"
+			}
+			</script>
 	</head>
 	<header>
-		<Navigation/>
+		<Navigation />
 	</header>
-	
-	<Hero/>
-	<main class=" bg-gradient-to-b from-[rgba(36,35,49,1)] from-20% via-[rgba(55,54,76,1)] via-50% to-[rgba(36,35,49,1)] to-60% text-[#B4C5E3] flex flex-col items-center px-4 ">
-		<DondeEstamos/>
-		<Servicios/>
+
+	<Hero />
+	<main
+		class="bg-gradient-to-b from-[rgba(36,35,49,1)] from-20% via-[rgba(55,54,76,1)] via-50% to-[rgba(36,35,49,1)] to-60% text-[#B4C5E3] flex flex-col items-center px-4"
+	>
+		<DondeEstamos />
+		<Servicios />
 	</main>
 	<footer>
-		<Footer/>		
+		<Footer />
 	</footer>
+
 </html>
