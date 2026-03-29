@@ -1,7 +1,10 @@
 {
-  "name": "",
+  "name": "stylos-barber",
   "type": "module",
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sitio web para Stylo's Barber, una barbería ubicada en Ituzaingó, Buenos Aires, Argentina. El sitio presenta información sobre los servicios ofrecidos, el equipo de barberos, la ubicación y los horarios de atención. Además, incluye una sección de contacto para que los clientes puedan comunicarse fácilmente con la barbería.",
+  "author": "Milton José Fernández",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
