@@ -14,20 +14,12 @@ import Footer from "../components/layout/Footer.astro"
 		<title>Stylo's Barber - Calidad y calidez al servicio de tu cabello</title>
 		<meta name="description" content="Vení a Stylo's Barber en Ituzaingó. Cortes clásicos, modernos, fades, diseño de barba y más. Atención personalizada y técnica de primera. Reservá tu turno.">
 		<meta name="generator" content={Astro.generator} />
-		<title>Stylo's Barber</title>
 	</head>
 	<header>
-		<Navigation 
-		imagePath="/src/assets/stylosLogo.png"
-		altText="logo de stylo's barber"
-	/>
+		<Navigation/>
 	</header>
 	
-	<Hero
-		title="Al servicio de tu Stylo"
-		buttonText = "Quiero un turno"
-		buttonLink = "#"
-	/>
+	<Hero/>
 	<main class=" bg-gradient-to-b from-[rgba(36,35,49,1)] from-20% via-[rgba(55,54,76,1)] via-50% to-[rgba(36,35,49,1)] to-60% text-[#B4C5E3] flex flex-col items-center px-4 ">
 		<DondeEstamos/>
 		<Servicios/>

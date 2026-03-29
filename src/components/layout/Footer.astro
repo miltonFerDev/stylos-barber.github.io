@@ -1,10 +1,14 @@
 ---
-import FooterItem from "../FooterItem.astro";
+import { Image } from "astro:assets";
+
 import malvinasImg from "../../assets/Malvinas.png";
+import instagramIcon from "../../assets/Instagram.svg"
+import gmailIcon from "../../assets/Gmail.svg"
+import whatsappIcon from "../../assets/Whatsapp.svg"
 ---
 
-<footer class="w-full bg-[#14141C] text-[#B4C5E3] font-gothic">
-    <div id="links" class="py-10">
+<footer class="w-full bg-[#14141C] text-[#B4C5E3] py-10 px-4 font-gothic">
+    <!-- <div id="links" class="py-10">
       <div class="grid justify-center gap-4">
       <FooterItem 
         imagePath= "/src/assets/Whatsapp.svg";
@@ -33,5 +37,31 @@ import malvinasImg from "../../assets/Malvinas.png";
       </div>
      
       <img class="w-[31px] h-[17px]" src="/Malvinas.png" alt="Islas Malvinas Argentinas">
+    </div> -->
+
+    <div class="max-w-6xl mx-auto flex flex-col items-center gap-6">
+
+      <!-- REDES -->
+       <div class="flex flex-col gap-3">
+        <a href="https://www.instagram.com/stylosbarber1/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:opacity-80 transition">
+          <span class="w-8 flex justify-center"><Image src={instagramIcon} alt="Instagram" class="w-6 h-6" /></span>
+          <span class="text-m">@stylosbarber1</span> </a>
+       <a href="https://wa.link/i3i73j" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:opacity-80 transition">
+        <span class="w-8 flex justify-center"><Image src={whatsappIcon} alt="Whatsapp" class="w-6 h-6" /></span><span class="text-m">11 3230 3565</span> </a>
+        <a href="stylos.barber1@gmail.com" target="_blank" rel="noopener noreferrer"  class="flex items-center gap-3 hover:opacity-80 transition">
+          <span class="w-8 flex justify-center"> <Image src={gmailIcon} alt="Mail" class="w-6 h-6" /></span><span class="text-m">stylos.barber1@gmail.com</span> </a>
+     </div>
+
+     <!-- MARCA -->
+      <p class="text-sm opacity-80 text-center">
+        © {new Date().getFullYear()} Stylo's Barber
+      </p>
+
+      <!-- MALVINAS -->
+       <Image
+        src={malvinasImg}
+        alt="Las Malvinas son Argentinas"
+        class="w-12 opacity-80"
+       />
     </div>
   </footer>
