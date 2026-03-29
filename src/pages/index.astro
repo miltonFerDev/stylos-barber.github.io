@@ -9,7 +9,7 @@ import Footer from "../components/layout/Footer.astro";
 <html lang="es" class="scroll-smooth">
 	<head>
 		<meta charset="utf-8" />
-		<link rel="icon" type="image/png" href="/stylosLogo.png" />
+		<link rel="icon" type="image/png" href="/favicon.ico" />
 		<meta name="viewport" content="width=device-width" />
 		<title>
 			Stylo's Barber - Calidad y calidez al servicio de tu cabello
@@ -33,18 +33,44 @@ import Footer from "../components/layout/Footer.astro";
 		<script type="application/ld+json">
 			{
 			  "@context": "https://schema.org",
-			  "@type": "BarberShop",
+			  "@type": "HairSalon",
 			  "name": "Stylo’s Barber",
 			  "image": "https://stylosbarber.com.ar/og-image.jpg",
+			  "url": "https://stylosbarber.com.ar",
+			  "telephone": "+549XXXXXXXXXX",
+			
 			  "address": {
 				"@type": "PostalAddress",
 				"streetAddress": "General Miguel Soler 398",
 				"addressLocality": "Ituzaingó",
 				"addressCountry": "AR"
 			  },
-			  "telephone": "+5491132303565",
-			  "url": "https://stylosbarber.com.ar",
-			  "openingHours": "Tu-Sa 09:30-20:00"
+			
+			  "geo": {
+				"@type": "GeoCoordinates",
+				"latitude": -34.65,
+				"longitude": -58.67
+			  },
+			
+			  "openingHoursSpecification": [
+				{
+				  "@type": "OpeningHoursSpecification",
+				  "dayOfWeek": ["Tuesday","Wednesday","Thursday","Friday","Saturday"],
+				  "opens": "09:30",
+				  "closes": "20:00"
+				}
+			  ],
+			
+			  "priceRange": "$$",
+			
+			  "areaServed": {
+				"@type": "Place",
+				"name": "Ituzaingó"
+			  },
+			
+			  "sameAs": [
+				"https://instagram.com/stylosbarber"
+			  ]
 			}
 			</script>
 	</head>
