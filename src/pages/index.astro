@@ -8,12 +8,31 @@ import Footer from "../components/layout/Footer.astro";
 
 <html lang="es" class="scroll-smooth">
 	<head>
+		<!-- Google Tag Manager -->
+		<script>
+			(function (w, d, s, l, i) {
+				w[l] = w[l] || [];
+				w[l].push({
+					"gtm.start": new Date().getTime(),
+					event: "gtm.js",
+				});
+				var f = d.getElementsByTagName(s)[0],
+					j = d.createElement(s),
+					dl = l != "dataLayer" ? "&l=" + l : "";
+				j.async = true;
+				j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+				f.parentNode.insertBefore(j, f);
+			})(window, document, "script", "dataLayer", "GTM-T9DQHFPN");
+		</script>
+		<!-- End Google Tag Manager -->
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/png" href="/favicon.ico" />
 		<meta name="viewport" content="width=device-width" />
+
 		<title>
 			Stylo's Barber - Calidad y calidez al servicio de tu cabello
 		</title>
+
 		<meta
 			name="description"
 			content="Vení a Stylo's Barber en Ituzaingó. Cortes clásicos, modernos, fades, diseño de barba y más. Atención personalizada y técnica de primera. Reservá tu turno."
@@ -32,47 +51,51 @@ import Footer from "../components/layout/Footer.astro";
 		<meta property="og:type" content="website" />
 		<script type="application/ld+json">
 			{
-			  "@context": "https://schema.org",
-			  "@type": "HairSalon",
-			  "name": "Stylo’s Barber",
-			  "image": "https://stylosbarber.com.ar/og-image.jpg",
-			  "url": "https://stylosbarber.com.ar",
-			  "telephone": "+549XXXXXXXXXX",
-			
-			  "address": {
-				"@type": "PostalAddress",
-				"streetAddress": "General Miguel Soler 398",
-				"addressLocality": "Ituzaingó",
-				"addressCountry": "AR"
-			  },
-			
-			  "geo": {
-				"@type": "GeoCoordinates",
-				"latitude": -34.65,
-				"longitude": -58.67
-			  },
-			
-			  "openingHoursSpecification": [
-				{
-				  "@type": "OpeningHoursSpecification",
-				  "dayOfWeek": ["Tuesday","Wednesday","Thursday","Friday","Saturday"],
-				  "opens": "09:30",
-				  "closes": "20:00"
-				}
-			  ],
-			
-			  "priceRange": "$$",
-			
-			  "areaServed": {
-				"@type": "Place",
-				"name": "Ituzaingó"
-			  },
-			
-			  "sameAs": [
-				"https://instagram.com/stylosbarber"
-			  ]
+				"@context": "https://schema.org",
+				"@type": "HairSalon",
+				"name": "Stylo’s Barber",
+				"image": "https://stylosbarber.com.ar/og-image.jpg",
+				"url": "https://stylosbarber.com.ar",
+				"telephone": "+549XXXXXXXXXX",
+
+				"address": {
+					"@type": "PostalAddress",
+					"streetAddress": "General Miguel Soler 398",
+					"addressLocality": "Ituzaingó",
+					"addressCountry": "AR"
+				},
+
+				"geo": {
+					"@type": "GeoCoordinates",
+					"latitude": -34.65,
+					"longitude": -58.67
+				},
+
+				"openingHoursSpecification": [
+					{
+						"@type": "OpeningHoursSpecification",
+						"dayOfWeek": [
+							"Tuesday",
+							"Wednesday",
+							"Thursday",
+							"Friday",
+							"Saturday"
+						],
+						"opens": "09:30",
+						"closes": "20:00"
+					}
+				],
+
+				"priceRange": "$$",
+
+				"areaServed": {
+					"@type": "Place",
+					"name": "Ituzaingó"
+				},
+
+				"sameAs": ["https://instagram.com/stylosbarber"]
 			}
-			</script>
+		</script>
 	</head>
 	<header>
 		<Navigation />
@@ -82,11 +105,21 @@ import Footer from "../components/layout/Footer.astro";
 	<main
 		class="bg-gradient-to-b from-[rgba(36,35,49,1)] from-20% via-[rgba(55,54,76,1)] via-50% to-[rgba(36,35,49,1)] to-60% text-[#B4C5E3] flex flex-col items-center px-4"
 	>
+		<!-- Google Tag Manager (noscript) -->
+		<noscript
+			><iframe
+				src="https://www.googletagmanager.com/ns.html?id=GTM-T9DQHFPN"
+				height="0"
+				width="0"
+				style="display:none;visibility:hidden"></iframe></noscript
+		>
+		<!-- End Google Tag Manager (noscript) -->
 		<DondeEstamos />
 		<Servicios />
 	</main>
 	<footer>
 		<Footer />
 	</footer>
+
 
 </html>
