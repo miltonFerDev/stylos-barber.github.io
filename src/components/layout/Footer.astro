@@ -7,52 +7,21 @@ import gmailIcon from "../../assets/Gmail.svg"
 import whatsappIcon from "../../assets/Whatsapp.svg"
 ---
 
-<footer class="w-full bg-[#14141C] text-[#B4C5E3] py-10 px-4 font-gothic">
-    <!-- <div id="links" class="py-10">
-      <div class="grid justify-center gap-4">
-      <FooterItem 
-        imagePath= "/src/assets/Whatsapp.svg";
-        altText= "Whatsapp logo";
-        linkString= "+54 11 3230-3565";
-        linkPath= "#";
-      />
-      <FooterItem 
-        imagePath= "/src/assets/Instagram.svg";
-        altText= "Instagram logo";
-        linkString= "@stylos.barber1";
-        linkPath= "https://www.instagram.com/stylosbarber1/";
-      />
-      <FooterItem 
-        imagePath= "/src/assets/Gmail.svg";
-        altText= "Gmail logo";
-        linkString= "stylos.barber1@gmail.com";
-        linkPath= "#";
-      />
-      </div>
-    </div>
-    <div id="pie" class="flex flex-col items-center text-center  py-5">
-      <div class="py-2">
-        <p class="text-[10px] md:text-xl font-semibold">Desarrollado por <a target="_blank" href="https://github.com/miltonFerDev">@miltonFerDev</a></p>
-        <p class="text-[10px] font-semibold">Todos los derechos reservados │ Stylo's Barber ® </p>
-      </div>
-     
-      <img class="w-[31px] h-[17px]" src="/Malvinas.png" alt="Islas Malvinas Argentinas">
-    </div> -->
-
+<footer id="contacto" class="w-full bg-[#14141C] text-textFooter py-12 lg:py-16 px-4 font-gothic" aria-label="Pie de página">
     <div class="max-w-6xl mx-auto flex flex-col items-center gap-6">
 
       <!-- REDES -->
        <div class="flex flex-col gap-3">
-        <a href="https://www.instagram.com/stylosbarber1/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:opacity-80 transition">
-          <span class="w-8 flex justify-center"><Image src={instagramIcon} alt="Instagram" class="w-6 h-6" /></span>
+        <a href="https://www.instagram.com/stylosbarber1/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:opacity-80 transition-transform duration-200 hover:scale-105">
+          <span class="w-8 flex justify-center"><Image src={instagramIcon} alt="Instagram de Stylo's Barber" class="w-6 h-6 transition-transform duration-200" /></span>
           <span class="text-m">@stylosbarber1</span> </a>
-       <a href="https://wa.link/i3i73j" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:opacity-80 transition">
-        <span class="w-8 flex justify-center"><Image src={whatsappIcon} alt="Whatsapp" class="w-6 h-6" /></span><span class="text-m">11 3230 3565</span> </a>
-        <a href="mailto:stylos.barber1@gmail.com?subject=Consulta%20desde%20la%20web" target="_blank" rel="noopener noreferrer"  class="flex items-center gap-3 hover:opacity-80 transition">
-          <span class="w-8 flex justify-center"> <Image src={gmailIcon} alt="Mail" class="w-6 h-6" /></span><span class="text-m">stylos.barber1@gmail.com</span> </a>
-     </div>
+        <a href="tel:+541132303565" class="flex items-center gap-3 hover:opacity-80 transition-transform duration-200 hover:scale-105">
+        <span class="w-8 flex justify-center"><Image src={whatsappIcon} alt="WhatsApp de Stylo's Barber" class="w-6 h-6 transition-transform duration-200" /></span><span class="text-m">11 3230 3565</span> </a>
+        <a href="mailto:stylos.barber1@gmail.com?subject=Consulta%20desde%20la%20web" target="_blank" rel="noopener noreferrer"  class="flex items-center gap-3 hover:opacity-80 transition-transform duration-200 hover:scale-105">
+          <span class="w-8 flex justify-center"> <Image src={gmailIcon} alt="Correo electrónico de Stylo's Barber" class="w-6 h-6 transition-transform duration-200" /></span><span class="text-m">stylos.barber1@gmail.com</span> </a>
+      </div>
 
-     <!-- MARCA -->
+      <!-- MARCA -->
       <p class="text-sm opacity-80 text-center">
         © {new Date().getFullYear()} Stylo's Barber
       </p>

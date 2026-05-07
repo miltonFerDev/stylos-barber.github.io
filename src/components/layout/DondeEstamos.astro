@@ -2,18 +2,42 @@
 import '@fontsource/gothic-a1';
 ---
 
-<div class=" flex flex-col items-center py-10 md:py-20 lg:py-36 font-gothic">
-    <div class="my-20 py-8 lg:py-28 border border-[#B4C5E3] rounded-xl">
-        <p class="px-5 text-[18px] lg:text-3xl text-center italic md:max-w-2xl lg:max-w-[1200px]">Nuestra misión es proporcionar cortes de cabello de calidad en tiempos eficientes, sin comprometer la experiencia del cliente, en un ambiente profesional y amigable.</p>
+<div id="donde-estamos" class="w-full py-16 lg:py-28 font-gothic" aria-label="Ubicación y horarios">
+    <div class="max-w-4xl mx-auto px-4 mb-12 lg:mb-16">
+        <div class="py-10 lg:py-14 px-6 lg:px-10 border border-accentMuted rounded-2xl bg-surface/50 backdrop-blur-sm">
+            <p class="text-base sm:text-lg lg:text-2xl text-center text-textMuted italic leading-relaxed max-w-2xl mx-auto">Nuestra misión es proporcionar cortes de cabello de calidad en tiempos eficientes, sin comprometer la experiencia del cliente, en un ambiente profesional y amigable.</p>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div class="flex flex-col items-center text-center lg:items-start lg:text-left gap-4 lg:gap-6">
+                <h3 class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl uppercase font-bold text-textLight">Encontranos</h3>
+                <div class="flex flex-col gap-3 text-base sm:text-lg lg:text-xl text-textMuted">
+                    <p class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Soler 398, esquina Lavalle, Ituzaingó
+                    </p>
+                    <p class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Martes a Sábado de 9:30 a 20 hs.
+                    </p>
+                </div>
+            </div>
+
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3281.9307212144267!2d-58.67314667304684!3d-34.656452499999986!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcbf609e9d19df%3A0x71a8e1d95bd46dfc!2sStylos%20Barber!5e0!3m2!1ses-419!2sar!4v1726241389255!5m2!1ses-419!2sar"
+                class="w-full h-[300px] sm:h-[350px] lg:h-[400px] rounded-2xl shadow-mapa border border-accentMuted"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                title="Ubicación de Stylo's Barber en el mapa"
+            ></iframe>
+        </div>
     </div>
 </div>
-
-<div class="w-full h-full lg:grid grid-cols-2 lg:grid-cols-3 gap-8 font-gothic">
-  <div class="m-auto flex flex-col items-center pb-5">
-    <h3 class="text-4xl  lg:text-8xl uppercase text-center font-bold">Nuestra esquina</h3>
-    <p class=" lg:text-3xl text-center py-3">Soler 398, esquina Lavalle, Ituzaingó</p>
-    <p class=" lg:text-3xl text-center py-3">Martes a Sábado de 9:30 a 20 hs.</p>
-  </div>
-    
-    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3281.9307212144267!2d-58.67314667304684!3d-34.656452499999986!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcbf609e9d19df%3A0x71a8e1d95bd46dfc!2sStylos%20Barber!5e0!3m2!1ses-419!2sar!4v1726241389255!5m2!1ses-419!2sar" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" class="w-full max-w-[1200px] h-[358px] lg:h-[495px] rounded-xl lg:col-span-2"></iframe>
- </div>

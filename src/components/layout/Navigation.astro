@@ -1,15 +1,83 @@
 ---
-
 import { Image } from 'astro:assets'
 import stylosLogo from "../../assets/stylosLogo.png";
 ---
 
-<nav class="bg-[#FBFFF1] py-[5px] w-screen fixed z-50">
-   <div class="max-w-6xl mx-auto flex items-center justify-center">
+<nav class="bg-[#FBFFF1] py-[5px] w-screen fixed z-50" aria-label="Navegación principal">
+   <div class="max-w-6xl mx-auto flex items-center justify-between px-4">
       <Image
       src={stylosLogo}
-      alt="logo de stylos barber"
+      alt="Logo de Stylo's Barber"
       class="h-10 w-auto"/>
+
+      <button
+        id="menu-toggle"
+        type="button"
+        class="md:hidden p-2 text-[#242331] focus:outline-none focus:ring-2 focus:ring-[#3E52D5] rounded-lg"
+        aria-label="Abrir menú"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+      >
+        <svg id="menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <svg id="menu-icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+
+      <ul id="mobile-menu" class="hidden absolute top-full left-0 right-0 bg-surfaceLight shadow-xl md:hidden flex-col gap-4 p-6 border-t border-accentMuted">
+        <li><a href="#inicio" class="block py-3 text-primary hover:text-accent font-medium transition-colors duration-200">Inicio</a></li>
+        <li><a href="#servicios" class="block py-3 text-primary hover:text-accent font-medium transition-colors duration-200">Servicios</a></li>
+        <li><a href="#testimonios" class="block py-3 text-primary hover:text-accent font-medium transition-colors duration-200">Testimonios</a></li>
+        <li><a href="#donde-estamos" class="block py-3 text-primary hover:text-accent font-medium transition-colors duration-200">Ubicación</a></li>
+        <li><a href="#contacto" class="block py-3 text-primary hover:text-accent font-medium transition-colors duration-200">Contacto</a></li>
+      </ul>
+
+      <ul class="hidden md:flex items-center gap-8">
+        <li><a href="#inicio" class="text-primary hover:text-accent font-medium transition-colors duration-200">Inicio</a></li>
+        <li><a href="#servicios" class="text-primary hover:text-accent font-medium transition-colors duration-200">Servicios</a></li>
+        <li><a href="#testimonios" class="text-primary hover:text-accent font-medium transition-colors duration-200">Testimonios</a></li>
+        <li><a href="#donde-estamos" class="text-primary hover:text-accent font-medium transition-colors duration-200">Ubicación</a></li>
+        <li><a href="#contacto" class="text-primary hover:text-accent font-medium transition-colors duration-200">Contacto</a></li>
+      </ul>
    </div>
 </nav>
-<
+
+<script>
+  const menuToggle = document.getElementById('menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIconOpen = document.getElementById('menu-icon-open');
+  const menuIconClose = document.getElementById('menu-icon-close');
+
+  menuToggle?.addEventListener('click', () => {
+    const isOpen = !mobileMenu?.classList.contains('hidden');
+
+    if (isOpen) {
+      mobileMenu?.classList.add('hidden');
+      mobileMenu?.classList.remove('flex');
+      menuIconOpen?.classList.remove('hidden');
+      menuIconClose?.classList.add('hidden');
+      menuToggle.setAttribute('aria-expanded', 'false');
+      menuToggle.setAttribute('aria-label', 'Abrir menú');
+    } else {
+      mobileMenu?.classList.remove('hidden');
+      mobileMenu?.classList.add('flex');
+      menuIconOpen?.classList.add('hidden');
+      menuIconClose?.classList.remove('hidden');
+      menuToggle.setAttribute('aria-expanded', 'true');
+      menuToggle.setAttribute('aria-label', 'Cerrar menú');
+    }
+  });
+
+  document.querySelectorAll('#mobile-menu a').forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu?.classList.add('hidden');
+      mobileMenu?.classList.remove('flex');
+      menuIconOpen?.classList.remove('hidden');
+      menuIconClose?.classList.add('hidden');
+      menuToggle?.setAttribute('aria-expanded', 'false');
+      menuToggle?.setAttribute('aria-label', 'Abrir menú');
+    });
+  });
+</script>

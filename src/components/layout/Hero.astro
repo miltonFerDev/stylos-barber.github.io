@@ -3,7 +3,7 @@ import Button from "../Button.astro"
 import '@fontsource/gothic-a1';
 ---
 
-<section class="relative min-h-dvh overflow-hidden bg-[#242331] font-gothic">
+<section id="inicio" class="relative min-h-dvh overflow-hidden bg-primary font-gothic" aria-label="Bienvenida">
   <!-- <video
     autoplay
     loop
@@ -13,40 +13,42 @@ import '@fontsource/gothic-a1';
     class="absolute inset-0 h-full w-full object-cover"
   ></video> -->
 
-  <div class="absolute inset-0 bg-[#242331]/70"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary/80"></div>
 
   <div class="relative z-10 mx-auto flex min-h-dvh max-w-6xl flex-col items-center justify-center px-6 text-center">
     <div class="max-w-5xl">
-      <h1 class="text-[#FBFFF1] uppercase leading-[0.95] tracking-[-0.02em]">
-        <span class="block text-5xl sm:text-6xl lg:text-7xl font-medium">
+      <h1 class="text-textLight uppercase leading-[0.95] tracking-[-0.02em]">
+        <span class="block opacity-0 animate-fadeUp text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-medium" style="animation-delay: 0ms">
           Calidad en el corte
         </span>
 
-        <span class="mt-2 block text-5xl sm:mt-3 sm:text-6xl lg:text-7xl font-extrabold">
+        <span class="mt-2 block opacity-0 animate-fadeUp text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold" style="animation-delay: 100ms">
           Calidez en la atención
         </span>
       </h1>
 
-      <p class="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-[#FBFFF1]/85 sm:text-lg lg:text-xl">
-        Cortes, barba y atención personalizada en Ituzaingó, con criterio y atención al detalle. Reservá tu turno online.
-      </p>
+      <div class="mt-10 flex flex-col items-center gap-6">
+        <div class="opacity-0 animate-fadeUp w-full max-w-[400px] sm:max-w-[500px]" style="animation-delay: 200ms">
+          <Button
+            classString="w-full rounded-xl bg-accent px-6 py-5 text-center text-lg sm:text-xl lg:text-2xl font-bold uppercase text-white transition-all duration-300 hover:bg-accentHover hover:shadow-accent"
+            buttonText="Reservá online"
+            buttonLink="https://www.fresha.com/es/a/stylos-barber-ituzaingo-general-miguel-soler-398-jtabqara/booking?allOffer=true&menu=true"
+          />
+        </div>
+        <div class="opacity-0 animate-fadeUp text-sm sm:text-base text-textMuted" style="animation-delay: 300ms">
+          Soler 398, Ituzaingó
+        </div>
+      </div>
+    </div>
 
-      <div class="mt-10 flex flex-col items-center gap-4">
-        <Button
-         
-          classString="inline-block w-full max-w-[400px] rounded-xl bg-[#3E52D5] px-6 py-4 text-center text-[16px] font-extrabold uppercase text-white transition-colors duration-300 hover:bg-[#586DF3] sm:text-[22px]"
-          buttonText="Quiero un turno"
-          buttonLink="https://www.fresha.com/es/a/stylos-barber-ituzaingo-general-miguel-soler-398-jtabqara/booking?allOffer=true&menu=true"
-        />
-        <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-[#FBFFF1]/80 sm:text-base">
-        <span>Soler 398, Ituzaingó</span>
-        <span class="hidden sm:inline">•</span>
-        <span>9:30 a 20 hs.</span>
-          <span class="hidden sm:inline">•</span>
-          <span>Martes a sábado</span>  
-        
-      </div>
-      </div>
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 opacity-0 animate-fadeUp" style="animation-delay: 500ms">
+      <a href="#servicios" class="flex flex-col items-center gap-2 text-textMuted hover:text-textLight transition-colors duration-300" aria-label="Ver servicios">
+        <span class="text-xs uppercase tracking-widest">Ver servicios</span>
+        <svg class="w-5 h-5 animate-bounceDown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+      </a>
     </div>
   </div>
 </section>

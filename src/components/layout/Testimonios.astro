@@ -1,0 +1,23 @@
+---
+import CardTestimonios from "../CardTestimonios.astro"
+---
+<section id="testimonios" class="w-full py-16 lg:py-28 text-center font-gothic" aria-label="Testimonios de clientes">
+    <div class="max-w-6xl mx-auto px-4">
+        <h2 class="font-bold text-3xl sm:text-4xl lg:text-5xl xl:text-6xl uppercase mb-10 lg:mb-16 text-textLight">Lo que dicen nuestros clientes</h2>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <CardTestimonios
+                name="Juan Carlos"
+                quote="Me siento muy bien atendido en tiempos donde el buen servicio es escaso."
+            />
+            <CardTestimonios
+                name="Alejandro"
+                quote="Muy buena atención y profesionalidad."
+            />
+            <CardTestimonios
+                name="Angela"
+                quote="Me pareció un lugar super lindo para llevar al peque, lo trataron muy bien y el corte le quedó súper. Volvería."
+            />
+        </div>
+    </div>
+</section>

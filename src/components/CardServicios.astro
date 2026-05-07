@@ -1,17 +1,21 @@
 ---
 interface Props {
     serviceTitle: string;
+    servicePrice: string;
     serviceText: string;
 }
 
-const { serviceTitle, serviceText } = Astro.props;
+const { serviceTitle, servicePrice, serviceText } = Astro.props;
 ---
 
-<div>
-    <h4
-        class="text-2xl font-semibold pb-3 md:pb-5 lg:pb-8 md:text-4xl lg:text-5xl"
-    >
+<div class="group relative bg-surface border border-accentMuted rounded-2xl p-8 lg:p-10 transition-all duration-300 hover:border-accent/50 hover:shadow-cardHover hover:-translate-y-1">
+    <h4 class="text-xl lg:text-2xl font-semibold text-textLight pb-2 lg:pb-3">
         {serviceTitle}
     </h4>
-    <p class="md:text-2xl lg:text-3xl md:px-10 lg:px-24">{serviceText}</p>
+    <span class="inline-block text-accent font-bold text-lg lg:text-xl mb-4 lg:mb-5">
+        {servicePrice}
+    </span>
+    <p class="text-base lg:text-lg text-textMuted leading-relaxed">{serviceText}</p>
+
+    <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 </div>

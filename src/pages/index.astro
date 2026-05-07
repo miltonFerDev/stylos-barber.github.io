@@ -3,6 +3,7 @@ import Navigation from "../components/layout/Navigation.astro";
 import Hero from "../components/layout/Hero.astro";
 import DondeEstamos from "../components/layout/DondeEstamos.astro";
 import Servicios from "../components/layout/Servicios.astro";
+import Testimonios from "../components/layout/Testimonios.astro";
 import Footer from "../components/layout/Footer.astro";
 ---
 
@@ -86,26 +87,37 @@ import Footer from "../components/layout/Footer.astro";
 				"sameAs": ["https://instagram.com/stylosbarber"]
 			}
 		</script>
+		<script is:inline>
+			document.addEventListener('DOMContentLoaded', () => {
+				const observer = new IntersectionObserver((entries) => {
+					entries.forEach(entry => {
+						if (entry.isIntersecting) {
+							entry.target.classList.add('animate-fadeUp');
+							entry.target.style.opacity = '1';
+							observer.unobserve(entry.target);
+						}
+					});
+				}, { threshold: 0.1 });
+
+				document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
+			});
+		</script>
 	</head>
 	<header>
 		<Navigation />
 	</header>
 
 	<Hero />
-	<main
-		class="bg-gradient-to-b from-[rgba(36,35,49,1)] from-20% via-[rgba(55,54,76,1)] via-50% to-[rgba(36,35,49,1)] to-60% text-[#B4C5E3] flex flex-col items-center px-4"
-	>
-		<!-- Google Tag Manager (noscript) -->
-		<noscript
-			><iframe
-				src="https://www.googletagmanager.com/ns.html?id=GTM-T9DQHFPN"
-				height="0"
-				width="0"
-				style="display:none;visibility:hidden"></iframe></noscript
-		>
-		<!-- End Google Tag Manager (noscript) -->
-		<DondeEstamos />
-		<Servicios />
+	<main class="text-textFooter flex flex-col items-center">
+		<div class="w-full bg-[#2A2A3D]">
+			<Servicios />
+		</div>
+		<div class="w-full bg-primary">
+			<Testimonios />
+		</div>
+		<div class="w-full bg-primary">
+			<DondeEstamos />
+		</div>
 	</main>
 	<footer>
 		<Footer />
