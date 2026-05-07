@@ -3,9 +3,19 @@ import '@fontsource/gothic-a1';
 ---
 
 <div id="donde-estamos" class="w-full py-16 lg:py-28 font-gothic" aria-label="Ubicación y horarios">
-    <div class="max-w-4xl mx-auto px-4 mb-12 lg:mb-16">
-        <div class="py-10 lg:py-14 px-6 lg:px-10 border border-accentMuted rounded-2xl bg-surface/50 backdrop-blur-sm">
-            <p class="text-base sm:text-lg lg:text-2xl text-center text-textMuted italic leading-relaxed max-w-2xl mx-auto">Nuestra misión es proporcionar cortes de cabello de calidad en tiempos eficientes, sin comprometer la experiencia del cliente, en un ambiente profesional y amigable.</p>
+    <div class="max-w-3xl mx-auto px-4 mb-16 lg:mb-24 text-center">
+        <div class="relative" id="mision-container">
+            <svg class="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-6 text-accent opacity-50" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+            </svg>
+
+            <p class="text-base sm:text-lg md:text-xl lg:text-2xl text-textMuted italic leading-relaxed mission-text">
+                Nuestra misión es proporcionar cortes de cabello de calidad en tiempos eficientes, sin comprometer la experiencia del cliente, en un ambiente profesional y amigable.
+            </p>
+
+            <p class="mt-6 text-xs sm:text-sm md:text-base text-accent font-semibold tracking-wider mission-attribution">
+                — Stylo's Barber
+            </p>
         </div>
     </div>
 
@@ -41,3 +51,58 @@ import '@fontsource/gothic-a1';
         </div>
     </div>
 </div>
+
+<style>
+    @keyframes slideReveal {
+        0% {
+            opacity: 0;
+            transform: translateY(12px) blur(3px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) blur(0);
+        }
+    }
+
+    .mission-text .char {
+        opacity: 0;
+        animation: slideReveal 0.5s ease-out forwards;
+    }
+
+    .mission-attribution {
+        opacity: 0;
+        animation: slideReveal 0.5s ease-out 2.5s forwards;
+    }
+</style>
+
+<script is:inline>
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('mision-container');
+        if (!container) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const textEl = container.querySelector('.mission-text');
+                    if (textEl && !textEl.dataset.animated) {
+                        textEl.dataset.animated = 'true';
+                        const text = textEl.textContent;
+                        const chars = text.split('');
+                        let html = '';
+                        chars.forEach((char, i) => {
+                            if (char === ' ') {
+                                html += ' ';
+                            } else {
+                                html += `<span class="char" style="animation-delay: calc(${i} * 20ms + 100ms)">${char}</span>`;
+                            }
+                        });
+                        textEl.innerHTML = html;
+                    }
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.2 });
+
+        observer.observe(container);
+    });
+</script>
