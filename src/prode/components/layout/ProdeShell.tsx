@@ -2,10 +2,12 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ProdeNav } from './ProdeNav';
 import { AuthGuard } from '../auth/AuthGuard';
+import { ProfileGuard } from '../auth/ProfileGuard';
 import { DashboardPage } from '../../pages/DashboardPage';
 import { PredictionsPage } from '../../pages/PredictionsPage';
 import { RankingPage } from '../../pages/RankingPage';
 import { RulesPage } from '../../pages/RulesPage';
+import { OnboardingPage } from '../../pages/OnboardingPage';
 
 export function ProdeShell() {
   return (
@@ -14,8 +16,9 @@ export function ProdeShell() {
         <ProdeNav />
         <main className="max-w-2xl mx-auto px-4 py-6">
           <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/predicciones" element={<AuthGuard><PredictionsPage /></AuthGuard>} />
+            <Route path="/" element={<ProfileGuard><DashboardPage /></ProfileGuard>} />
+            <Route path="/onboarding" element={<AuthGuard><OnboardingPage /></AuthGuard>} />
+            <Route path="/predicciones" element={<AuthGuard><ProfileGuard><PredictionsPage /></ProfileGuard></AuthGuard>} />
             <Route path="/ranking" element={<RankingPage />} />
             <Route path="/reglas" element={<RulesPage />} />
           </Routes>

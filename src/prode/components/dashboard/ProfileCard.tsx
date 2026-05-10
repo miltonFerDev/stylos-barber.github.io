@@ -1,10 +1,14 @@
 import React from 'react';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
-import { mockProfile, mockRankingGeneral } from '../../data/mocks';
+import { useProfile } from '../../hooks/useProfile';
+import { mockRankingGeneral } from '../../data/mocks';
 
 export function ProfileCard() {
-  const userRanking = mockRankingGeneral.find(r => r.alias === mockProfile.alias);
+  const { profile } = useProfile();
+
+  const alias = profile?.alias ?? '???';
+  const userRanking = mockRankingGeneral.find(r => r.alias === alias);
   const position = userRanking?.position ?? '-';
   const points = userRanking?.points ?? 0;
 
@@ -16,10 +20,10 @@ export function ProfileCard() {
         <div className="flex items-start justify-between mb-3">
           <div>
             <p className="text-textMuted text-sm mb-1">Hola, 👋</p>
-            <h2 className="text-textLight text-xl font-bold">{mockProfile.alias}</h2>
+            <h2 className="text-textLight text-xl font-bold">{alias}</h2>
           </div>
           <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-accent text-xl font-bold">
-            {mockProfile.alias.slice(0, 2)}
+            {alias.slice(0, 2)}
           </div>
         </div>
 
