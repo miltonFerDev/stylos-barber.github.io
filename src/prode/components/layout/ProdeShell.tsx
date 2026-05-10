@@ -8,7 +8,9 @@ import { FixturePage } from '../../pages/FixturePage';
 import { PredictionsPage } from '../../pages/PredictionsPage';
 import { RankingPage } from '../../pages/RankingPage';
 import { RulesPage } from '../../pages/RulesPage';
+import { AdminPage } from '../../pages/AdminPage';
 import { OnboardingPage } from '../../pages/OnboardingPage';
+import { AdminGuard } from '../auth/AdminGuard';
 
 export function ProdeShell() {
   return (
@@ -23,6 +25,7 @@ export function ProdeShell() {
             <Route path="/predicciones" element={<AuthGuard><ProfileGuard><PredictionsPage /></ProfileGuard></AuthGuard>} />
             <Route path="/ranking" element={<RankingPage />} />
             <Route path="/reglas" element={<RulesPage />} />
+            <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
           </Routes>
         </main>
       </div>

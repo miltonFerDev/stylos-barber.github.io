@@ -2,7 +2,8 @@ import React from 'react';
 import { predictionService } from '../services/prediction.service';
 import { profileService } from '../services/profile.service';
 import { calculateUserStats, buildRankingWithUser } from '../services/ranking.service';
-import { mockMatches, mockRankingWeekly, mockRankingGeneral } from '../data/mocks';
+import { matchService } from '../services/match.service';
+import { mockRankingWeekly, mockRankingGeneral } from '../data/mocks';
 import type { RankingEntry } from '../domain/types/ranking';
 
 interface RankingsState {
@@ -26,7 +27,8 @@ export function useRankings() {
 
     // If user has a profile and predictions, calculate real stats
     if (profile && predictions.length > 0) {
-      const finishedMatches = mockMatches.filter((m) => m.status === 'finished');
+      const matches = matchService.getMatches();
+      const finishedMatches = matches.filter((m) => m.status === 'finished');
       
       if (finishedMatches.length > 0) {
         const userStats = calculateUserStats(predictions, finishedMatches, profile.alias);
@@ -60,7 +62,8 @@ export function useRankings() {
     const predictions = predictionService.getPredictions();
 
     if (profile && predictions.length > 0) {
-      const finishedMatches = mockMatches.filter((m) => m.status === 'finished');
+      const matches = matchService.getMatches();
+      const finishedMatches = matches.filter((m) => m.status === 'finished');
       
       if (finishedMatches.length > 0) {
         const userStats = calculateUserStats(predictions, finishedMatches, profile.alias);

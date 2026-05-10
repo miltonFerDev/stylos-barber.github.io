@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { MatchRow } from '../components/predictions/MatchRow';
-import { mockMatches } from '../data/mocks';
+import { matchService } from '../services/match.service';
 import { usePredictions } from '../hooks/usePredictions';
 import type { PredictionInput } from '../domain/types/prediction';
 
@@ -12,8 +12,9 @@ export function PredictionsPage() {
   const [pendingPredictions, setPendingPredictions] = React.useState<Record<string, { scoreA: number; scoreB: number }>>({});
   const [saveMessage, setSaveMessage] = React.useState('');
 
-  const matchdays = Array.from(new Set(mockMatches.map((m) => m.matchday)));
-  const matchesInDay = mockMatches.filter((m) => m.matchday === selectedMatchday);
+  const [matches] = React.useState(matchService.getMatches());
+  const matchdays = Array.from(new Set(matches.map((m) => m.matchday)));
+  const matchesInDay = matches.filter((m) => m.matchday === selectedMatchday);
 
   const handlePredictionChange = (matchId: string, scoreA: number, scoreB: number) => {
     setPendingPredictions((prev) => ({

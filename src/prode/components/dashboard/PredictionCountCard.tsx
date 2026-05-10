@@ -2,11 +2,13 @@ import React from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { useNavigate } from 'react-router-dom';
-import { mockMatches, mockPredictions } from '../../data/mocks';
+import { mockPredictions } from '../../data/mocks';
+import { matchService } from '../../services/match.service';
 
 export function PredictionCountCard() {
   const navigate = useNavigate();
-  const openMatches = mockMatches.filter(m => m.status === 'upcoming');
+  const matches = matchService.getMatches();
+  const openMatches = matches.filter(m => m.status === 'upcoming');
   const madePredictions = mockPredictions.length;
   const totalOpen = openMatches.length;
   const pending = totalOpen - madePredictions;

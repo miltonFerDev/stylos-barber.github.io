@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Match } from '../domain/types/match';
-import { mockMatches } from '../data/mocks';
+import { matchService } from '../services/match.service';
 import { MatchCard } from '../components/fixture/MatchCard';
 
 interface GroupedMatches {
@@ -34,7 +34,9 @@ function groupByMatchday(matches: Match[]): GroupedMatches[] {
 }
 
 export function FixturePage() {
-  const groupedMatches = React.useMemo(() => groupByMatchday(mockMatches), []);
+  const [matches, setMatches] = React.useState(matchService.getMatches());
+  
+  const groupedMatches = React.useMemo(() => groupByMatchday(matches), [matches]);
   const [selectedMatchday, setSelectedMatchday] = React.useState(
     groupedMatches[0]?.matchday || ''
   );

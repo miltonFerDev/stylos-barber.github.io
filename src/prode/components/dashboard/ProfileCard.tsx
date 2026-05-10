@@ -44,16 +44,30 @@ export function ProfileCard() {
           <Badge variant="info">Fecha 1 · 2 de 3 predicciones</Badge>
         </div>
 
-        <button
-          onClick={() => {
-            clearProfile();
-            navigate('/');
-            window.location.reload();
-          }}
-          className="mt-4 text-xs text-textMuted hover:text-red-400 transition-colors underline"
-        >
-          Borrar mis datos de prueba
-        </button>
+        <div className="mt-4 flex gap-3">
+          <button
+            onClick={() => {
+              clearProfile();
+              navigate('/');
+              window.location.reload();
+            }}
+            className="text-xs text-textMuted hover:text-red-400 transition-colors underline"
+          >
+            Borrar mis datos de prueba
+          </button>
+          {profile?.role !== 'admin' && (
+            <button
+              onClick={() => {
+                const updated = { ...profile, role: 'admin' as const };
+                localStorage.setItem('prode_profile', JSON.stringify(updated));
+                window.location.reload();
+              }}
+              className="text-xs text-textMuted hover:text-yellow-400 transition-colors underline"
+            >
+              Hacerme admin (dev)
+            </button>
+          )}
+        </div>
       </div>
     </Card>
   );
