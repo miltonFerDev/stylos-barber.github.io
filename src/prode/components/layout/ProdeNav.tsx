@@ -5,10 +5,10 @@ import { LoginButton } from '../auth/LoginButton';
 import { UserProfile } from '../auth/UserProfile';
 
 const navItems = [
-  { path: '/prode', label: 'Dashboard' },
-  { path: '/prode/predicciones', label: 'Predicciones' },
-  { path: '/prode/ranking', label: 'Rankings' },
-  { path: '/prode/reglas', label: 'Reglas' },
+  { path: '/', label: 'Dashboard' },
+  { path: '/predicciones', label: 'Predicciones' },
+  { path: '/ranking', label: 'Rankings' },
+  { path: '/reglas', label: 'Reglas' },
 ];
 
 export function ProdeNav() {
@@ -17,8 +17,8 @@ export function ProdeNav() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const isActive = (path: string) => {
-    if (path === '/prode') {
-      return location.pathname === '/prode' || location.pathname === '/prode/';
+    if (path === '/') {
+      return location.pathname === '/' || location.pathname === '/prode' || location.pathname === '/prode/';
     }
     return location.pathname.startsWith(path);
   };
@@ -27,7 +27,7 @@ export function ProdeNav() {
     <nav className="sticky top-0 z-50 bg-primary/95 backdrop-blur-md border-b border-accentMuted/20">
       <div className="max-w-2xl mx-auto px-4">
         <div className="flex items-center justify-between h-14">
-          <Link to="/prode" className="text-textLight font-bold text-lg tracking-tight">
+          <Link to="/" className="text-textLight font-bold text-lg tracking-tight">
             ⚽ Prode 2026
           </Link>
 

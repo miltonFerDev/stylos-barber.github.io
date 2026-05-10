@@ -56,7 +56,7 @@ export function RankingPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-textLight text-2xl font-bold">Rankings</h1>
-        <Link to="/prode" className="text-accent text-sm font-medium hover:underline">
+        <Link to="/" className="text-accent text-sm font-medium hover:underline">
           ← Volver
         </Link>
       </div>

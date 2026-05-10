@@ -14,10 +14,10 @@ export function ProdeShell() {
         <ProdeNav />
         <main className="max-w-2xl mx-auto px-4 py-6">
           <Routes>
-            <Route path="/prode" element={<DashboardPage />} />
-            <Route path="/prode/predicciones" element={<AuthGuard><PredictionsPage /></AuthGuard>} />
-            <Route path="/prode/ranking" element={<RankingPage />} />
-            <Route path="/prode/reglas" element={<RulesPage />} />
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/predicciones" element={<AuthGuard><PredictionsPage /></AuthGuard>} />
+            <Route path="/ranking" element={<RankingPage />} />
+            <Route path="/reglas" element={<RulesPage />} />
           </Routes>
         </main>
       </div>
