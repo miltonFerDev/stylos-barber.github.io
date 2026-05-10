@@ -2,17 +2,51 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { MatchRow } from '../components/predictions/MatchRow';
-import { mockMatches, mockPredictions } from '../data/mocks';
+import { mockMatches } from '../data/mocks';
+import { usePredictions } from '../hooks/usePredictions';
+import type { PredictionInput } from '../domain/types/prediction';
 
 export function PredictionsPage() {
+  const { savePredictions, getPredictionForMatch } = usePredictions();
   const [selectedMatchday, setSelectedMatchday] = React.useState('Fecha 1');
+  const [pendingPredictions, setPendingPredictions] = React.useState<Record<string, { scoreA: number; scoreB: number }>>({});
+  const [saveMessage, setSaveMessage] = React.useState('');
 
-  const matchdays = Array.from(new Set(mockMatches.map((m: { matchday: string }) => m.matchday)));
-  const matchesInDay = mockMatches.filter((m: { matchday: string }) => m.matchday === selectedMatchday);
+  const matchdays = Array.from(new Set(mockMatches.map((m) => m.matchday)));
+  const matchesInDay = mockMatches.filter((m) => m.matchday === selectedMatchday);
 
-  const getPrediction = (matchId: string) => {
-    return mockPredictions.find((p: { matchId: string }) => p.matchId === matchId);
+  const handlePredictionChange = (matchId: string, scoreA: number, scoreB: number) => {
+    setPendingPredictions((prev) => ({
+      ...prev,
+      [matchId]: { scoreA, scoreB },
+    }));
+    // Clear save message when user makes changes
+    if (saveMessage) setSaveMessage('');
   };
+
+  const handleSave = () => {
+    const inputs: PredictionInput[] = Object.entries(pendingPredictions)
+      .filter(([_, scores]) => scores.scoreA !== undefined && scores.scoreB !== undefined)
+      .map(([matchId, scores]) => ({
+        matchId,
+        predictedScoreA: scores.scoreA,
+        predictedScoreB: scores.scoreB,
+      }));
+
+    if (inputs.length === 0) {
+      setSaveMessage('No hay predicciones para guardar');
+      return;
+    }
+
+    savePredictions(inputs);
+    setPendingPredictions({});
+    setSaveMessage('¡Predicciones guardadas!');
+    
+    // Clear message after 3 seconds
+    setTimeout(() => setSaveMessage(''), 3000);
+  };
+
+  const hasPendingChanges = Object.keys(pendingPredictions).length > 0;
 
   return (
     <div className="space-y-4">
@@ -24,10 +58,13 @@ export function PredictionsPage() {
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
-        {matchdays.map((day: string) => (
+        {matchdays.map((day) => (
           <button
             key={day}
-            onClick={() => setSelectedMatchday(day)}
+            onClick={() => {
+              setSelectedMatchday(day);
+              setSaveMessage('');
+            }}
             className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${
               selectedMatchday === day
                 ? 'bg-accent text-white'
@@ -44,14 +81,25 @@ export function PredictionsPage() {
           <MatchRow
             key={match.id}
             match={match}
-            prediction={getPrediction(match.id)}
+            prediction={getPredictionForMatch(match.id)}
+            onPredictionChange={handlePredictionChange}
           />
         ))}
       </div>
 
+      {saveMessage && (
+        <div className={`text-center text-sm ${saveMessage.includes('guardadas') ? 'text-green-400' : 'text-yellow-400'}`}>
+          {saveMessage}
+        </div>
+      )}
+
       <div className="pt-4">
-        <Button fullWidth>
-          Guardar predicciones
+        <Button 
+          fullWidth 
+          onClick={handleSave}
+          disabled={!hasPendingChanges}
+        >
+          {hasPendingChanges ? 'Guardar predicciones' : 'Predicciones guardadas'}
         </Button>
       </div>
     </div>
