@@ -44,9 +44,15 @@ export function useProfile() {
     setState({ profile, loading: false, hasProfile: profile !== null });
   }, []);
 
+  const clearProfile = React.useCallback(() => {
+    profileService.clearProfile();
+    setState({ profile: null, loading: false, hasProfile: false });
+  }, []);
+
   return {
     ...state,
     createProfile,
     refreshProfile,
+    clearProfile,
   };
 }

@@ -1,11 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { useProfile } from '../../hooks/useProfile';
 import { mockRankingGeneral } from '../../data/mocks';
 
 export function ProfileCard() {
-  const { profile } = useProfile();
+  const navigate = useNavigate();
+  const { profile, clearProfile } = useProfile();
 
   const alias = profile?.alias ?? '???';
   const userRanking = mockRankingGeneral.find(r => r.alias === alias);
@@ -41,6 +43,17 @@ export function ProfileCard() {
         <div className="mt-3">
           <Badge variant="info">Fecha 1 · 2 de 3 predicciones</Badge>
         </div>
+
+        <button
+          onClick={() => {
+            clearProfile();
+            navigate('/');
+            window.location.reload();
+          }}
+          className="mt-4 text-xs text-textMuted hover:text-red-400 transition-colors underline"
+        >
+          Borrar mis datos de prueba
+        </button>
       </div>
     </Card>
   );

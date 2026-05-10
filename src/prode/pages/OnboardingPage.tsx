@@ -1,5 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import '../components/ui/PhoneInput.css';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useProfile';
 import { Button } from '../components/ui/Button';
@@ -11,12 +14,24 @@ export function OnboardingPage() {
   const { createProfile, hasProfile } = useProfile();
 
   const [formData, setFormData] = React.useState({
-    firstName: user?.user_metadata?.full_name?.split(' ')[0] ?? '',
-    lastName: user?.user_metadata?.full_name?.split(' ').slice(1).join(' ') ?? '',
+    firstName: '',
+    lastName: '',
     birthDate: '',
     whatsapp: '',
     acceptedRules: false,
   });
+
+  // Auto-fill name from Google metadata when it becomes available
+  React.useEffect(() => {
+    if (user?.user_metadata) {
+      const meta = user.user_metadata;
+      setFormData((prev) => ({
+        ...prev,
+        firstName: prev.firstName || meta.given_name || meta.full_name?.split(' ')[0] || '',
+        lastName: prev.lastName || meta.family_name || meta.full_name?.split(' ').slice(1).join(' ') || '',
+      }));
+    }
+  }, [user]);
 
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [alias, setAlias] = React.useState('');
@@ -43,6 +58,7 @@ export function OnboardingPage() {
     if (!formData.lastName.trim()) newErrors.lastName = 'El apellido es obligatorio';
     if (!formData.birthDate) newErrors.birthDate = 'La fecha de nacimiento es obligatoria';
     if (!formData.whatsapp.trim()) newErrors.whatsapp = 'El WhatsApp es obligatorio';
+    if (formData.whatsapp.trim().length < 8) newErrors.whatsapp = 'Ingresá un número válido';
     if (!formData.acceptedRules) newErrors.acceptedRules = 'Debés aceptar las reglas';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -62,6 +78,8 @@ export function OnboardingPage() {
 
     navigate('/');
   };
+
+  const nameFromGoogle = !!(user?.user_metadata?.given_name || user?.user_metadata?.full_name);
 
   return (
     <div className="max-w-md mx-auto">
@@ -99,6 +117,12 @@ export function OnboardingPage() {
               placeholder="Tu apellido"
             />
             {errors.lastName && <p className="text-red-400 text-xs mt-1">{errors.lastName}</p>}
+            {nameFromGoogle && (
+              <p className="text-textMuted text-xs mt-1 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span>
+                Desde tu cuenta de Google — podés editarlo
+              </p>
+            )}
           </div>
 
           <div>
@@ -114,12 +138,17 @@ export function OnboardingPage() {
 
           <div>
             <label className="block text-textMuted text-sm mb-1">WhatsApp</label>
-            <input
-              type="tel"
+            <PhoneInput
+              country={'ar'}
               value={formData.whatsapp}
-              onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-              className="w-full bg-primary/50 border border-accentMuted/30 rounded-xl px-4 py-3 text-textLight focus:border-accent focus:outline-none"
-              placeholder="+54 9 11 2345-6789"
+              onChange={(phone) => setFormData({ ...formData, whatsapp: phone })}
+              enableSearch
+              preferredCountries={['ar', 'br', 'uy', 'cl', 'py', 'bo', 'pe', 'co', 've', 'ec', 'mx', 'es', 'us']}
+              placeholder="11 2345-6789"
+              inputProps={{
+                name: 'whatsapp',
+                required: true,
+              }}
             />
             {errors.whatsapp && <p className="text-red-400 text-xs mt-1">{errors.whatsapp}</p>}
           </div>
