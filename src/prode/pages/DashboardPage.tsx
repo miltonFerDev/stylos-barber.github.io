@@ -12,21 +12,18 @@ export function DashboardPage() {
   const { isAuthenticated, login, loading } = useAuth();
 
   return (
-    <div className="space-y-4">
-      <div className="mb-2">
-        <h1 className="text-textLight text-2xl font-bold">Prode Mundial 2026</h1>
-        <p className="text-textMuted text-sm mt-1">Stylo's Barber · Participá y ganá</p>
-      </div>
+    <div className="space-y-5">
+      <h1 className="text-textLight text-2xl font-bold tracking-tight">Prode Mundial 2026</h1>
 
       {!loading && !isAuthenticated && (
-        <Card className="border-accent/30">
-          <div className="flex flex-col items-center text-center py-4">
-            <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-accent text-2xl mb-3">
+        <Card className="border-white/10">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent text-xl mb-3">
               👋
             </div>
-            <h3 className="text-textLight font-bold mb-1">¿Todavía no entraste?</h3>
+            <h3 className="text-textLight font-semibold mb-1">¿Todavía no entraste?</h3>
             <p className="text-textMuted text-sm mb-4">
-              Iniciá sesión con Google para hacer tus predicciones y competir por premios.
+              Iniciá sesión con Google para predecir y ganar premios.
             </p>
             <LoginButton onLogin={login} />
           </div>

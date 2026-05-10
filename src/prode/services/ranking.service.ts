@@ -3,12 +3,24 @@ import type { Match } from '../domain/types/match';
 import type { RankingEntry } from '../domain/types/ranking';
 import { calculatePoints } from '../domain/logic/scoring';
 import { buildRanking } from '../domain/logic/ranking';
+import { isValidRankingEntry } from '../utils/validation';
 
 interface UserStats {
   alias: string;
   points: number;
   exactPredictions: number;
   correctWinners: number;
+}
+
+function isValidUserStats(stats: unknown): stats is UserStats {
+  if (!stats || typeof stats !== 'object') return false;
+  const s = stats as Record<string, unknown>;
+  return (
+    typeof s.alias === 'string' &&
+    typeof s.points === 'number' &&
+    typeof s.exactPredictions === 'number' &&
+    typeof s.correctWinners === 'number'
+  );
 }
 
 /**
@@ -54,6 +66,11 @@ export function buildRankingWithUser(
   userStats: UserStats,
   mockEntries: RankingEntry[]
 ): RankingEntry[] {
+  if (!isValidUserStats(userStats)) {
+    console.warn('[buildRankingWithUser] userStats inválido, usando solo mocks');
+    return buildRanking(mockEntries.filter(isValidRankingEntry));
+  }
+
   // Remove the user's mock entry if it exists
   const otherEntries = mockEntries.filter((e) => e.alias !== userStats.alias);
 

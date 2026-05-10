@@ -1,4 +1,5 @@
 import type { Prediction, PredictionInput } from '../domain/types/prediction';
+import { isValidPrediction } from '../utils/validation';
 
 const STORAGE_KEY = 'prode_predictions';
 
@@ -8,7 +9,14 @@ export const predictionService = {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     try {
-      return JSON.parse(raw) as Prediction[];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      const valid = parsed.filter(isValidPrediction);
+      if (valid.length !== parsed.length) {
+        console.warn(`[predictionService] ${parsed.length - valid.length} predicciones corruptas eliminadas`);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
+      }
+      return valid;
     } catch {
       return [];
     }

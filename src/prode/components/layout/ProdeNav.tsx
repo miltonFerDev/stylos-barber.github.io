@@ -25,11 +25,14 @@ export function ProdeNav() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-primary/95 backdrop-blur-md border-b border-accentMuted/20">
+    <nav className="sticky top-0 z-50 bg-primary/80 backdrop-blur-xl border-b border-white/[0.06]">
       <div className="max-w-2xl mx-auto px-4">
         <div className="flex items-center justify-between h-14">
-          <Link to="/" className="text-textLight font-bold text-lg tracking-tight">
-            ⚽ Prode 2026
+          <Link to="/" className="flex items-center gap-2 text-textLight font-bold text-lg tracking-tight">
+            <svg className="w-7 h-7 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C9.5 2 7.5 4 7 6H5C3.9 6 3 6.9 3 8V10C3 11.1 3.9 12 5 12H5.2C5.6 14.3 7.2 16.2 9.4 17H8C6.3 17 5 18.3 5 20V21C5 21.6 5.4 22 6 22H18C18.6 22 19 21.6 19 21V20C19 18.3 17.7 17 16 17H14.6C16.8 16.2 18.4 14.3 18.8 12H19C20.1 12 21 11.1 21 10V8C21 6.9 20.1 6 19 6H17C16.5 4 14.5 2 12 2ZM7 8C7 6.9 7.9 6 9 6H9.4C9.7 6.8 10.3 7.5 11 7.8V9H7V8ZM13 7.8C13.7 7.5 14.3 6.8 14.6 6H15C16.1 6 17 6.9 17 8V9H13V7.8ZM5 10H19V12H5V10Z"/>
+            </svg>
+            <span>Prode 2026</span>
           </Link>
 
           <div className="flex items-center gap-2">
@@ -54,15 +57,16 @@ export function ProdeNav() {
             </button>
           </div>
 
-          <ul className="hidden md:flex items-center gap-1">
+<ul className="hidden md:flex items-center gap-1">
             {navItems.map((item) => (
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                  aria-current={isActive(item.path) ? 'page' : undefined}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-1 focus:ring-offset-primary ${
                     isActive(item.path)
-                      ? 'bg-accent/20 text-accent'
-                      : 'text-textMuted hover:text-textLight hover:bg-white/5'
+                      ? 'bg-white/10 text-textLight shadow-sm'
+                      : 'text-textMuted hover:text-textLight hover:bg-white/[0.04]'
                   }`}
                 >
                   {item.label}
@@ -80,7 +84,8 @@ export function ProdeNav() {
                   <Link
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`block px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                    aria-current={isActive(item.path) ? 'page' : undefined}
+                    className={`block px-3 py-3 rounded-lg text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-primary ${
                       isActive(item.path)
                         ? 'bg-accent/20 text-accent'
                         : 'text-textMuted hover:text-textLight hover:bg-white/5'

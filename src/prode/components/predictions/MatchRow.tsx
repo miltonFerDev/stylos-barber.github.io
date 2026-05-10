@@ -63,7 +63,7 @@ interface MatchRowProps {
 export function MatchRow({ match, prediction, onPredictionChange }: MatchRowProps) {
   const isLocked = isPredictionLocked(match.matchDate);
   const isFinished = match.status === 'finished';
-  
+
   const [scoreA, setScoreA] = React.useState(
     prediction?.predictedScoreA?.toString() ?? ''
   );
@@ -108,46 +108,39 @@ export function MatchRow({ match, prediction, onPredictionChange }: MatchRowProp
   });
 
   return (
-    <Card className={`${isLocked || isFinished ? 'opacity-70' : ''}`}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-textMuted text-xs">{formattedDate} · {formattedTime}</span>
-          {isLocked && (
-            <span className="text-textMuted text-xs flex items-center gap-1">
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
-              Bloqueado
-            </span>
-          )}
+    <Card className={`${isLocked || isFinished ? 'opacity-75' : ''}`}>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3">
+        <span className="text-textMuted text-xs">{formattedDate} · {formattedTime}</span>
+        {isLocked && <span className="text-textMuted text-xs font-medium ml-2">🔒 Bloqueado</span>}
+        <div className="ml-auto">
+          <MatchStatusBadge status={match.status} />
         </div>
-        <MatchStatusBadge status={match.status} />
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex-1 text-center">
-          <div className="flex justify-center mb-1">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-3">
+        <div className="flex-1 text-center sm:text-left">
+          <div className="flex justify-center sm:justify-start mb-2 sm:mb-1">
             <FlagIcon country={match.teamA} />
           </div>
-          <p className="text-textLight text-sm font-medium">{match.teamA}</p>
+          <p className="text-textLight text-base font-semibold">{match.teamA}</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-3">
           {isFinished && match.scoreA !== null && match.scoreB !== null ? (
             <>
-              <span className="text-textLight text-2xl font-bold">{match.scoreA}</span>
-              <span className="text-textMuted text-lg">-</span>
-              <span className="text-textLight text-2xl font-bold">{match.scoreB}</span>
+              <span className="text-textLight text-3xl font-bold">{match.scoreA}</span>
+              <span className="text-textMuted text-2xl">-</span>
+              <span className="text-textLight text-3xl font-bold">{match.scoreB}</span>
             </>
           ) : isLocked ? (
             prediction ? (
               <>
-                <span className="text-accent text-xl font-bold">{prediction.predictedScoreA}</span>
-                <span className="text-textMuted">-</span>
-                <span className="text-accent text-xl font-bold">{prediction.predictedScoreB}</span>
+                <span className="text-accent text-2xl font-bold">{prediction.predictedScoreA}</span>
+                <span className="text-textMuted text-lg">-</span>
+                <span className="text-accent text-2xl font-bold">{prediction.predictedScoreB}</span>
               </>
             ) : (
-              <span className="text-textMuted text-sm">Sin predicción</span>
+              <span className="text-textMuted text-sm">Sin predecir</span>
             )
           ) : (
             <>
@@ -156,44 +149,46 @@ export function MatchRow({ match, prediction, onPredictionChange }: MatchRowProp
                 min="0"
                 value={scoreA}
                 onChange={(e) => handleScoreAChange(e.target.value)}
-                className="w-12 h-10 bg-primary/50 border border-accentMuted/30 rounded-lg text-textLight text-center text-xl font-bold focus:border-accent focus:outline-none"
+                aria-label={`Goles de ${match.teamA}`}
+                className="w-16 h-14 bg-primary/40 border border-white/10 rounded-xl text-textLight text-center text-2xl font-bold focus:border-cupYellow focus:outline-none focus:ring-2 focus:ring-cupYellow/30"
                 placeholder="-"
               />
-              <span className="text-textMuted text-lg">-</span>
+              <span className="text-textMuted text-xl" aria-hidden="true">-</span>
               <input
                 type="number"
                 min="0"
                 value={scoreB}
                 onChange={(e) => handleScoreBChange(e.target.value)}
-                className="w-12 h-10 bg-primary/50 border border-accentMuted/30 rounded-lg text-textLight text-center text-xl font-bold focus:border-accent focus:outline-none"
+                aria-label={`Goles de ${match.teamB}`}
+                className="w-16 h-14 bg-primary/40 border border-white/10 rounded-xl text-textLight text-center text-2xl font-bold focus:border-cupYellow focus:outline-none focus:ring-2 focus:ring-cupYellow/30"
                 placeholder="-"
               />
             </>
           )}
         </div>
 
-        <div className="flex-1 text-center">
-          <div className="flex justify-center mb-1">
+        <div className="flex-1 text-center sm:text-right">
+          <div className="flex justify-center sm:justify-end mb-2 sm:mb-1">
             <FlagIcon country={match.teamB} />
           </div>
-          <p className="text-textLight text-sm font-medium">{match.teamB}</p>
+          <p className="text-textLight text-base font-semibold">{match.teamB}</p>
         </div>
       </div>
 
       {prediction && !isFinished && !isLocked && (
-        <div className="mt-3 pt-3 border-t border-accentMuted/20">
+        <div className="mt-3 pt-3 border-t border-white/6">
           <p className="text-textMuted text-xs text-center">
-            Predicción guardada: <span className="text-accent font-medium">{prediction.predictedScoreA} - {prediction.predictedScoreB}</span>
+            Guardado: <span className="text-cupYellow font-medium">{prediction.predictedScoreA} - {prediction.predictedScoreB}</span>
           </p>
         </div>
       )}
 
       {isFinished && prediction && match.scoreA !== null && match.scoreB !== null && (
-        <div className="mt-3 pt-3 border-t border-accentMuted/20">
+        <div className="mt-3 pt-3 border-t border-white/6">
           <p className="text-textMuted text-xs text-center">
             Resultado: <span className="text-textLight font-medium">{match.scoreA} - {match.scoreB}</span>
             {' · '}
-            <span className="text-accent font-medium">Tu predicción: {prediction.predictedScoreA} - {prediction.predictedScoreB}</span>
+            <span className="text-cupYellow font-medium">Vos: {prediction.predictedScoreA} - {prediction.predictedScoreB}</span>
           </p>
         </div>
       )}

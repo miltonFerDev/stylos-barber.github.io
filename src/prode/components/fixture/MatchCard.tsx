@@ -102,9 +102,9 @@ function formatMatchTime(dateStr: string): string {
 function getStatusBadge(status: MatchStatus) {
   switch (status) {
     case 'upcoming':
-      return <Badge variant="info">Próximo</Badge>;
+      return <Badge variant="pending">Próximo</Badge>;
     case 'finished':
-      return <Badge variant="success">Finalizado</Badge>;
+      return <Badge variant="scored">Finalizado</Badge>;
     default:
       return null;
   }
@@ -114,37 +114,42 @@ export function MatchCard({ match }: MatchCardProps) {
   const isFinished = match.status === 'finished';
 
   return (
-    <Card className="p-4 hover:shadow-cardHover transition-shadow">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-textMuted text-xs">
+    <Card className={`transition-all ${isFinished ? 'bg-primaryLight/40' : 'hover:shadow-cardHover hover:-translate-y-0.5'}`}>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-textMuted text-sm flex items-center gap-1.5">
+          <svg className="w-4 h-4 text-cupGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
           {formatMatchDate(match.matchDate)} · {formatMatchTime(match.matchDate)}
         </span>
         {getStatusBadge(match.status)}
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between min-w-0">
         {/* Team A */}
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <FlagIcon country={match.teamA} />
-          <span className="text-textLight font-medium">{match.teamA}</span>
+          <span className={`font-semibold text-base ${isFinished ? 'text-textLight' : 'text-textLight'}`}>{match.teamA}</span>
         </div>
 
         {/* Score */}
-        <div className="flex items-center gap-2 px-4">
+        <div className="flex items-center gap-3 px-5 py-3">
           {isFinished ? (
-            <>
-              <span className="text-textLight text-xl font-bold">{match.scoreA}</span>
-              <span className="text-textMuted">-</span>
-              <span className="text-textLight text-xl font-bold">{match.scoreB}</span>
-            </>
+            <div className="flex items-center gap-2 bg-primary/50 rounded-xl px-5 py-3">
+              <span className="text-textLight text-3xl font-bold">{match.scoreA}</span>
+              <span className="text-textMuted text-xl">—</span>
+              <span className="text-textLight text-3xl font-bold">{match.scoreB}</span>
+            </div>
           ) : (
-            <span className="text-textMuted text-lg font-medium">vs</span>
+            <div className="bg-accent/10 border border-accent/20 rounded-xl px-5 py-3">
+              <span className="text-accent text-xl font-medium">vs</span>
+            </div>
           )}
         </div>
 
         {/* Team B */}
-        <div className="flex items-center gap-3 flex-1 justify-end">
-          <span className="text-textLight font-medium">{match.teamB}</span>
+        <div className="flex items-center gap-3 flex-1 min-w-0 justify-end">
+          <span className={`font-semibold text-base ${isFinished ? 'text-textLight' : 'text-textLight'}`}>{match.teamB}</span>
           <FlagIcon country={match.teamB} />
         </div>
       </div>

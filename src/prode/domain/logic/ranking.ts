@@ -7,6 +7,17 @@ interface RankingInput {
   correctWinners: number;
 }
 
+function isValidRankingInput(entry: unknown): entry is RankingInput {
+  if (!entry || typeof entry !== 'object') return false;
+  const e = entry as Record<string, unknown>;
+  return (
+    typeof e.alias === 'string' &&
+    typeof e.points === 'number' &&
+    typeof e.exactPredictions === 'number' &&
+    typeof e.correctWinners === 'number'
+  );
+}
+
 /**
  * Construye el ranking ordenado con posiciones.
  *
@@ -17,7 +28,11 @@ interface RankingInput {
  * 4. Orden alfabético por alias
  */
 export function buildRanking(entries: RankingInput[]): RankingEntry[] {
-  const sorted = [...entries].sort((a, b) => {
+  const validEntries = entries.filter(isValidRankingInput);
+  if (validEntries.length !== entries.length) {
+    console.warn(`[buildRanking] ${entries.length - validEntries.length} entradas inválidas descartadas`);
+  }
+  const sorted = [...validEntries].sort((a, b) => {
     // 1. Más puntos
     if (b.points !== a.points) {
       return b.points - a.points;

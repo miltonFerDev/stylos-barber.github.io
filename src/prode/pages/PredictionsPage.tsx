@@ -50,31 +50,42 @@ export function PredictionsPage() {
   const hasPendingChanges = Object.keys(pendingPredictions).length > 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-textLight text-2xl font-bold">Predicciones</h1>
-        <Link to="/" className="text-accent text-sm font-medium hover:underline">
-          ← Volver
+        <div>
+          <h1 className="text-textLight text-2xl font-extrabold tracking-tight">Mis Predicciones</h1>
+          <p className="text-textMuted text-sm mt-1">Completá tus resultados antes de cada partido</p>
+        </div>
+        <Link
+          to="/"
+          className="flex items-center gap-1.5 text-accent text-sm font-medium hover:text-accentHover transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Volver
         </Link>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
-        {matchdays.map((day) => (
-          <button
-            key={day}
-            onClick={() => {
-              setSelectedMatchday(day);
-              setSaveMessage('');
-            }}
-            className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${
-              selectedMatchday === day
-                ? 'bg-accent text-white'
-                : 'bg-primaryLight text-textMuted hover:text-textLight'
-            }`}
-          >
-            {day}
-          </button>
-        ))}
+      <div className="relative">
+        <div className="flex gap-2 overflow-x-auto pb-3 -mx-4 px-4 scroll-smooth scrollbar-hide">
+          {matchdays.map((day) => (
+            <button
+              key={day}
+              onClick={() => {
+                setSelectedMatchday(day);
+                setSaveMessage('');
+              }}
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
+                selectedMatchday === day
+                  ? 'bg-accent text-white shadow-md'
+                  : 'bg-primaryLight/50 text-textMuted hover:text-textLight border border-accentMuted/20'
+              }`}
+            >
+              {day}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="space-y-3">

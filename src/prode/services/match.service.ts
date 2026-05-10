@@ -1,5 +1,6 @@
 import type { Match } from '../domain/types/match';
 import { mockMatches } from '../data/mocks';
+import { isValidMatch } from '../utils/validation';
 
 const STORAGE_KEY = 'prode_matches';
 
@@ -8,7 +9,14 @@ function getStoredMatches(): Match[] | null {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as Match[];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return null;
+    const valid = parsed.filter(isValidMatch);
+    if (valid.length !== parsed.length) {
+      console.warn(`[matchService] ${parsed.length - valid.length} partidos corruptos eliminados`);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(valid));
+    }
+    return valid.length > 0 ? valid : null;
   } catch {
     return null;
   }

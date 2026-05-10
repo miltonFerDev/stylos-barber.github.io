@@ -25,7 +25,7 @@ export function useAuth() {
     });
 
     // Listen for auth changes
-    const subscription = authService.onAuthStateChange((event, session) => {
+    const subscription = authService.onAuthStateChange((_event, session) => {
       setState({
         user: session?.user ?? null,
         loading: false,

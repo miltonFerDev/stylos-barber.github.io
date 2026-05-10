@@ -34,7 +34,7 @@ function groupByMatchday(matches: Match[]): GroupedMatches[] {
 }
 
 export function FixturePage() {
-  const [matches, setMatches] = React.useState(matchService.getMatches());
+  const [matches] = React.useState(matchService.getMatches());
   
   const groupedMatches = React.useMemo(() => groupByMatchday(matches), [matches]);
   const [selectedMatchday, setSelectedMatchday] = React.useState(
@@ -44,9 +44,9 @@ export function FixturePage() {
   const currentGroup = groupedMatches.find((g) => g.matchday === selectedMatchday);
 
   return (
-    <div className="space-y-4">
-      <div className="mb-2">
-        <h1 className="text-textLight text-2xl font-bold">Fixture</h1>
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-textLight text-2xl font-extrabold tracking-tight">Fixture</h1>
         <p className="text-textMuted text-sm mt-1">
           Todos los partidos del Mundial 2026
         </p>
@@ -54,20 +54,22 @@ export function FixturePage() {
 
       {/* Matchday tabs */}
       {groupedMatches.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
-          {groupedMatches.map((group) => (
-            <button
-              key={group.matchday}
-              onClick={() => setSelectedMatchday(group.matchday)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${
-                selectedMatchday === group.matchday
-                  ? 'bg-accent text-white'
-                  : 'bg-primary/50 text-textMuted hover:text-textLight border border-accentMuted/20'
-              }`}
-            >
-              {group.matchday}
-            </button>
-          ))}
+        <div className="relative">
+          <div className="flex gap-2 overflow-x-auto pb-3 -mx-4 px-4 scroll-smooth scrollbar-hide">
+            {groupedMatches.map((group) => (
+              <button
+                key={group.matchday}
+                onClick={() => setSelectedMatchday(group.matchday)}
+                className={`px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
+                  selectedMatchday === group.matchday
+                    ? 'bg-accent text-white shadow-md'
+                    : 'bg-primaryLight/50 text-textMuted hover:text-textLight border border-accentMuted/20'
+                }`}
+              >
+                {group.matchday}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

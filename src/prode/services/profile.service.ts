@@ -1,4 +1,5 @@
 import type { Profile } from '../domain/types/profile';
+import { isValidProfile } from '../utils/validation';
 
 const STORAGE_KEY = 'prode_profile';
 
@@ -16,7 +17,13 @@ export const profileService = {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     try {
-      return JSON.parse(raw) as Profile;
+      const parsed = JSON.parse(raw);
+      if (!isValidProfile(parsed)) {
+        console.warn('[profileService] Datos corruptos en localStorage, limpiando...');
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+      return parsed;
     } catch {
       return null;
     }

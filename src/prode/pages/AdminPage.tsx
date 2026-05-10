@@ -131,11 +131,20 @@ export function AdminPage() {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-textLight text-2xl font-bold">Panel Admin</h1>
-        <Link to="/" className="text-accent text-sm font-medium hover:underline">
-          ← Volver
+        <div>
+          <h1 className="text-textLight text-2xl font-bold">Panel Admin</h1>
+          <p className="text-textMuted text-sm mt-1">Gestionar resultados de partidos</p>
+        </div>
+        <Link
+          to="/"
+          className="flex items-center gap-1.5 text-accent text-sm font-medium hover:text-accentHover transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Volver
         </Link>
       </div>
 
