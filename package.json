@@ -20,6 +20,7 @@
     "@fontsource/gothic-a1": "^5.1.0",
     "@supabase/supabase-js": "^2.105.4",
     "astro": "^4.15.3",
+    "country-flag-icons": "^1.6.17",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-phone-input-2": "^2.15.1",

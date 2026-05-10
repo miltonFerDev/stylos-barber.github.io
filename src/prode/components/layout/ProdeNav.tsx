@@ -6,6 +6,7 @@ import { UserProfile } from '../auth/UserProfile';
 
 const navItems = [
   { path: '/', label: 'Dashboard' },
+  { path: '/fixture', label: 'Fixture' },
   { path: '/predicciones', label: 'Predicciones' },
   { path: '/ranking', label: 'Rankings' },
   { path: '/reglas', label: 'Reglas' },
