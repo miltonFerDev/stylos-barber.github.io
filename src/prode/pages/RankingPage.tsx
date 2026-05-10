@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
-import { mockRankingWeekly, mockRankingGeneral } from '../data/mocks';
+import { useRankings } from '../hooks/useRankings';
 import type { RankingEntry } from '../domain/types/ranking';
 
-function RankingTable({ entries, highlightAlias }: { entries: RankingEntry[]; highlightAlias?: string }) {
+function RankingTable({ entries, highlightAlias }: { entries: RankingEntry[]; highlightAlias?: string | null }) {
   return (
     <div className="space-y-2">
       {entries.map((entry) => (
@@ -49,8 +49,9 @@ function RankingTable({ entries, highlightAlias }: { entries: RankingEntry[]; hi
 
 export function RankingPage() {
   const [activeTab, setActiveTab] = React.useState<'weekly' | 'general'>('weekly');
+  const { weekly, general, userAlias, loading } = useRankings();
 
-  const data = activeTab === 'weekly' ? mockRankingWeekly : mockRankingGeneral;
+  const data = activeTab === 'weekly' ? weekly : general;
 
   return (
     <div className="space-y-4">
@@ -84,8 +85,24 @@ export function RankingPage() {
         </button>
       </div>
 
+      {userAlias && (
+        <p className="text-textMuted text-sm text-center">
+          Tu posición se marca en <span className="text-accent">azul</span>
+        </p>
+      )}
+
       <Card className="p-4">
-        <RankingTable entries={data} highlightAlias="MF2401" />
+        {loading ? (
+          <div className="text-center py-8">
+            <p className="text-textMuted">Cargando rankings...</p>
+          </div>
+        ) : data.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-textMuted">No hay rankings disponibles</p>
+          </div>
+        ) : (
+          <RankingTable entries={data} highlightAlias={userAlias} />
+        )}
       </Card>
     </div>
   );
