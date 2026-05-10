@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ProdeNav } from './ProdeNav';
+import { AuthGuard } from '../auth/AuthGuard';
 import { DashboardPage } from '../../pages/DashboardPage';
 import { PredictionsPage } from '../../pages/PredictionsPage';
 import { RankingPage } from '../../pages/RankingPage';
@@ -14,7 +15,7 @@ export function ProdeShell() {
         <main className="max-w-2xl mx-auto px-4 py-6">
           <Routes>
             <Route path="/prode" element={<DashboardPage />} />
-            <Route path="/prode/predicciones" element={<PredictionsPage />} />
+            <Route path="/prode/predicciones" element={<AuthGuard><PredictionsPage /></AuthGuard>} />
             <Route path="/prode/ranking" element={<RankingPage />} />
             <Route path="/prode/reglas" element={<RulesPage />} />
           </Routes>
