@@ -6,7 +6,7 @@ export function RulesPreviewCard() {
   const navigate = useNavigate();
 
   return (
-    <Card onClick={() => navigate('/prode/reglas')} className="cursor-pointer">
+    <Card onClick={() => navigate('/reglas')} className="cursor-pointer">
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="text-textLight font-bold text-lg flex items-center gap-2">

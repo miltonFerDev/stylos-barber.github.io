@@ -49,7 +49,7 @@ export function PredictionCountCard() {
             </svg>
             {pending} {pending === 1 ? 'predicción pendiente' : 'predicciones pendientes'}
           </p>
-          <Button size="sm" fullWidth onClick={() => navigate('/prode/predicciones')}>
+          <Button size="sm" fullWidth onClick={() => navigate('/predicciones')}>
             Completar predicciones →
           </Button>
         </div>

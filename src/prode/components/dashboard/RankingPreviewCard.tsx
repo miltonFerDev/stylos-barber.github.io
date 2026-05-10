@@ -23,7 +23,7 @@ export function RankingPreviewCard({ type }: RankingPreviewCardProps) {
   };
 
   return (
-    <Card onClick={() => navigate('/prode/ranking')} className="cursor-pointer">
+    <Card onClick={() => navigate('/ranking')} className="cursor-pointer">
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="text-textLight font-bold text-lg">{title}</h3>
