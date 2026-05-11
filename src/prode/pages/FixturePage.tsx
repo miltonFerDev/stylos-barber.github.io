@@ -58,9 +58,18 @@ export function FixturePage() {
   }, [loadMatches]);
 
   const groupedMatches = React.useMemo(() => groupByMatchday(matches), [matches]);
-  const [selectedMatchday, setSelectedMatchday] = React.useState(
-    groupedMatches[0]?.matchday || ''
-  );
+  const [selectedMatchday, setSelectedMatchday] = React.useState('');
+
+  // Auto-select the matchday with the nearest upcoming match
+  React.useEffect(() => {
+    if (!selectedMatchday && groupedMatches.length > 0) {
+      const now = new Date();
+      const upcomingMatchday = groupedMatches.find((g) =>
+        g.matches.some((m) => new Date(m.matchDate) > now)
+      );
+      setSelectedMatchday(upcomingMatchday?.matchday ?? groupedMatches[0].matchday);
+    }
+  }, [groupedMatches, selectedMatchday]);
 
   const currentGroup = groupedMatches.find((g) => g.matchday === selectedMatchday);
 

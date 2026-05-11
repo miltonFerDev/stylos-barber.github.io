@@ -17,7 +17,7 @@ function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved:
     const sB = parseInt(scoreB);
     
     if (isNaN(sA) || isNaN(sB) || scoreA === '' || scoreB === '') {
-      setMessage('Ingres ambos resultados');
+      setMessage('Ingresá ambos resultados');
       return;
     }
 
@@ -56,7 +56,7 @@ function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved:
             ? 'bg-green-500/20 text-green-400' 
             : 'bg-blue-500/20 text-blue-400'
         }`}>
-          {match.status === 'finished' ? 'Finalizado' : 'Prximo'}
+          {match.status === 'finished' ? 'Finalizado' : 'Próximo'}
         </span>
       </div>
 
@@ -170,7 +170,7 @@ export function AdminPage() {
                 : 'bg-primaryLight text-textMuted hover:text-textLight'
             }`}
           >
-            {f === 'all' ? 'Todos' : f === 'upcoming' ? 'Prximos' : 'Finalizados'}
+            {f === 'all' ? 'Todos' : f === 'upcoming' ? 'Próximos' : 'Finalizados'}
           </button>
         ))}
       </div>
@@ -189,7 +189,7 @@ export function AdminPage() {
 
       {filteredMatches.length === 0 && !loading && (
         <div className="text-center py-8">
-          <p className="text-textMuted">No hay partidos en esta categor</p>
+          <p className="text-textMuted">No hay partidos en esta categoría</p>
         </div>
       )}
     </div>

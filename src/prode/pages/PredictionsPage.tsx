@@ -75,7 +75,7 @@ export function PredictionsPage() {
       setPendingPredictions({});
       setSaveMessage('Predicciones guardadas!');
     } catch (e) {
-      setSaveMessage('Error al guardar. Intenta de nuevo.');
+      setSaveMessage('Error al guardar. Intentá de nuevo.');
     } finally {
       setSaving(false);
     }
@@ -107,7 +107,7 @@ export function PredictionsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-textLight text-2xl font-extrabold tracking-tight">Mis Predicciones</h1>
-          <p className="text-textMuted text-sm mt-1">Complet tus resultados antes de cada partido</p>
+          <p className="text-textMuted text-sm mt-1">Completá tus resultados antes de cada partido</p>
         </div>
         <Link
           to="/"

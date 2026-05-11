@@ -47,9 +47,7 @@ export function OnboardingPage() {
   React.useEffect(() => {
     if (formData.firstName && formData.lastName && formData.birthDate) {
       const initials = (formData.firstName[0] + formData.lastName[0]).toUpperCase();
-      const date = new Date(formData.birthDate);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const [_, month, day] = formData.birthDate.split('-');
       setAlias(`${initials}${day}${month}`);
     }
   }, [formData.firstName, formData.lastName, formData.birthDate]);
@@ -60,8 +58,8 @@ export function OnboardingPage() {
     if (!formData.lastName.trim()) newErrors.lastName = 'El apellido es obligatorio';
     if (!formData.birthDate) newErrors.birthDate = 'La fecha de nacimiento es obligatoria';
     if (!formData.whatsapp.trim()) newErrors.whatsapp = 'El WhatsApp es obligatorio';
-    if (formData.whatsapp.trim().length < 8) newErrors.whatsapp = 'Ingres un nmero vlido';
-    if (!formData.acceptedRules) newErrors.acceptedRules = 'Deb aceptar las reglas';
+    if (formData.whatsapp.trim().length < 8) newErrors.whatsapp = 'Ingresá un número válido';
+    if (!formData.acceptedRules) newErrors.acceptedRules = 'Debés aceptar las reglas';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -84,10 +82,10 @@ export function OnboardingPage() {
       if (profile) {
         navigate('/');
       } else {
-        setSubmitError('Error al crear el perfil. Intenta de nuevo.');
+        setSubmitError('Error al crear el perfil. Intentá de nuevo.');
       }
     } catch (e) {
-      setSubmitError('Error al crear el perfil. Intenta de nuevo.');
+      setSubmitError('Error al crear el perfil. Intentá de nuevo.');
     } finally {
       setSubmitting(false);
     }
@@ -101,9 +99,9 @@ export function OnboardingPage() {
         <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center text-accent text-3xl mx-auto mb-4">
           ⚽
         </div>
-        <h1 className="text-textLight text-2xl font-bold">Complet tu perfil</h1>
+        <h1 className="text-textLight text-2xl font-bold">Completá tu perfil</h1>
         <p className="text-textMuted text-sm mt-1">
-          Un paso ms para empezar a predecir
+          Un paso más para empezar a predecir
         </p>
       </div>
 
@@ -134,7 +132,7 @@ export function OnboardingPage() {
             {nameFromGoogle && (
               <p className="text-textMuted text-xs mt-1 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span>
-                Desde tu cuenta de Google — pod editarlo
+                Desde tu cuenta de Google — podés editarlo
               </p>
             )}
           </div>
@@ -172,7 +170,7 @@ export function OnboardingPage() {
               <p className="text-textMuted text-xs mb-1">Tu alias (no editable)</p>
               <p className="text-accent text-xl font-bold">{alias}</p>
               <p className="text-textMuted text-xs mt-1">
-                Se genera automticamente con tus iniciales y fecha de nacimiento
+                Se genera automáticamente con tus iniciales y fecha de nacimiento
               </p>
             </div>
           )}
@@ -190,7 +188,7 @@ export function OnboardingPage() {
               <a href="/prode/reglas" className="text-accent hover:underline" target="_blank" rel="noopener noreferrer">
                 reglas del prode
               </a>{' '}
-              y los trminos de participacin
+              y los términos de participación
             </label>
           </div>
           {errors.acceptedRules && <p className="text-red-400 text-xs">{errors.acceptedRules}</p>}

@@ -9,7 +9,7 @@ export function RulesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-textLight text-2xl font-extrabold tracking-tight">Reglas y Premios</h1>
-          <p className="text-textMuted text-sm mt-1">Cmo funcionan las predicciones y los rankings</p>
+          <p className="text-textMuted text-sm mt-1">Cómo funcionan las predicciones y los rankings</p>
         </div>
         <Link
           to="/"
@@ -38,7 +38,7 @@ export function RulesPage() {
             </div>
             <div>
               <p className="text-textLight font-medium">Resultado exacto</p>
-              <p className="text-textMuted text-sm">Acerts el marcador exacto del partido</p>
+              <p className="text-textMuted text-sm">Acertás el marcador exacto del partido</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -47,7 +47,7 @@ export function RulesPage() {
             </div>
             <div>
               <p className="text-textLight font-medium">Ganador correcto</p>
-              <p className="text-textMuted text-sm">Acerts quin gana (o empate), pero no el marcador exacto</p>
+              <p className="text-textMuted text-sm">Acertás quién gana (o empate), pero no el marcador exacto</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -56,7 +56,7 @@ export function RulesPage() {
             </div>
             <div>
               <p className="text-textLight font-medium">Incorrecto / Sin predecir</p>
-              <p className="text-textMuted text-sm">No acerts o no hiciste la prediccin</p>
+              <p className="text-textMuted text-sm">No acertás o no hiciste la predicción</p>
             </div>
           </div>
         </div>
@@ -67,15 +67,15 @@ export function RulesPage() {
         <ul className="space-y-2 text-textMuted text-sm">
           <li className="flex items-start gap-2">
             <span className="text-accent mt-0.5">*</span>
-            Pods predecir hasta el inicio de cada partido
+            Podés predecir hasta el inicio de cada partido
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-0.5">*</span>
-            Cuando empieza un partido, la prediccin se bloquea automticamente
+            Cuando empieza un partido, la predicción se bloquea automáticamente
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-0.5">*</span>
-            Si no hacs la prediccin, sums 0 puntos para ese partido
+            Si no hacés la predicción, sumás 0 puntos para ese partido
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-0.5">*</span>
@@ -101,7 +101,7 @@ export function RulesPage() {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-0.5">*</span>
-            En caso de empate, gana el que tenga ms resultados exactos
+            En caso de empate, gana el que tenga más resultados exactos
           </li>
         </ul>
       </Card>
@@ -111,15 +111,15 @@ export function RulesPage() {
         <ul className="space-y-2 text-textMuted text-sm">
           <li className="flex items-start gap-2">
             <span className="text-accent mt-0.5">*</span>
-            Tu alias se genera automticamente: iniciales + da y mes de nacimiento (ej: MF2401)
+            Tu alias se genera automáticamente: iniciales + día y mes de nacimiento (ej: MF2401)
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-0.5">*</span>
-            No pods cambiar tu alias una vez creado
+            No podés cambiar tu alias una vez creado
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-0.5">*</span>
-            En los rankings pblicos solo se muestra tu alias, nunca tu nombre real ni datos de contacto
+            En los rankings públicos solo se muestra tu alias, nunca tu nombre real ni datos de contacto
           </li>
         </ul>
       </Card>

@@ -32,9 +32,7 @@ function rowToProfile(row: ProfileRow): Profile {
 
 function generateAlias(firstName: string, lastName: string, birthDate: string): string {
   const initials = (firstName[0] + lastName[0]).toUpperCase();
-  const date = new Date(birthDate);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const [_, month, day] = birthDate.split('-');
   return `${initials}${day}${month}`;
 }
 

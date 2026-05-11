@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authService.signInWithGoogle();
     } catch (error: any) {
-      setLoginError('Error al iniciar sesión. Intenta de nuevo.');
+      setLoginError('Error al iniciar sesión. Intentá de nuevo.');
       console.error('[AuthProvider] login error:', error);
     }
   }, []);
