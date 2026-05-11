@@ -117,9 +117,53 @@ export function MatchRow({ match, prediction, onPredictionChange }: MatchRowProp
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-3">
-        <div className="flex-1 text-center sm:text-left">
-          <div className="flex justify-center sm:justify-start mb-2 sm:mb-1">
+      {/* Mobile layout */}
+      <div className="sm:hidden space-y-3">
+        <div className="flex items-center gap-3">
+          <FlagIcon country={match.teamA} />
+          <p className="flex-1 text-textLight text-base font-semibold">{match.teamA}</p>
+          {isFinished && match.scoreA !== null ? (
+            <span className="text-textLight text-2xl font-bold w-16 text-center">{match.scoreA}</span>
+          ) : isLocked ? (
+            <span className="text-accent text-2xl font-bold w-16 text-center">{prediction?.predictedScoreA ?? '-'}</span>
+          ) : (
+            <input
+              type="number"
+              min="0"
+              value={scoreA}
+              onChange={(e) => handleScoreAChange(e.target.value)}
+              aria-label={`Goles de ${match.teamA}`}
+              className="w-16 h-14 bg-primary/40 border border-white/10 rounded-xl text-textLight text-center text-2xl font-bold focus:border-cupYellow focus:outline-none focus:ring-2 focus:ring-cupYellow/30"
+              placeholder="-"
+            />
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <FlagIcon country={match.teamB} />
+          <p className="flex-1 text-textLight text-base font-semibold">{match.teamB}</p>
+          {isFinished && match.scoreB !== null ? (
+            <span className="text-textLight text-2xl font-bold w-16 text-center">{match.scoreB}</span>
+          ) : isLocked ? (
+            <span className="text-accent text-2xl font-bold w-16 text-center">{prediction?.predictedScoreB ?? '-'}</span>
+          ) : (
+            <input
+              type="number"
+              min="0"
+              value={scoreB}
+              onChange={(e) => handleScoreBChange(e.target.value)}
+              aria-label={`Goles de ${match.teamB}`}
+              className="w-16 h-14 bg-primary/40 border border-white/10 rounded-xl text-textLight text-center text-2xl font-bold focus:border-cupYellow focus:outline-none focus:ring-2 focus:ring-cupYellow/30"
+              placeholder="-"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Desktop layout */}
+      <div className="hidden sm:flex sm:items-center gap-4 sm:gap-3">
+        <div className="flex-1 text-left">
+          <div className="flex justify-start mb-1">
             <FlagIcon country={match.teamA} />
           </div>
           <p className="text-textLight text-base font-semibold">{match.teamA}</p>
@@ -167,8 +211,8 @@ export function MatchRow({ match, prediction, onPredictionChange }: MatchRowProp
           )}
         </div>
 
-        <div className="flex-1 text-center sm:text-right">
-          <div className="flex justify-center sm:justify-end mb-2 sm:mb-1">
+        <div className="flex-1 text-right">
+          <div className="flex justify-end mb-1">
             <FlagIcon country={match.teamB} />
           </div>
           <p className="text-textLight text-base font-semibold">{match.teamB}</p>
