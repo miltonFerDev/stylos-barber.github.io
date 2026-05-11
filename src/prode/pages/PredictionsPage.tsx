@@ -1,18 +1,48 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
+import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { MatchRow } from '../components/predictions/MatchRow';
 import { matchService } from '../services/match.service';
+import { useAuth } from '../hooks/useAuth';
 import { usePredictions } from '../hooks/usePredictions';
 import type { PredictionInput } from '../domain/types/prediction';
+import type { Match } from '../domain/types/match';
+import { competition } from '../config/competition';
 
 export function PredictionsPage() {
-  const { savePredictions, getPredictionForMatch } = usePredictions();
-  const [selectedMatchday, setSelectedMatchday] = React.useState('Fecha 1');
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
+  const { savePredictions, getPredictionForMatch } = usePredictions(userId);
+  const [selectedMatchday, setSelectedMatchday] = React.useState('');
   const [pendingPredictions, setPendingPredictions] = React.useState<Record<string, { scoreA: number; scoreB: number }>>({});
   const [saveMessage, setSaveMessage] = React.useState('');
+  const [saving, setSaving] = React.useState(false);
 
-  const [matches] = React.useState(matchService.getMatches());
+  const [matches, setMatches] = React.useState<Match[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    loadMatches();
+  }, []);
+
+  const loadMatches = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await matchService.getMatches(competition.id);
+      setMatches(data);
+      if (data.length > 0 && !selectedMatchday) {
+        setSelectedMatchday(data[0].matchday);
+      }
+    } catch (e) {
+      setError('Error al cargar los partidos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const matchdays = Array.from(new Set(matches.map((m) => m.matchday)));
   const matchesInDay = matches.filter((m) => m.matchday === selectedMatchday);
 
@@ -21,11 +51,10 @@ export function PredictionsPage() {
       ...prev,
       [matchId]: { scoreA, scoreB },
     }));
-    // Clear save message when user makes changes
     if (saveMessage) setSaveMessage('');
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const inputs: PredictionInput[] = Object.entries(pendingPredictions)
       .filter(([_, scores]) => scores.scoreA !== undefined && scores.scoreB !== undefined)
       .map(([matchId, scores]) => ({
@@ -39,22 +68,46 @@ export function PredictionsPage() {
       return;
     }
 
-    savePredictions(inputs);
-    setPendingPredictions({});
-    setSaveMessage('¡Predicciones guardadas!');
-    
-    // Clear message after 3 seconds
+    setSaving(true);
+    setSaveMessage('');
+    try {
+      await savePredictions(inputs);
+      setPendingPredictions({});
+      setSaveMessage('Predicciones guardadas!');
+    } catch (e) {
+      setSaveMessage('Error al guardar. Intenta de nuevo.');
+    } finally {
+      setSaving(false);
+    }
+
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
   const hasPendingChanges = Object.keys(pendingPredictions).length > 0;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-5">
+        <h1 className="text-textLight text-2xl font-extrabold tracking-tight">Mis Predicciones</h1>
+        <ErrorMessage message={error} onRetry={loadMatches} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-textLight text-2xl font-extrabold tracking-tight">Mis Predicciones</h1>
-          <p className="text-textMuted text-sm mt-1">Completá tus resultados antes de cada partido</p>
+          <p className="text-textMuted text-sm mt-1">Complet tus resultados antes de cada partido</p>
         </div>
         <Link
           to="/"
@@ -109,9 +162,9 @@ export function PredictionsPage() {
         <Button 
           fullWidth 
           onClick={handleSave}
-          disabled={!hasPendingChanges}
+          disabled={!hasPendingChanges || saving}
         >
-          {hasPendingChanges ? 'Guardar predicciones' : 'Predicciones guardadas'}
+          {saving ? 'Guardando...' : hasPendingChanges ? 'Guardar predicciones' : 'Predicciones guardadas'}
         </Button>
       </div>
     </div>

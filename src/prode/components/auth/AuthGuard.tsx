@@ -2,9 +2,10 @@ import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { LoginButton } from '../auth/LoginButton';
 import { Card } from '../ui/Card';
+import { ErrorMessage } from '../ui/ErrorMessage';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, loading, login } = useAuth();
+  const { isAuthenticated, loading, login, loginError } = useAuth();
 
   if (loading) {
     return (
@@ -27,6 +28,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           <p className="text-textMuted text-sm mb-6">
             Usá tu cuenta de Google para entrar al prode, hacer tus predicciones y competir por premios.
           </p>
+          {loginError && <div className="mb-4"><ErrorMessage message={loginError} /></div>}
           <LoginButton onLogin={login} />
         </Card>
       </div>

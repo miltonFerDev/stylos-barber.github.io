@@ -1,81 +1,46 @@
-import type { Prediction } from '../domain/types/prediction';
-import type { Match } from '../domain/types/match';
+import { supabase } from '../config/supabase';
 import type { RankingEntry } from '../domain/types/ranking';
-import { calculatePoints } from '../domain/logic/scoring';
 import { buildRanking } from '../domain/logic/ranking';
-import { isValidRankingEntry } from '../utils/validation';
+import { calculatePoints } from '../domain/logic/scoring';
 
-interface UserStats {
+export interface UserStats {
   alias: string;
   points: number;
   exactPredictions: number;
   correctWinners: number;
 }
 
-function isValidUserStats(stats: unknown): stats is UserStats {
-  if (!stats || typeof stats !== 'object') return false;
-  const s = stats as Record<string, unknown>;
-  return (
-    typeof s.alias === 'string' &&
-    typeof s.points === 'number' &&
-    typeof s.exactPredictions === 'number' &&
-    typeof s.correctWinners === 'number'
-  );
-}
-
-/**
- * Calcula las estadísticas de un usuario basado en sus predicciones y los resultados.
- */
 export function calculateUserStats(
-  predictions: Prediction[],
-  matches: Match[],
+  predictions: { predictedScoreA: number; predictedScoreB: number; matchId: string }[],
+  matches: { id: string; scoreA: number | null; scoreB: number | null }[],
   alias: string
 ): UserStats {
   let points = 0;
   let exactPredictions = 0;
   let correctWinners = 0;
 
-  predictions.forEach((prediction) => {
+  for (const prediction of predictions) {
     const match = matches.find((m) => m.id === prediction.matchId);
-    if (!match || match.scoreA === null || match.scoreB === null) {
-      return;
-    }
+    if (!match || match.scoreA === null || match.scoreB === null) continue;
 
-    const pts = calculatePoints(prediction, { scoreA: match.scoreA, scoreB: match.scoreB });
+    const pts = calculatePoints(
+      { predictedScoreA: prediction.predictedScoreA, predictedScoreB: prediction.predictedScoreB },
+      { scoreA: match.scoreA, scoreB: match.scoreB }
+    );
+
     points += pts;
-
-    if (pts === 3) {
-      exactPredictions++;
-    } else if (pts === 1) {
-      correctWinners++;
-    }
-  });
-
-  return {
-    alias,
-    points,
-    exactPredictions,
-    correctWinners,
-  };
-}
-
-/**
- * Construye un ranking combinando el usuario actual con mocks de otros usuarios.
- */
-export function buildRankingWithUser(
-  userStats: UserStats,
-  mockEntries: RankingEntry[]
-): RankingEntry[] {
-  if (!isValidUserStats(userStats)) {
-    console.warn('[buildRankingWithUser] userStats inválido, usando solo mocks');
-    return buildRanking(mockEntries.filter(isValidRankingEntry));
+    if (pts === 3) exactPredictions++;
+    else if (pts === 1) correctWinners++;
   }
 
-  // Remove the user's mock entry if it exists
-  const otherEntries = mockEntries.filter((e) => e.alias !== userStats.alias);
+  return { alias, points, exactPredictions, correctWinners };
+}
 
-  // Combine real user with mocks
-  const allEntries = [
+export function buildRankingWithUser(
+  userStats: UserStats,
+  otherEntries: RankingEntry[]
+): RankingEntry[] {
+  const entries: UserStats[] = [
     ...otherEntries.map((e) => ({
       alias: e.alias,
       points: e.points,
@@ -85,5 +50,101 @@ export function buildRankingWithUser(
     userStats,
   ];
 
-  return buildRanking(allEntries);
+  return buildRanking(entries);
 }
+
+export const rankingService = {
+  async getRankings(): Promise<RankingEntry[]> {
+    const { data, error } = await supabase
+      .from('rankings')
+      .select('*')
+      .order('points', { ascending: false });
+
+    if (error) {
+      console.error('[rankingService] getRankings error:', error.message);
+      return [];
+    }
+
+    if (!data || data.length === 0) return [];
+
+    const rawEntries = data.map((row) => ({
+      alias: row.alias as string,
+      points: Number(row.points),
+      exactPredictions: Number(row.exact_predictions ?? row.exactPredictions ?? 0),
+      correctWinners: Number(row.correct_winners ?? row.correctWinners ?? 0),
+    }));
+
+    return buildRanking(rawEntries);
+  },
+
+  async getMatchdayRankings(matchday: string): Promise<RankingEntry[]> {
+    const { data: matchRows, error: matchError } = await supabase
+      .from('matches')
+      .select('id')
+      .eq('group', matchday);
+
+    if (matchError || !matchRows || matchRows.length === 0) {
+      return [];
+    }
+
+    const matchIds = matchRows.map((m) => m.id);
+
+    const { data: finishedMatches, error: finishedError } = await supabase
+      .from('matches')
+      .select('*')
+      .in('id', matchIds)
+      .not('home_score', 'is', null)
+      .not('away_score', 'is', null);
+
+    if (finishedError || !finishedMatches) {
+      return [];
+    }
+
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, public_alias');
+
+    if (profilesError || !profiles) {
+      return [];
+    }
+
+    const entries: UserStats[] = [];
+
+    for (const profile of profiles) {
+      const { data: preds } = await supabase
+        .from('predictions')
+        .select('match_id, home_score, away_score')
+        .eq('user_id', profile.id)
+        .in('match_id', matchIds);
+
+      if (!preds || preds.length === 0) continue;
+
+      let points = 0;
+      let exactPredictions = 0;
+      let correctWinners = 0;
+
+      for (const pred of preds) {
+        const match = finishedMatches.find((m) => m.id === pred.match_id);
+        if (!match) continue;
+
+        const pts = calculatePoints(
+          { predictedScoreA: pred.home_score, predictedScoreB: pred.away_score },
+          { scoreA: match.home_score, scoreB: match.away_score }
+        );
+
+        points += pts;
+        if (pts === 3) exactPredictions++;
+        else if (pts === 1) correctWinners++;
+      }
+
+      entries.push({
+        alias: profile.public_alias,
+        points,
+        exactPredictions,
+        correctWinners,
+      });
+    }
+
+    return buildRanking(entries);
+  },
+};

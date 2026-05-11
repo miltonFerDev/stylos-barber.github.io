@@ -1,6 +1,8 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ProdeNav } from './ProdeNav';
+import { AuthProvider } from '../auth/AuthProvider';
+import { ProfileProvider } from '../auth/ProfileProvider';
 import { AuthGuard } from '../auth/AuthGuard';
 import { ProfileGuard } from '../auth/ProfileGuard';
 import { DashboardPage } from '../../pages/DashboardPage';
@@ -28,30 +30,34 @@ function PageLoader() {
 export function ProdeShell() {
   return (
     <BrowserRouter basename="/prode">
-      <div
-        className="min-h-screen font-gothic"
-        style={{
-          background: 'radial-gradient(circle at top left, rgba(62,82,213,0.22), transparent 32%), radial-gradient(circle at top right, rgba(255,79,154,0.16), transparent 28%), #242331',
-        }}
-      >
-        <ProdeNav />
-        <main className="max-w-2xl mx-auto px-4 py-8">
-          <ErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path="/" element={<ProfileGuard><DashboardPage /></ProfileGuard>} />
-                <Route path="/onboarding" element={<AuthGuard><OnboardingPage /></AuthGuard>} />
-                <Route path="/fixture" element={<FixturePage />} />
-                <Route path="/predicciones" element={<AuthGuard><ProfileGuard><PredictionsPage /></ProfileGuard></AuthGuard>} />
-                <Route path="/ranking" element={<RankingPage />} />
-                <Route path="/reglas" element={<RulesPage />} />
-                <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </Suspense>
-          </ErrorBoundary>
-        </main>
-      </div>
+      <AuthProvider>
+        <ProfileProvider>
+          <div
+          className="min-h-screen font-gothic"
+          style={{
+            background: 'radial-gradient(circle at top left, rgba(62,82,213,0.22), transparent 32%), radial-gradient(circle at top right, rgba(255,79,154,0.16), transparent 28%), #242331',
+          }}
+        >
+          <ProdeNav />
+          <main className="max-w-2xl mx-auto px-4 py-8">
+            <ErrorBoundary>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<ProfileGuard><DashboardPage /></ProfileGuard>} />
+                  <Route path="/onboarding" element={<AuthGuard><OnboardingPage /></AuthGuard>} />
+                  <Route path="/fixture" element={<FixturePage />} />
+                  <Route path="/predicciones" element={<AuthGuard><ProfileGuard><PredictionsPage /></ProfileGuard></AuthGuard>} />
+                  <Route path="/ranking" element={<RankingPage />} />
+                  <Route path="/reglas" element={<RulesPage />} />
+                  <Route path="/admin" element={<AdminGuard><AdminPage /></AdminGuard>} />
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </Suspense>
+            </ErrorBoundary>
+          </main>
+        </div>
+        </ProfileProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

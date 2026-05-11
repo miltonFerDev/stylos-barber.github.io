@@ -4,22 +4,26 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { matchService } from '../services/match.service';
 import type { Match } from '../domain/types/match';
+import { competition } from '../config/competition';
 
 function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved: () => void }) {
   const [scoreA, setScoreA] = React.useState('');
   const [scoreB, setScoreB] = React.useState('');
   const [message, setMessage] = React.useState('');
+  const [saving, setSaving] = React.useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const sA = parseInt(scoreA);
     const sB = parseInt(scoreB);
     
     if (isNaN(sA) || isNaN(sB) || scoreA === '' || scoreB === '') {
-      setMessage('Ingresá ambos resultados');
+      setMessage('Ingres ambos resultados');
       return;
     }
 
-    matchService.updateMatchResult(match.id, sA, sB);
+    setSaving(true);
+    await matchService.updateMatchResult(match.id, sA, sB);
+    setSaving(false);
     setMessage('Resultado guardado');
     setScoreA('');
     setScoreB('');
@@ -28,8 +32,8 @@ function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved:
     setTimeout(() => setMessage(''), 2000);
   };
 
-  const handleReset = () => {
-    matchService.resetMatch(match.id);
+  const handleReset = async () => {
+    await matchService.resetMatch(match.id);
     setMessage('Partido reseteado');
     onResultSaved();
     setTimeout(() => setMessage(''), 2000);
@@ -52,7 +56,7 @@ function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved:
             ? 'bg-green-500/20 text-green-400' 
             : 'bg-blue-500/20 text-blue-400'
         }`}>
-          {match.status === 'finished' ? 'Finalizado' : 'Próximo'}
+          {match.status === 'finished' ? 'Finalizado' : 'Prximo'}
         </span>
       </div>
 
@@ -101,8 +105,8 @@ function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved:
       )}
 
       {match.status !== 'finished' ? (
-        <Button size="sm" fullWidth onClick={handleSave}>
-          Guardar resultado
+        <Button size="sm" fullWidth onClick={handleSave} disabled={saving}>
+          {saving ? 'Guardando...' : 'Guardar resultado'}
         </Button>
       ) : (
         <button
@@ -117,12 +121,19 @@ function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved:
 }
 
 export function AdminPage() {
-  const [matches, setMatches] = React.useState(matchService.getMatches());
+  const [matches, setMatches] = React.useState<Match[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [filter, setFilter] = React.useState<'all' | 'upcoming' | 'finished'>('all');
 
-  const refreshMatches = () => {
-    setMatches(matchService.getMatches());
-  };
+  const refreshMatches = React.useCallback(async () => {
+    const data = await matchService.getMatches(competition.id);
+    setMatches(data);
+    setLoading(false);
+  }, []);
+
+  React.useEffect(() => {
+    refreshMatches();
+  }, [refreshMatches]);
 
   const filteredMatches = matches.filter((m) => {
     if (filter === 'upcoming') return m.status === 'upcoming';
@@ -159,20 +170,26 @@ export function AdminPage() {
                 : 'bg-primaryLight text-textMuted hover:text-textLight'
             }`}
           >
-            {f === 'all' ? 'Todos' : f === 'upcoming' ? 'Próximos' : 'Finalizados'}
+            {f === 'all' ? 'Todos' : f === 'upcoming' ? 'Prximos' : 'Finalizados'}
           </button>
         ))}
       </div>
 
-      <div className="space-y-3">
-        {filteredMatches.map((match) => (
-          <AdminMatchCard key={match.id} match={match} onResultSaved={refreshMatches} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredMatches.map((match) => (
+            <AdminMatchCard key={match.id} match={match} onResultSaved={refreshMatches} />
+          ))}
+        </div>
+      )}
 
-      {filteredMatches.length === 0 && (
+      {filteredMatches.length === 0 && !loading && (
         <div className="text-center py-8">
-          <p className="text-textMuted">No hay partidos en esta categoría</p>
+          <p className="text-textMuted">No hay partidos en esta categor</p>
         </div>
       )}
     </div>

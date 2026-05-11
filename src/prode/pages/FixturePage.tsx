@@ -2,6 +2,8 @@ import React from 'react';
 import type { Match } from '../domain/types/match';
 import { matchService } from '../services/match.service';
 import { MatchCard } from '../components/fixture/MatchCard';
+import { ErrorMessage } from '../components/ui/ErrorMessage';
+import { competition } from '../config/competition';
 
 interface GroupedMatches {
   matchday: string;
@@ -34,8 +36,27 @@ function groupByMatchday(matches: Match[]): GroupedMatches[] {
 }
 
 export function FixturePage() {
-  const [matches] = React.useState(matchService.getMatches());
+  const [matches, setMatches] = React.useState<Match[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   
+  const loadMatches = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await matchService.getMatches(competition.id);
+      setMatches(data);
+    } catch (e) {
+      setError('Error al cargar el fixture');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadMatches();
+  }, [loadMatches]);
+
   const groupedMatches = React.useMemo(() => groupByMatchday(matches), [matches]);
   const [selectedMatchday, setSelectedMatchday] = React.useState(
     groupedMatches[0]?.matchday || ''
@@ -43,12 +64,29 @@ export function FixturePage() {
 
   const currentGroup = groupedMatches.find((g) => g.matchday === selectedMatchday);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-5">
+        <h1 className="text-textLight text-2xl font-extrabold tracking-tight">Fixture</h1>
+        <ErrorMessage message={error} onRetry={loadMatches} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       <div>
         <h1 className="text-textLight text-2xl font-extrabold tracking-tight">Fixture</h1>
         <p className="text-textMuted text-sm mt-1">
-          Todos los partidos del Mundial 2026
+          {competition.subtitle}
         </p>
       </div>
 

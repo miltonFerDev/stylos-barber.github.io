@@ -1,5 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 
@@ -8,9 +9,10 @@ interface AdminGuardProps {
 }
 
 export function AdminGuard({ children }: AdminGuardProps) {
-  const { profile, loading } = useProfile();
+  const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile(user?.id ?? null);
 
-  if (loading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <LoadingSpinner />

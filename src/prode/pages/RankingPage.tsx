@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
+import { ErrorMessage } from '../components/ui/ErrorMessage';
+import { useAuth } from '../hooks/useAuth';
 import { useRankings } from '../hooks/useRankings';
 import type { RankingEntry } from '../domain/types/ranking';
 
@@ -72,8 +74,9 @@ function RankingTable({ entries, highlightAlias }: { entries: RankingEntry[]; hi
 }
 
 export function RankingPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = React.useState<'weekly' | 'general'>('weekly');
-  const { weekly, general, userAlias, loading } = useRankings();
+  const { weekly, general, userAlias, loading, error, refreshRankings } = useRankings(user?.id ?? null);
 
   const data = activeTab === 'weekly' ? weekly : general;
 
@@ -117,6 +120,8 @@ export function RankingPage() {
           General
         </button>
       </div>
+
+      {error && <ErrorMessage message={error} onRetry={refreshRankings} />}
 
       <Card className="p-4">
         {loading ? (

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card } from '../ui/Card';
 import { useNavigate } from 'react-router-dom';
+import { competition } from '../../config/competition';
 
 export function RulesPreviewCard() {
   const navigate = useNavigate();
@@ -20,18 +21,18 @@ export function RulesPreviewCard() {
 
       <div className="space-y-1.5 text-sm">
         <div className="flex items-start gap-2">
-          <span className="text-cupGreen mt-0.5">•</span>
+          <span className="text-cupGreen mt-0.5">*</span>
           <p className="text-textMuted">Resultado exacto: <span className="text-textLight font-medium">3 pts</span></p>
         </div>
         <div className="flex items-start gap-2">
-          <span className="text-cupGreen mt-0.5">•</span>
+          <span className="text-cupGreen mt-0.5">*</span>
           <p className="text-textMuted">Ganador correcto: <span className="text-textLight font-medium">1 pt</span></p>
         </div>
       </div>
 
-      <div className="mt-4 p-3 bg-cupYellow/8 rounded-xl border border-cupYellow/15">
-        <p className="text-cupYellow text-xs font-semibold mb-0.5">Premio final</p>
-        <p className="text-textLight text-base font-bold">Gift card $100.000</p>
+      <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10">
+        <p className="text-textMuted text-xs font-semibold mb-0.5">{competition.prizes.note ?? 'Modo beta'}</p>
+        <p className="text-textLight text-base font-bold">Competencia de prueba</p>
       </div>
     </Card>
   );

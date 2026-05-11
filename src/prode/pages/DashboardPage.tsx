@@ -7,13 +7,14 @@ import { PredictionCountCard } from '../components/dashboard/PredictionCountCard
 import { RankingPreviewCard } from '../components/dashboard/RankingPreviewCard';
 import { RulesPreviewCard } from '../components/dashboard/RulesPreviewCard';
 import { FreshaCTA } from '../components/dashboard/FreshaCTA';
+import { competition } from '../config/competition';
 
 export function DashboardPage() {
   const { isAuthenticated, login, loading } = useAuth();
 
   return (
     <div className="space-y-5">
-      <h1 className="text-textLight text-2xl font-bold tracking-tight">Prode Mundial 2026</h1>
+      <h1 className="text-textLight text-2xl font-bold tracking-tight">{competition.name}</h1>
 
       {!loading && !isAuthenticated && (
         <Card className="border-white/10">

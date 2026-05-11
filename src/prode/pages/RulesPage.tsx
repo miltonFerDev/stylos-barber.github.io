@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
+import { competition } from '../config/competition';
 
 export function RulesPage() {
   return (
@@ -8,7 +9,7 @@ export function RulesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-textLight text-2xl font-extrabold tracking-tight">Reglas y Premios</h1>
-          <p className="text-textMuted text-sm mt-1">Cómo funcionan las predicciones y los rankings</p>
+          <p className="text-textMuted text-sm mt-1">Cmo funcionan las predicciones y los rankings</p>
         </div>
         <Link
           to="/"
@@ -21,8 +22,15 @@ export function RulesPage() {
         </Link>
       </div>
 
+      <Card className="border-amber-500/20">
+        <h2 className="text-amber-400 text-lg font-bold mb-2">Modo Beta</h2>
+        <p className="text-textMuted text-sm">
+          Esta es una competencia de prueba para validar la app. {competition.prizes.note}
+        </p>
+      </Card>
+
       <Card>
-        <h2 className="text-textLight text-lg font-bold mb-4">🎯 Sistema de Puntaje</h2>
+        <h2 className="text-textLight text-lg font-bold mb-4">Sistema de Puntaje</h2>
         <div className="space-y-3">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-sm font-bold shrink-0">
@@ -30,7 +38,7 @@ export function RulesPage() {
             </div>
             <div>
               <p className="text-textLight font-medium">Resultado exacto</p>
-              <p className="text-textMuted text-sm">Acertás el marcador exacto del partido</p>
+              <p className="text-textMuted text-sm">Acerts el marcador exacto del partido</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -39,7 +47,7 @@ export function RulesPage() {
             </div>
             <div>
               <p className="text-textLight font-medium">Ganador correcto</p>
-              <p className="text-textMuted text-sm">Acertás quién gana (o empate), pero no el marcador exacto</p>
+              <p className="text-textMuted text-sm">Acerts quin gana (o empate), pero no el marcador exacto</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -48,90 +56,70 @@ export function RulesPage() {
             </div>
             <div>
               <p className="text-textLight font-medium">Incorrecto / Sin predecir</p>
-              <p className="text-textMuted text-sm">No acertás o no hacés la predicción</p>
+              <p className="text-textMuted text-sm">No acerts o no hiciste la prediccin</p>
             </div>
           </div>
         </div>
       </Card>
 
       <Card>
-        <h2 className="text-textLight text-lg font-bold mb-4">⚽ Predicciones</h2>
+        <h2 className="text-textLight text-lg font-bold mb-4">Predicciones</h2>
         <ul className="space-y-2 text-textMuted text-sm">
           <li className="flex items-start gap-2">
-            <span className="text-accent mt-0.5">•</span>
-            Podés predecir hasta el inicio de cada partido
+            <span className="text-accent mt-0.5">*</span>
+            Pods predecir hasta el inicio de cada partido
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-accent mt-0.5">•</span>
-            Cuando empieza un partido, la predicción se bloquea automáticamente
+            <span className="text-accent mt-0.5">*</span>
+            Cuando empieza un partido, la prediccin se bloquea automticamente
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-accent mt-0.5">•</span>
-            Si no hacés la predicción, sumás 0 puntos para ese partido
+            <span className="text-accent mt-0.5">*</span>
+            Si no hacs la prediccin, sums 0 puntos para ese partido
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-accent mt-0.5">•</span>
+            <span className="text-accent mt-0.5">*</span>
             Las predicciones son individuales y no se pueden ver las de otros jugadores
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-accent mt-0.5">*</span>
+            <strong className="text-textLight">Resultado a los 90 minutos.</strong> Penales no cuentan.
           </li>
         </ul>
       </Card>
 
       <Card>
-        <h2 className="text-textLight text-lg font-bold mb-4">🏆 Rankings</h2>
+        <h2 className="text-textLight text-lg font-bold mb-4">Rankings</h2>
         <ul className="space-y-2 text-textMuted text-sm">
           <li className="flex items-start gap-2">
-            <span className="text-accent mt-0.5">•</span>
+            <span className="text-accent mt-0.5">*</span>
             <strong className="text-textLight">Ranking semanal:</strong> por cada jornada de partidos
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-accent mt-0.5">•</span>
+            <span className="text-accent mt-0.5">*</span>
             <strong className="text-textLight">Ranking general:</strong> acumulado de todo el torneo
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-accent mt-0.5">•</span>
-            En caso de empate, gana el que tenga más resultados exactos
+            <span className="text-accent mt-0.5">*</span>
+            En caso de empate, gana el que tenga ms resultados exactos
           </li>
         </ul>
       </Card>
 
-      <Card className="border-amber-500/20">
-        <h2 className="text-amber-400 text-lg font-bold mb-4">🎁 Premios</h2>
-        <div className="space-y-4">
-          <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/10">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">🏅</span>
-              <p className="text-textLight font-bold">Premio por fecha</p>
-            </div>
-            <p className="text-textMuted text-sm">
-              El primer puesto de cada jornada se lleva un <span className="text-amber-400 font-medium">50% de descuento</span> en cualquier servicio de Stylo's Barber.
-            </p>
-          </div>
-          <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/10">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">🏆</span>
-              <p className="text-textLight font-bold">Premio final</p>
-            </div>
-            <p className="text-textMuted text-sm">
-              El primer puesto del ranking general se lleva una <span className="text-amber-400 font-medium">gift card de $100.000</span>.
-            </p>
-          </div>
-        </div>
-      </Card>
-
       <Card>
-        <h2 className="text-textLight text-lg font-bold mb-4">👤 Perfil</h2>
+        <h2 className="text-textLight text-lg font-bold mb-4">Perfil</h2>
         <ul className="space-y-2 text-textMuted text-sm">
           <li className="flex items-start gap-2">
-            <span className="text-accent mt-0.5">•</span>
-            Tu alias se genera automáticamente: iniciales + día y mes de nacimiento (ej: MF2401)
+            <span className="text-accent mt-0.5">*</span>
+            Tu alias se genera automticamente: iniciales + da y mes de nacimiento (ej: MF2401)
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-accent mt-0.5">•</span>
-            No podés cambiar tu alias una vez creado
+            <span className="text-accent mt-0.5">*</span>
+            No pods cambiar tu alias una vez creado
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-accent mt-0.5">•</span>
-            En los rankings públicos solo se muestra tu alias, nunca tu nombre real ni datos de contacto
+            <span className="text-accent mt-0.5">*</span>
+            En los rankings pblicos solo se muestra tu alias, nunca tu nombre real ni datos de contacto
           </li>
         </ul>
       </Card>

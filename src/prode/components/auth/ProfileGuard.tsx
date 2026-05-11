@@ -5,8 +5,8 @@ import { useProfile } from '../../hooks/useProfile';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 
 export function ProfileGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, loading: authLoading } = useAuth();
-  const { hasProfile, loading: profileLoading } = useProfile();
+  const { user, loading: authLoading } = useAuth();
+  const { hasProfile, loading: profileLoading } = useProfile(user?.id ?? null);
 
   if (authLoading || profileLoading) {
     return (
@@ -16,7 +16,7 @@ export function ProfileGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <>{children}</>;
   }
 

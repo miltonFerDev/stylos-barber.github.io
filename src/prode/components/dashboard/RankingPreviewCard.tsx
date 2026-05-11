@@ -1,7 +1,8 @@
 import React from 'react';
 import { Card } from '../ui/Card';
 import { useNavigate } from 'react-router-dom';
-import { mockRankingWeekly, mockRankingGeneral } from '../../data/mocks';
+import { useAuth } from '../../hooks/useAuth';
+import { useRankings } from '../../hooks/useRankings';
 
 interface RankingPreviewCardProps {
   type: 'weekly' | 'general';
@@ -9,10 +10,13 @@ interface RankingPreviewCardProps {
 
 export function RankingPreviewCard({ type }: RankingPreviewCardProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { weekly, general, loading } = useRankings(user?.id ?? null);
+
   const isWeekly = type === 'weekly';
-  const data = isWeekly ? mockRankingWeekly : mockRankingGeneral;
+  const data = isWeekly ? weekly : general;
   const title = isWeekly ? 'Ranking Semanal' : 'Ranking General';
-  const subtitle = isWeekly ? 'Fecha 1' : 'Todos los tiempos';
+  const subtitle = 'Tabla de posiciones';
   const top3 = data.slice(0, 3);
 
   const getPositionStyle = (position: number) => {
@@ -48,26 +52,36 @@ export function RankingPreviewCard({ type }: RankingPreviewCardProps) {
         </div>
       </div>
 
-      <div className="space-y-1">
-        {top3.map((entry) => {
-          const style = getPositionStyle(entry.position);
-          return (
-            <div key={entry.alias} className={`flex items-center gap-3 py-2.5 px-3 rounded-lg transition-all ${style.bg} ${style.border}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${style.badge}`}>
-                {entry.position === 1 ? '🥇' : entry.position === 2 ? '🥈' : entry.position === 3 ? '🥉' : `#${entry.position}`}
+      {loading ? (
+        <div className="flex items-center justify-center py-6">
+          <div className="w-6 h-6 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
+        </div>
+      ) : top3.length === 0 ? (
+        <div className="text-center py-6">
+          <p className="text-textMuted text-sm">Aún no hay datos</p>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {top3.map((entry) => {
+            const style = getPositionStyle(entry.position);
+            return (
+              <div key={entry.alias} className={`flex items-center gap-3 py-2.5 px-3 rounded-lg transition-all ${style.bg} ${style.border}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${style.badge}`}>
+                  {entry.position === 1 ? '🥇' : entry.position === 2 ? '🥈' : entry.position === 3 ? '🥉' : `#${entry.position}`}
+                </div>
+                <span className="text-textLight text-sm font-medium flex-1 truncate">{entry.alias}</span>
+                <span className={`font-semibold text-sm ${entry.position === 1 ? 'text-cupYellow' : 'text-textMuted'}`}>
+                  {entry.points} pts
+                </span>
               </div>
-              <span className="text-textLight text-sm font-medium flex-1 truncate">{entry.alias}</span>
-              <span className={`font-semibold text-sm ${entry.position === 1 ? 'text-cupYellow' : 'text-textMuted'}`}>
-                {entry.points} pts
-              </span>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="mt-3 pt-2 border-t border-white/[0.06] text-center">
         <span className="text-textMuted text-xs font-medium hover:text-textLight transition-colors">
-          Ver ranking completo →
+          Ver ranking completo
         </span>
       </div>
     </Card>

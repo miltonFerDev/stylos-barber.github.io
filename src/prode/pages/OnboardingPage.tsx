@@ -7,11 +7,12 @@ import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useProfile';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { ErrorMessage } from '../components/ui/ErrorMessage';
 
 export function OnboardingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { createProfile, hasProfile } = useProfile();
+  const { createProfile, hasProfile } = useProfile(user?.id ?? null);
 
   const [formData, setFormData] = React.useState({
     firstName: '',
@@ -21,7 +22,6 @@ export function OnboardingPage() {
     acceptedRules: false,
   });
 
-  // Auto-fill name from Google metadata when it becomes available
   React.useEffect(() => {
     if (user?.user_metadata) {
       const meta = user.user_metadata;
@@ -35,6 +35,8 @@ export function OnboardingPage() {
 
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [alias, setAlias] = React.useState('');
+  const [submitting, setSubmitting] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState('');
 
   React.useEffect(() => {
     if (hasProfile) {
@@ -58,25 +60,37 @@ export function OnboardingPage() {
     if (!formData.lastName.trim()) newErrors.lastName = 'El apellido es obligatorio';
     if (!formData.birthDate) newErrors.birthDate = 'La fecha de nacimiento es obligatoria';
     if (!formData.whatsapp.trim()) newErrors.whatsapp = 'El WhatsApp es obligatorio';
-    if (formData.whatsapp.trim().length < 8) newErrors.whatsapp = 'Ingresá un número válido';
-    if (!formData.acceptedRules) newErrors.acceptedRules = 'Debés aceptar las reglas';
+    if (formData.whatsapp.trim().length < 8) newErrors.whatsapp = 'Ingres un nmero vlido';
+    if (!formData.acceptedRules) newErrors.acceptedRules = 'Deb aceptar las reglas';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError('');
     if (!validate()) return;
 
-    createProfile({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      birthDate: formData.birthDate,
-      whatsapp: formData.whatsapp,
-      email: user?.email ?? '',
-    });
+    setSubmitting(true);
+    try {
+      const profile = await createProfile({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        birthDate: formData.birthDate,
+        whatsapp: formData.whatsapp,
+        email: user?.email ?? '',
+      });
 
-    navigate('/');
+      if (profile) {
+        navigate('/');
+      } else {
+        setSubmitError('Error al crear el perfil. Intenta de nuevo.');
+      }
+    } catch (e) {
+      setSubmitError('Error al crear el perfil. Intenta de nuevo.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const nameFromGoogle = !!(user?.user_metadata?.given_name || user?.user_metadata?.full_name);
@@ -87,9 +101,9 @@ export function OnboardingPage() {
         <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center text-accent text-3xl mx-auto mb-4">
           ⚽
         </div>
-        <h1 className="text-textLight text-2xl font-bold">Completá tu perfil</h1>
+        <h1 className="text-textLight text-2xl font-bold">Complet tu perfil</h1>
         <p className="text-textMuted text-sm mt-1">
-          Un paso más para empezar a predecir
+          Un paso ms para empezar a predecir
         </p>
       </div>
 
@@ -120,7 +134,7 @@ export function OnboardingPage() {
             {nameFromGoogle && (
               <p className="text-textMuted text-xs mt-1 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span>
-                Desde tu cuenta de Google — podés editarlo
+                Desde tu cuenta de Google — pod editarlo
               </p>
             )}
           </div>
@@ -150,7 +164,7 @@ export function OnboardingPage() {
                 required: true,
               }}
             />
-            {errors.whatsapp && <p className="text-red-400 text-xs mt-1">{errors.whatsapp}</p>}
+            {errors.whatsapp && <p className="text-red-400 text-xs">{errors.whatsapp}</p>}
           </div>
 
           {alias && (
@@ -158,7 +172,7 @@ export function OnboardingPage() {
               <p className="text-textMuted text-xs mb-1">Tu alias (no editable)</p>
               <p className="text-accent text-xl font-bold">{alias}</p>
               <p className="text-textMuted text-xs mt-1">
-                Se genera automáticamente con tus iniciales y fecha de nacimiento
+                Se genera automticamente con tus iniciales y fecha de nacimiento
               </p>
             </div>
           )}
@@ -176,13 +190,15 @@ export function OnboardingPage() {
               <a href="/prode/reglas" className="text-accent hover:underline" target="_blank" rel="noopener noreferrer">
                 reglas del prode
               </a>{' '}
-              y los términos de participación
+              y los trminos de participacin
             </label>
           </div>
           {errors.acceptedRules && <p className="text-red-400 text-xs">{errors.acceptedRules}</p>}
 
-          <Button type="submit" fullWidth>
-            ¡Listo, empezar a predecir!
+          {submitError && <ErrorMessage message={submitError} />}
+
+          <Button type="submit" fullWidth disabled={submitting}>
+            {submitting ? 'Guardando...' : 'Listo, empezar a predecir!'}
           </Button>
         </form>
       </Card>
