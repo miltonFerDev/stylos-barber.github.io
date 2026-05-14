@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '../ui/Card';
 import { MatchStatusBadge } from './MatchStatusBadge';
 import type { Match } from '../../domain/types/match';
-import { isPredictionLocked } from '../../domain/logic/locking';
+import { isPredictionLocked, getEffectiveStatus } from '../../domain/logic/locking';
 
 // Import flag SVG components
 import AR from 'country-flag-icons/react/3x2/AR';
@@ -63,6 +63,7 @@ interface MatchRowProps {
 export function MatchRow({ match, prediction, onPredictionChange }: MatchRowProps) {
   const isLocked = isPredictionLocked(match.matchDate);
   const isFinished = match.status === 'finished';
+  const effectiveStatus = getEffectiveStatus(match.status, match.matchDate);
 
   const [scoreA, setScoreA] = React.useState(
     prediction?.predictedScoreA?.toString() ?? ''
@@ -113,7 +114,7 @@ export function MatchRow({ match, prediction, onPredictionChange }: MatchRowProp
         <span className="text-textMuted text-xs">{formattedDate} · {formattedTime}</span>
         {isLocked && <span className="text-textMuted text-xs font-medium ml-2">🔒 Bloqueado</span>}
         <div className="ml-auto">
-          <MatchStatusBadge status={match.status} />
+          <MatchStatusBadge status={effectiveStatus} />
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { matchesRepository } from '../repositories/matches.repository';
-import type { Match } from '../domain/types/match';
+import type { Match, MatchStatus } from '../domain/types/match';
 
 export const matchService = {
   async getMatches(competition?: string): Promise<Match[]> {
@@ -12,6 +12,10 @@ export const matchService = {
 
   async updateMatchResult(id: string, scoreA: number, scoreB: number): Promise<Match | null> {
     return matchesRepository.updateResult(id, scoreA, scoreB);
+  },
+
+  async updateMatchStatus(id: string, status: MatchStatus): Promise<Match | null> {
+    return matchesRepository.updateStatus(id, status);
   },
 
   async resetMatch(id: string): Promise<Match | null> {

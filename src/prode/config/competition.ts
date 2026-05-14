@@ -2,7 +2,7 @@ export const competition = {
   id: 'beta-liga-argentina',
   name: 'Prode Beta Liga Argentina',
   shortName: 'Prode Beta',
-  subtitle: 'Cuartos de final - Torneo Apertura',
+  subtitle: 'Semifinales - Torneo Apertura',
   rules: {
     exactScore: 3,
     correctWinner: 1,

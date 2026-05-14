@@ -40,7 +40,7 @@ export function isValidMatch(obj: unknown): obj is Match {
     typeof m.matchDate === 'string' &&
     typeof m.teamA === 'string' &&
     typeof m.teamB === 'string' &&
-    (m.status === 'upcoming' || m.status === 'finished') &&
+    (m.status === 'upcoming' || m.status === 'live' || m.status === 'finished') &&
     (m.scoreA === null || typeof m.scoreA === 'number') &&
     (m.scoreB === null || typeof m.scoreB === 'number')
   );

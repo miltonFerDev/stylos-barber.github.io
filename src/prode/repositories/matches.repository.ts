@@ -11,11 +11,15 @@ interface MatchRow {
   match_number: number | null;
   group: string | null;
   competition: string | null;
+  status: string | null;
 }
 
 function rowToMatch(row: MatchRow): Match {
+  const dbStatus = row.status ?? 'upcoming';
   const status: MatchStatus =
-    row.home_score !== null && row.away_score !== null ? 'finished' : 'upcoming';
+    dbStatus === 'live' ? 'live' :
+    dbStatus === 'finished' ? 'finished' :
+    'upcoming';
 
   return {
     id: row.id,
@@ -87,6 +91,7 @@ export const matchesRepository = {
         group: matchData.matchday,
         competition: matchData.competition ?? 'beta-liga-argentina',
         match_number: matchData.matchNumber ?? null,
+        status: 'upcoming',
       })
       .select()
       .single();
@@ -105,6 +110,7 @@ export const matchesRepository = {
       .update({
         home_score: scoreA,
         away_score: scoreB,
+        status: 'finished',
       })
       .eq('id', id)
       .select()
@@ -118,12 +124,42 @@ export const matchesRepository = {
     return rowToMatch(data as MatchRow);
   },
 
+  async updateStatus(id: string, status: MatchStatus): Promise<Match | null> {
+    const { data, error } = await supabase
+      .from('matches')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[matchesRepository] updateStatus error:', error.message);
+      return null;
+    }
+
+    return rowToMatch(data as MatchRow);
+  },
+
+  async bulkUpdateStatus(ids: string[], status: MatchStatus): Promise<boolean> {
+    const { error } = await supabase
+      .from('matches')
+      .update({ status })
+      .in('id', ids);
+
+    if (error) {
+      console.error('[matchesRepository] bulkUpdateStatus error:', error.message);
+      return false;
+    }
+    return true;
+  },
+
   async resetResult(id: string): Promise<Match | null> {
     const { data, error } = await supabase
       .from('matches')
       .update({
         home_score: null,
         away_score: null,
+        status: 'upcoming',
       })
       .eq('id', id)
       .select()

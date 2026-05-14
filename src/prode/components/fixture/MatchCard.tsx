@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import type { Match, MatchStatus } from '../../domain/types/match';
+import { getEffectiveStatus } from '../../domain/logic/locking';
 
 // Import flag SVG components from country-flag-icons
 import AR from 'country-flag-icons/react/3x2/AR';
@@ -99,19 +100,20 @@ function formatMatchTime(dateStr: string): string {
   });
 }
 
-function getStatusBadge(status: MatchStatus) {
-  switch (status) {
+function getStatusBadge(effectiveStatus: MatchStatus) {
+  switch (effectiveStatus) {
     case 'upcoming':
       return <Badge variant="pending">Próximo</Badge>;
+    case 'live':
+      return <Badge variant="info">En curso</Badge>;
     case 'finished':
       return <Badge variant="scored">Finalizado</Badge>;
-    default:
-      return null;
   }
 }
 
 export function MatchCard({ match }: MatchCardProps) {
-  const isFinished = match.status === 'finished';
+  const effectiveStatus = getEffectiveStatus(match.status, match.matchDate);
+  const isFinished = effectiveStatus === 'finished';
 
   return (
     <Card className={`transition-all ${isFinished ? 'bg-primaryLight/40' : 'hover:shadow-cardHover hover:-translate-y-0.5'}`}>
@@ -122,7 +124,7 @@ export function MatchCard({ match }: MatchCardProps) {
           </svg>
           {formatMatchDate(match.matchDate)} · {formatMatchTime(match.matchDate)}
         </span>
-        {getStatusBadge(match.status)}
+        {getStatusBadge(effectiveStatus)}
       </div>
 
       <div className="flex items-center justify-between min-w-0">
