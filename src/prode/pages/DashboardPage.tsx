@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { LoginButton } from '../components/auth/LoginButton';
+import { AuthButtons } from '../components/auth/AuthButtons';
 import { Card } from '../components/ui/Card';
 import { ProfileCard } from '../components/dashboard/ProfileCard';
 import { PredictionCountCard } from '../components/dashboard/PredictionCountCard';
@@ -26,7 +26,7 @@ export function DashboardPage() {
             <p className="text-textMuted text-sm mb-4">
               Iniciá sesión con email y contraseña para predecir y ganar premios.
             </p>
-            <LoginButton />
+            <AuthButtons />
           </div>
         </Card>
       )}

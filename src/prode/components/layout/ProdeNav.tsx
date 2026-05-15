@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
-import { LoginButton } from '../auth/LoginButton';
+import { AuthButtons } from '../auth/AuthButtons';
 import { UserProfile } from '../auth/UserProfile';
 import { competition } from '../../config/competition';
 
@@ -69,7 +69,7 @@ export function ProdeNav() {
                 <UserProfile user={user} onLogout={logout} />
               )}
               {!loading && !isAuthenticated && (
-                <LoginButton />
+                <AuthButtons variant="nav" />
               )}
             </div>
           </div>
@@ -149,7 +149,7 @@ export function ProdeNav() {
             </ul>
             {!loading && !isAuthenticated && (
               <div className="mt-3">
-                <LoginButton />
+                <AuthButtons />
               </div>
             )}
           </div>
