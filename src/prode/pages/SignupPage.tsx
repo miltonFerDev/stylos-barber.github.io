@@ -38,7 +38,7 @@ export function SignupPage() {
     try {
       await signup(email, password);
       if (signupSuccess) {
-        navigate('/prode/onboarding', { state: { email } });
+        navigate('/onboarding', { state: { email } });
       }
     } catch (err: any) {
       setError(signupError || 'Error al registrarse');
@@ -63,7 +63,7 @@ export function SignupPage() {
             Completa tu perfil para participar del Prode.
           </p>
           <Link
-            to="/prode/onboarding"
+            to="/onboarding"
             className="inline-block py-3 px-6 bg-accent text-white font-medium rounded-lg hover:bg-accentHover transition-colors"
           >
             Completar perfil
@@ -133,7 +133,7 @@ export function SignupPage() {
 
         <div className="mt-4 text-center">
           <Link
-            to="/prode/login"
+            to="/login"
             className="text-textMuted text-sm hover:text-textLight transition-colors"
           >
             ¿Ya tenés cuenta? <span className="text-accent">Iniciá sesión</span>

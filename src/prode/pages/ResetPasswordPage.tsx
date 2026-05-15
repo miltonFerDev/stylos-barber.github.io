@@ -75,7 +75,7 @@ export function ResetPasswordPage() {
       if (error) throw error;
       
       setSuccess(true);
-      setTimeout(() => navigate('/prode/login'), 3000);
+      setTimeout(() => navigate('/login'), 3000);
     } catch (err: any) {
       setError('Error al cambiar la contraseña');
     } finally {
@@ -99,7 +99,7 @@ export function ResetPasswordPage() {
             Revisá tu email y seguí el enlace para recuperar tu contraseña.
           </p>
           <Link
-            to="/prode/login"
+            to="/login"
             className="text-accent hover:text-accentHover transition-colors"
           >
             Volver al login
@@ -125,7 +125,7 @@ export function ResetPasswordPage() {
             Ya podés iniciar sesión con tu nueva contraseña.
           </p>
           <Link
-            to="/prode/login"
+            to="/login"
             className="text-accent hover:text-accentHover transition-colors"
           >
             Ir al login
@@ -221,7 +221,7 @@ export function ResetPasswordPage() {
 
         <div className="mt-4 text-center">
           <Link
-            to="/prode/login"
+            to="/login"
             className="text-textMuted text-sm hover:text-textLight transition-colors"
           >
             Volver al login

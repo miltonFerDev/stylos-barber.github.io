@@ -131,13 +131,13 @@ export function LoginPage() {
 
         <div className="mt-4 text-center space-y-2">
           <Link
-            to="/prode/reset-password"
+            to="/reset-password"
             className="block text-accent text-sm hover:text-accentHover transition-colors"
           >
             ¿Olvidaste tu contraseña?
           </Link>
           <Link
-            to="/prode/signup"
+            to="/signup"
             className="block text-textMuted text-sm hover:text-textLight transition-colors"
           >
             ¿No tenés cuenta? <span className="text-accent">Registrate</span>
