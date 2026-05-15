@@ -24,9 +24,9 @@ export function DashboardPage() {
             </div>
             <h3 className="text-textLight font-semibold mb-1">¿Todavía no entraste?</h3>
             <p className="text-textMuted text-sm mb-4">
-              Iniciá sesión con Google para predecir y ganar premios.
+              Iniciá sesión con email y contraseña para predecir y ganar premios.
             </p>
-            <LoginButton onLogin={login} />
+            <LoginButton />
           </div>
         </Card>
       )}

@@ -22,17 +22,6 @@ export function OnboardingPage() {
     acceptedRules: false,
   });
 
-  React.useEffect(() => {
-    if (user?.user_metadata) {
-      const meta = user.user_metadata;
-      setFormData((prev) => ({
-        ...prev,
-        firstName: prev.firstName || meta.given_name || meta.full_name?.split(' ')[0] || '',
-        lastName: prev.lastName || meta.family_name || meta.full_name?.split(' ').slice(1).join(' ') || '',
-      }));
-    }
-  }, [user]);
-
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [alias, setAlias] = React.useState('');
   const [submitting, setSubmitting] = React.useState(false);

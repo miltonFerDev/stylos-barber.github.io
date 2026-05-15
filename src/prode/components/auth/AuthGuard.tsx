@@ -1,11 +1,17 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LoginButton } from '../auth/LoginButton';
-import { Card } from '../ui/Card';
-import { ErrorMessage } from '../ui/ErrorMessage';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, loading, login, loginError } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/prode/login', { state: { from: location.pathname } });
+    }
+  }, [loading, isAuthenticated, navigate, location]);
 
   if (loading) {
     return (
@@ -16,23 +22,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
-        <Card className="max-w-sm w-full text-center">
-          <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center text-accent text-3xl mx-auto mb-4">
-            🔒
-          </div>
-          <h2 className="text-textLight text-xl font-bold mb-2">
-            Iniciá sesión para participar
-          </h2>
-          <p className="text-textMuted text-sm mb-6">
-            Usá tu cuenta de Google para entrar al prode, hacer tus predicciones y competir por premios.
-          </p>
-          {loginError && <div className="mb-4"><ErrorMessage message={loginError} /></div>}
-          <LoginButton onLogin={login} />
-        </Card>
-      </div>
-    );
+    return null;
   }
 
   return <>{children}</>;

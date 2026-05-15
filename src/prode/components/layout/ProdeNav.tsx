@@ -69,7 +69,7 @@ export function ProdeNav() {
                 <UserProfile user={user} onLogout={logout} />
               )}
               {!loading && !isAuthenticated && (
-                <LoginButton onLogin={login} />
+                <LoginButton />
               )}
             </div>
           </div>
@@ -149,7 +149,7 @@ export function ProdeNav() {
             </ul>
             {!loading && !isAuthenticated && (
               <div className="mt-3">
-                <LoginButton onLogin={login} />
+                <LoginButton />
               </div>
             )}
           </div>

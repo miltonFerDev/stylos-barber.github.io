@@ -17,6 +17,9 @@ const RankingPage = React.lazy(() => import('../../pages/RankingPage').then(m =>
 const RulesPage = React.lazy(() => import('../../pages/RulesPage').then(m => ({ default: m.RulesPage })));
 const AdminPage = React.lazy(() => import('../../pages/AdminPage').then(m => ({ default: m.AdminPage })));
 const OnboardingPage = React.lazy(() => import('../../pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })));
+const LoginPage = React.lazy(() => import('../../pages/LoginPage').then(m => ({ default: m.LoginPage })));
+const SignupPage = React.lazy(() => import('../../pages/SignupPage').then(m => ({ default: m.SignupPage })));
+const ResetPasswordPage = React.lazy(() => import('../../pages/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 const NotFoundPage = React.lazy(() => import('../../pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 
 function PageLoader() {
@@ -44,6 +47,9 @@ export function ProdeShell() {
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<ProfileGuard><DashboardPage /></ProfileGuard>} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignupPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
                   <Route path="/onboarding" element={<AuthGuard><OnboardingPage /></AuthGuard>} />
                   <Route path="/fixture" element={<FixturePage />} />
                   <Route path="/predicciones" element={<AuthGuard><ProfileGuard><PredictionsPage /></ProfileGuard></AuthGuard>} />

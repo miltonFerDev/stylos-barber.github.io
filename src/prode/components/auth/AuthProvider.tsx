@@ -7,7 +7,15 @@ export interface AuthContextValue {
   loading: boolean;
   isAuthenticated: boolean;
   loginError: string | null;
-  login: () => Promise<void>;
+  signupError: string | null;
+  signupSuccess: boolean;
+  resetPasswordSent: boolean;
+  resetPasswordError: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  signup: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -16,7 +24,15 @@ const AuthContext = React.createContext<AuthContextValue>({
   loading: true,
   isAuthenticated: false,
   loginError: null,
+  signupError: null,
+  signupSuccess: false,
+  resetPasswordSent: false,
+  resetPasswordError: null,
   login: async () => {},
+  loginWithGoogle: async () => {},
+  signup: async () => {},
+  resetPassword: async () => {},
+  updatePassword: async () => {},
   logout: async () => {},
 });
 
@@ -24,10 +40,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<any | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [loginError, setLoginError] = React.useState<string | null>(null);
+  const [signupError, setSignupError] = React.useState<string | null>(null);
+  const [signupSuccess, setSignupSuccess] = React.useState(false);
+  const [resetPasswordSent, setResetPasswordSent] = React.useState(false);
+  const [resetPasswordError, setResetPasswordError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    // Supabase fires INITIAL_SESSION immediately with the current session.
-    // No need for a separate getSession() call.
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'TOKEN_REFRESHED') return;
 
@@ -40,13 +58,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const login = React.useCallback(async () => {
+  const login = React.useCallback(async (email: string, password: string) => {
+    setLoginError(null);
+    try {
+      await authService.signIn(email, password);
+    } catch (error: any) {
+      const message = error.message?.includes('Invalid login')
+        ? 'Email o contraseña incorrectos'
+        : 'Error al iniciar sesión. Intentá de nuevo.';
+      setLoginError(message);
+      throw error;
+    }
+  }, []);
+
+  const loginWithGoogle = React.useCallback(async () => {
     setLoginError(null);
     try {
       await authService.signInWithGoogle();
     } catch (error: any) {
-      setLoginError('Error al iniciar sesión. Intentá de nuevo.');
-      console.error('[AuthProvider] login error:', error);
+      setLoginError('Error al iniciar sesión con Google');
+      console.error('[AuthProvider] loginWithGoogle error:', error);
+    }
+  }, []);
+
+  const signup = React.useCallback(async (email: string, password: string) => {
+    setSignupError(null);
+    setSignupSuccess(false);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user?.identities?.length === 0) {
+        setSignupError('Este email ya está registrado');
+        throw new Error('Email already registered');
+      }
+
+      setSignupSuccess(true);
+    } catch (error: any) {
+      if (!error.message?.includes('already registered')) {
+        setSignupError('Error al registrarse. Intentá de nuevo.');
+      }
+      throw error;
+    }
+  }, []);
+
+  const resetPassword = React.useCallback(async (email: string) => {
+    setResetPasswordError(null);
+    setResetPasswordSent(false);
+    try {
+      await authService.resetPassword(email);
+      setResetPasswordSent(true);
+    } catch (error: any) {
+      setResetPasswordError('Error al enviar el email de recuperación');
+      throw error;
+    }
+  }, []);
+
+  const updatePassword = React.useCallback(async (newPassword: string) => {
+    try {
+      await authService.updatePassword(newPassword);
+    } catch (error: any) {
+      throw error;
     }
   }, []);
 
@@ -60,10 +136,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       isAuthenticated: !!user,
       loginError,
+      signupError,
+      signupSuccess,
+      resetPasswordSent,
+      resetPasswordError,
       login,
+      loginWithGoogle,
+      signup,
+      resetPassword,
+      updatePassword,
       logout,
     }),
-    [user, loading, loginError, login, logout]
+    [user, loading, loginError, signupError, signupSuccess, resetPasswordSent, resetPasswordError, login, loginWithGoogle, signup, resetPassword, updatePassword, logout]
   );
 
   return (
