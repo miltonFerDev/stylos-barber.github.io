@@ -64,7 +64,16 @@ export const matchesRepository = {
     }
 
     if (!data) return [];
-    return (data as MatchRow[]).map(rowToMatch);
+    const rows = data as MatchRow[];
+    const seen = new Set<string>();
+    const unique = rows.filter((row) => {
+      if (!row.match_number || !row.competition) return true;
+      const key = `${row.competition}-${row.match_number}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return unique.map(rowToMatch);
   },
 
   async getById(id: string): Promise<Match | null> {

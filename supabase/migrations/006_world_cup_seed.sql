@@ -5,8 +5,8 @@
 -- Primero elimina los partidos de la beta
 -- =====================================================
 
--- 1. Limpiar partidos anteriores
-DELETE FROM public.matches WHERE competition = 'beta-liga-argentina';
+-- 1. Limpiar partidos anteriores (beta y mundial)
+DELETE FROM public.matches WHERE competition IN ('beta-liga-argentina', 'world-cup-2026');
 
 -- 2. Fase de Grupos - 72 partidos (12 grupos x 6 partidos)
 -- Fecha 1 de cada grupo
