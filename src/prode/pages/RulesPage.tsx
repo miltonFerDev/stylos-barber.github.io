@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
-import { competition } from '../config/competition';
+import { worldCup2026 } from '../config/competition';
 
 export function RulesPage() {
   return (
@@ -23,10 +23,10 @@ export function RulesPage() {
       </div>
 
       <Card className="border-amber-500/20">
-        <h2 className="text-amber-400 text-lg font-bold mb-2">Modo Beta</h2>
-        <p className="text-textMuted text-sm">
-          Esta es una competencia de prueba para validar la app. {competition.prizes.note}
-        </p>
+          <h2 className="text-amber-400 text-lg font-bold mb-2">Mundial 2026</h2>
+          <p className="text-textMuted text-sm">
+            Participá del Prode del Mundial 2026. Predecí los resultados y competí por premios en cada fase.
+          </p>
       </Card>
 
       <Card>
@@ -93,7 +93,11 @@ export function RulesPage() {
         <ul className="space-y-2 text-textMuted text-sm">
           <li className="flex items-start gap-2">
             <span className="text-accent mt-0.5">*</span>
-            <strong className="text-textLight">Ranking semanal:</strong> por cada jornada de partidos
+            <strong className="text-textLight">Ranking por fase:</strong> el 1° de cada fase gana {worldCup2026.prizes.perPhase}
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-accent mt-0.5">*</span>
+            Las fases rankeables son: Fecha 1, Fecha 2, Fecha 3, 16avos, Octavos, Cuartos, Semifinales, 3er puesto y Final
           </li>
           <li className="flex items-start gap-2">
             <span className="text-accent mt-0.5">*</span>

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { usePredictions } from '../../hooks/usePredictions';
 import { matchService } from '../../services/match.service';
-import { competition } from '../../config/competition';
+import { worldCup2026 } from '../../config/competition';
 
 export function PredictionCountCard() {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ export function PredictionCountCard() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    matchService.getMatches(competition.id).then((matches) => {
+    matchService.getMatches(worldCup2026.id).then((matches) => {
       const openMatches = matches.filter(m => m.status === 'upcoming');
       setTotalOpen(openMatches.length);
       setLoading(false);

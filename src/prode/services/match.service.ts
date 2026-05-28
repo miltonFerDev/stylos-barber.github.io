@@ -1,5 +1,5 @@
 import { matchesRepository } from '../repositories/matches.repository';
-import type { Match, MatchStatus } from '../domain/types/match';
+import type { Match, MatchStatus, TournamentPhase } from '../domain/types/match';
 
 export const matchService = {
   async getMatches(competition?: string): Promise<Match[]> {
@@ -23,13 +23,21 @@ export const matchService = {
   },
 
   async addMatch(matchData: {
+    matchNumber: number;
+    phase: TournamentPhase;
+    group?: string | null;
+    matchday?: number | null;
     matchDate: string;
-    teamA: string;
-    teamB: string;
-    matchday: string;
+    teamA?: string | null;
+    teamB?: string | null;
+    teamAPlaceholder?: string | null;
+    teamBPlaceholder?: string | null;
     competition?: string;
-    matchNumber?: number;
   }): Promise<Match | null> {
     return matchesRepository.create(matchData);
+  },
+
+  async updateMatchTeams(id: string, homeTeam: string | null, awayTeam: string | null): Promise<Match | null> {
+    return matchesRepository.updateTeams(id, homeTeam, awayTeam);
   },
 };

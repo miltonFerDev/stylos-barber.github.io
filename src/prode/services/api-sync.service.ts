@@ -50,25 +50,6 @@ function mapTeamName(apiTeam: OpenLigaDBMatch['team1'] | OpenLigaDBMatch['team2'
   return nameMap[apiTeam.teamName] ?? apiTeam.teamName;
 }
 
-function mapMatchday(group: OpenLigaDBMatch['group']): string {
-  const groupNames: Record<number, string> = {
-    1: 'Grupo A - Fecha 1',
-    2: 'Grupo A - Fecha 2',
-    3: 'Grupo A - Fecha 3',
-    4: 'Grupo B - Fecha 1',
-    5: 'Grupo B - Fecha 2',
-    6: 'Grupo B - Fecha 3',
-    7: 'Grupo C - Fecha 1',
-    8: 'Grupo C - Fecha 2',
-    9: 'Grupo C - Fecha 3',
-    10: 'Grupo D - Fecha 1',
-    11: 'Grupo D - Fecha 2',
-    12: 'Grupo D - Fecha 3',
-  };
-
-  return groupNames[group.groupOrderID] ?? group.groupName;
-}
-
 function deriveStatus(match: OpenLigaDBMatch): MatchStatus {
   if (match.matchIsFinished) return 'finished';
   const matchDate = new Date(match.matchDateTimeUTC);
@@ -92,10 +73,15 @@ export function mapApiMatchToMatch(match: OpenLigaDBMatch): Omit<Match, 'id'> & 
   const { scoreA, scoreB } = getFinalScore(match);
   return {
     externalId: match.matchID,
-    matchday: mapMatchday(match.group),
+    matchNumber: 0,
+    phase: 'groups',
+    group: null,
+    matchday: null,
     matchDate: match.matchDateTimeUTC,
     teamA: mapTeamName(match.team1),
     teamB: mapTeamName(match.team2),
+    teamAPlaceholder: null,
+    teamBPlaceholder: null,
     scoreA,
     scoreB,
     status: deriveStatus(match),

@@ -7,14 +7,14 @@ import { PredictionCountCard } from '../components/dashboard/PredictionCountCard
 import { RankingPreviewCard } from '../components/dashboard/RankingPreviewCard';
 import { RulesPreviewCard } from '../components/dashboard/RulesPreviewCard';
 import { FreshaCTA } from '../components/dashboard/FreshaCTA';
-import { competition } from '../config/competition';
+import { worldCup2026 } from '../config/competition';
 
 export function DashboardPage() {
-  const { isAuthenticated, login, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   return (
     <div className="space-y-5">
-      <h1 className="text-textLight text-2xl font-bold tracking-tight">{competition.name}</h1>
+      <h1 className="text-textLight text-2xl font-bold tracking-tight">{worldCup2026.name}</h1>
 
       {!loading && !isAuthenticated && (
         <Card className="border-white/10">
@@ -33,7 +33,7 @@ export function DashboardPage() {
 
       {isAuthenticated && <ProfileCard />}
       {isAuthenticated && <PredictionCountCard />}
-      <RankingPreviewCard type="weekly" />
+      <RankingPreviewCard type="phase" />
       <RankingPreviewCard type="general" />
       <RulesPreviewCard />
       <FreshaCTA />

@@ -3,24 +3,57 @@ import { rankingService, calculateUserStats, buildRankingWithUser } from '../ser
 import { matchService } from '../services/match.service';
 import { predictionService } from '../services/prediction.service';
 import { profilesRepository } from '../repositories/profiles.repository';
-import type { RankingEntry } from '../domain/types/ranking';
-import type { Match } from '../domain/types/match';
+import type { RankingEntry, PhaseIdentifier } from '../domain/types/ranking';
+import type { Match, TournamentPhase } from '../domain/types/match';
 
 interface RankingsState {
-  weekly: RankingEntry[];
+  phase: RankingEntry[];
   general: RankingEntry[];
   userAlias: string | null;
   loading: boolean;
   error: string | null;
+  availablePhases: PhaseIdentifier[];
+  selectedPhase: PhaseIdentifier | null;
 }
 
-export function useRankings(userId?: string | null, matchday?: string) {
+function getMatchdaysForPhase(matches: Match[], phase: TournamentPhase): number[] {
+  if (phase === 'groups') {
+    return Array.from(new Set(
+      matches.filter((m) => m.phase === 'groups' && m.matchday !== null)
+        .map((m) => m.matchday as number)
+    )).sort((a, b) => a - b);
+  }
+  return [];
+}
+
+export function getAvailablePhases(matches: Match[]): PhaseIdentifier[] {
+  const result: PhaseIdentifier[] = [];
+  const phases = Array.from(new Set(matches.map((m) => m.phase))) as TournamentPhase[];
+
+  if (phases.includes('groups')) {
+    const matchdays = getMatchdaysForPhase(matches, 'groups');
+    matchdays.forEach((md) => result.push({ phase: 'groups', matchday: md }));
+  }
+
+  const knockoutOrder: TournamentPhase[] = ['round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'third_place', 'final'];
+  knockoutOrder.forEach((p) => {
+    if (phases.includes(p)) {
+      result.push({ phase: p, matchday: null });
+    }
+  });
+
+  return result;
+}
+
+export function useRankings(userId?: string | null, phaseId?: PhaseIdentifier | null) {
   const [state, setState] = React.useState<RankingsState>({
-    weekly: [],
+    phase: [],
     general: [],
     userAlias: null,
     loading: true,
     error: null,
+    availablePhases: [],
+    selectedPhase: null,
   });
 
   const loadRankings = React.useCallback(async () => {
@@ -31,56 +64,68 @@ export function useRankings(userId?: string | null, matchday?: string) {
       ]);
 
       const userAlias = profile?.alias ?? null;
-      let weekly: RankingEntry[] = [];
+      const matches = await matchService.getMatches();
+      const availablePhases = getAvailablePhases(matches);
 
-      if (userId && matchday) {
-        weekly = await rankingService.getMatchdayRankings(matchday);
-      } else {
-        // Derive matchdays from actual match data
-        const matches = await matchService.getMatches();
-        const matchdays = Array.from(new Set(matches.map((m: Match) => m.matchday)));
-        const firstMatchday = matchdays[0];
-        if (firstMatchday) {
-          weekly = await rankingService.getMatchdayRankings(firstMatchday);
-        }
+      let targetPhase = phaseId ?? null;
+      if (!targetPhase && availablePhases.length > 0) {
+        targetPhase = availablePhases[0];
       }
 
-      if (userAlias && userId) {
-        const matches = await matchService.getMatches();
+      let phase: RankingEntry[] = [];
+      let phaseFinishedMatches: { id: string; scoreA: number; scoreB: number }[] = [];
+
+      if (targetPhase) {
+        const result = await rankingService.getPhaseRankings(targetPhase);
+        phase = result.entries;
+        phaseFinishedMatches = result.finishedMatches;
+      }
+
+      if (userAlias && userId && targetPhase) {
         const predictions = await predictionService.getPredictions(userId);
-        const finishedMatches = matches.filter((m) => m.status === 'finished');
+        const phaseFinished = phaseFinishedMatches;
 
-        if (finishedMatches.length > 0 && predictions.length > 0) {
-          const userStats = calculateUserStats(predictions, finishedMatches, userAlias);
+        if (phaseFinished.length > 0 && predictions.length > 0) {
+          const userStats = calculateUserStats(predictions, phaseFinished, userAlias);
 
+          const phaseWithUser = buildRankingWithUser(userStats, phase.filter((e) => e.alias !== userAlias));
           const generalWithUser = buildRankingWithUser(userStats, generalRankings.filter((e) => e.alias !== userAlias));
-          const weeklyWithUser = weekly.length > 0
-            ? buildRankingWithUser(userStats, weekly.filter((e) => e.alias !== userAlias))
-            : [];
 
           setState({
-            weekly: weeklyWithUser,
+            phase: phaseWithUser,
             general: generalWithUser,
             userAlias,
             loading: false,
             error: null,
+            availablePhases,
+            selectedPhase: targetPhase,
           });
           return;
         }
       }
 
       setState({
-        weekly,
+        phase,
         general: generalRankings,
         userAlias,
         loading: false,
         error: null,
+        availablePhases,
+        selectedPhase: targetPhase,
       });
     } catch (error) {
       console.error('[useRankings] loadRankings error:', error);
-      setState({ weekly: [], general: [], userAlias: null, loading: false, error: 'Error al cargar rankings' });
+      setState({
+        phase: [],
+        general: [],
+        userAlias: null,
+        loading: false,
+        error: 'Error al cargar rankings',
+        availablePhases: [],
+        selectedPhase: null,
+      });
     }
-  }, [userId, matchday]);
+  }, [userId, phaseId]);
 
   React.useEffect(() => {
     loadRankings();

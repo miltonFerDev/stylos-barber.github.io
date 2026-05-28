@@ -1,50 +1,22 @@
 import React from 'react';
-import type { Match } from '../domain/types/match';
+import type { Match, TournamentPhase, GroupLetter } from '../domain/types/match';
 import { matchService } from '../services/match.service';
 import { MatchCard } from '../components/fixture/MatchCard';
+import { GroupAccordion } from '../components/ui/GroupAccordion';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
-import { competition } from '../config/competition';
-
-interface GroupedMatches {
-  matchday: string;
-  matches: Match[];
-}
-
-function groupByMatchday(matches: Match[]): GroupedMatches[] {
-  const groups: Record<string, Match[]> = {};
-  
-  matches.forEach((match: Match) => {
-    if (!groups[match.matchday]) {
-      groups[match.matchday] = [];
-    }
-    groups[match.matchday].push(match);
-  });
-
-  // Sort matchdays by extracting number (e.g., "Fecha 1" -> 1)
-  return Object.entries(groups)
-    .sort(([a], [b]) => {
-      const numA = parseInt(a.replace(/\D/g, '')) || 0;
-      const numB = parseInt(b.replace(/\D/g, '')) || 0;
-      return numA - numB;
-    })
-    .map(([matchday, matches]) => ({
-      matchday,
-      matches: matches.sort((a: Match, b: Match) => 
-        new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime()
-      ),
-    }));
-}
+import { PHASE_LABELS, GROUPS, getGroupLabel } from '../domain/types/match';
+import { worldCup2026 } from '../config/competition';
 
 export function FixturePage() {
   const [matches, setMatches] = React.useState<Match[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  
+
   const loadMatches = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await matchService.getMatches(competition.id);
+      const data = await matchService.getMatches(worldCup2026.id);
       setMatches(data);
     } catch (e) {
       setError('Error al cargar el fixture');
@@ -57,21 +29,47 @@ export function FixturePage() {
     loadMatches();
   }, [loadMatches]);
 
-  const groupedMatches = React.useMemo(() => groupByMatchday(matches), [matches]);
-  const [selectedMatchday, setSelectedMatchday] = React.useState('');
+  const groupMatches = React.useMemo(
+    () => matches.filter((m) => m.phase === 'groups'),
+    [matches]
+  );
 
-  // Auto-select the matchday with the nearest upcoming match
-  React.useEffect(() => {
-    if (!selectedMatchday && groupedMatches.length > 0) {
-      const now = new Date();
-      const upcomingMatchday = groupedMatches.find((g) =>
-        g.matches.some((m) => new Date(m.matchDate) > now)
-      );
-      setSelectedMatchday(upcomingMatchday?.matchday ?? groupedMatches[0].matchday);
-    }
-  }, [groupedMatches, selectedMatchday]);
+  const knockoutMatches = React.useMemo(
+    () => matches.filter((m) => m.phase !== 'groups'),
+    [matches]
+  );
 
-  const currentGroup = groupedMatches.find((g) => g.matchday === selectedMatchday);
+  const groupsWithData = React.useMemo(() => {
+    const map = new Map<GroupLetter, Match[]>();
+    GROUPS.forEach((g) => {
+      const gm = groupMatches.filter((m) => m.group === g);
+      if (gm.length > 0) {
+        map.set(g, gm.sort((a, b) => {
+          if (a.matchday !== b.matchday) return (a.matchday ?? 0) - (b.matchday ?? 0);
+          return new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime();
+        }));
+      }
+    });
+    return map;
+  }, [groupMatches]);
+
+  const knockoutPhasesWithData = React.useMemo(() => {
+    const phaseOrder: TournamentPhase[] = ['round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'third_place', 'final'];
+    const map = new Map<TournamentPhase, Match[]>();
+    knockoutMatches.forEach((m) => {
+      const existing = map.get(m.phase) ?? [];
+      existing.push(m);
+      map.set(m.phase, existing);
+    });
+    const result: { phase: TournamentPhase; matches: Match[] }[] = [];
+    phaseOrder.forEach((p) => {
+      const pm = map.get(p);
+      if (pm) {
+        result.push({ phase: p, matches: pm.sort((a, b) => a.matchNumber - b.matchNumber) });
+      }
+    });
+    return result;
+  }, [knockoutMatches]);
 
   if (loading) {
     return (
@@ -95,46 +93,45 @@ export function FixturePage() {
       <div>
         <h1 className="text-textLight text-2xl font-extrabold tracking-tight">Fixture</h1>
         <p className="text-textMuted text-sm mt-1">
-          {competition.subtitle}
+          {worldCup2026.subtitle}
         </p>
       </div>
 
-      {/* Matchday tabs */}
-      {groupedMatches.length > 0 && (
-        <div className="relative">
-          <div className="flex gap-2 overflow-x-auto pb-3 -mx-4 px-4 scroll-smooth scrollbar-hide">
-            {groupedMatches.map((group) => (
-              <button
-                key={group.matchday}
-                onClick={() => setSelectedMatchday(group.matchday)}
-                className={`px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
-                  selectedMatchday === group.matchday
-                    ? 'bg-accent text-white shadow-md'
-                    : 'bg-primaryLight/50 text-textMuted hover:text-textLight border border-accentMuted/20'
-                }`}
-              >
-                {group.matchday}
-              </button>
+      {/* Group stage */}
+      <div className="space-y-2">
+        <h2 className="text-textLight font-bold text-lg">Fase de Grupos</h2>
+        {Array.from(groupsWithData.entries()).map(([group, groupMatchList]) => (
+          <GroupAccordion
+            key={group}
+            title={getGroupLabel(group)}
+            subtitle={`${groupMatchList.length} partidos`}
+          >
+            {groupMatchList.map((match) => (
+              <MatchCard key={match.id} match={match} />
             ))}
-          </div>
+          </GroupAccordion>
+        ))}
+      </div>
+
+      {/* Knockout stage */}
+      {knockoutPhasesWithData.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-textLight font-bold text-lg">Eliminatorias</h2>
+          {knockoutPhasesWithData.map(({ phase, matches: phaseMatches }) => (
+            <GroupAccordion
+              key={phase}
+              title={PHASE_LABELS[phase]}
+              subtitle={`${phaseMatches.length} partido${phaseMatches.length !== 1 ? 's' : ''}`}
+            >
+              {phaseMatches.map((match) => (
+                <MatchCard key={match.id} match={match} />
+              ))}
+            </GroupAccordion>
+          ))}
         </div>
       )}
 
-      {/* Matches list */}
-      {currentGroup ? (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-textLight font-bold">{currentGroup.matchday}</h2>
-            <span className="text-textMuted text-xs">
-              {currentGroup.matches.length} partido{currentGroup.matches.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-          
-          {currentGroup.matches.map((match: Match) => (
-            <MatchCard key={match.id} match={match} />
-          ))}
-        </div>
-      ) : (
+      {matches.length === 0 && !loading && (
         <div className="text-center py-8">
           <p className="text-textMuted">No hay partidos disponibles</p>
         </div>

@@ -36,10 +36,8 @@ export function isValidMatch(obj: unknown): obj is Match {
   const m = obj as Record<string, unknown>;
   return (
     typeof m.id === 'string' &&
-    typeof m.matchday === 'string' &&
+    typeof m.phase === 'string' &&
     typeof m.matchDate === 'string' &&
-    typeof m.teamA === 'string' &&
-    typeof m.teamB === 'string' &&
     (m.status === 'upcoming' || m.status === 'live' || m.status === 'finished') &&
     (m.scoreA === null || typeof m.scoreA === 'number') &&
     (m.scoreB === null || typeof m.scoreB === 'number')

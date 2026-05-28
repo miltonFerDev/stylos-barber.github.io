@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabase';
-import type { RankingEntry } from '../domain/types/ranking';
+import type { RankingEntry, PhaseIdentifier } from '../domain/types/ranking';
 import { buildRanking } from '../domain/logic/ranking';
 import { calculatePoints } from '../domain/logic/scoring';
 
@@ -8,6 +8,11 @@ export interface UserStats {
   points: number;
   exactPredictions: number;
   correctWinners: number;
+}
+
+export interface PhaseRankingResult {
+  entries: RankingEntry[];
+  finishedMatches: { id: string; scoreA: number; scoreB: number }[];
 }
 
 export function calculateUserStats(
@@ -77,53 +82,67 @@ export const rankingService = {
     return buildRanking(rawEntries);
   },
 
-  async getMatchdayRankings(matchday: string): Promise<RankingEntry[]> {
-    const { data: matchRows, error: matchError } = await supabase
+  async getPhaseRankings(phaseId: PhaseIdentifier): Promise<PhaseRankingResult> {
+    let query = supabase
       .from('matches')
-      .select('id')
-      .eq('group', matchday);
+      .select('id, home_score, away_score')
+      .eq('phase', phaseId.phase);
 
-    if (matchError || !matchRows || matchRows.length === 0) {
-      return [];
+    if (phaseId.matchday !== null) {
+      query = query.eq('matchday_order', phaseId.matchday);
     }
 
-    const matchIds = matchRows.map((m) => m.id);
+    const { data: phaseMatches, error: matchError } = await query;
 
-    const { data: finishedMatches, error: finishedError } = await supabase
-      .from('matches')
-      .select('*')
-      .in('id', matchIds)
-      .not('home_score', 'is', null)
-      .not('away_score', 'is', null);
-
-    if (finishedError || !finishedMatches) {
-      return [];
+    if (matchError || !phaseMatches || phaseMatches.length === 0) {
+      return { entries: [], finishedMatches: [] };
     }
+
+    const finishedMatches = phaseMatches.filter(
+      (m) => m.home_score !== null && m.away_score !== null
+    ) as { id: string; home_score: number; away_score: number }[];
+
+    if (finishedMatches.length === 0) {
+      return { entries: [], finishedMatches: [] };
+    }
+
+    const matchIds = finishedMatches.map((m) => m.id);
 
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('id, public_alias');
 
     if (profilesError || !profiles) {
-      return [];
+      return { entries: [], finishedMatches: [] };
+    }
+
+    const { data: allPredictions, error: predsError } = await supabase
+      .from('predictions')
+      .select('user_id, match_id, home_score, away_score')
+      .in('match_id', matchIds);
+
+    if (predsError) {
+      return { entries: [], finishedMatches: [] };
+    }
+
+    const predsByUser = new Map<string, { match_id: string; home_score: number; away_score: number }[]>();
+    for (const pred of allPredictions ?? []) {
+      const arr = predsByUser.get(pred.user_id) ?? [];
+      arr.push(pred);
+      predsByUser.set(pred.user_id, arr);
     }
 
     const entries: UserStats[] = [];
 
     for (const profile of profiles) {
-      const { data: preds } = await supabase
-        .from('predictions')
-        .select('match_id, home_score, away_score')
-        .eq('user_id', profile.id)
-        .in('match_id', matchIds);
-
-      if (!preds || preds.length === 0) continue;
+      const userPreds = predsByUser.get(profile.id) ?? [];
+      if (userPreds.length === 0) continue;
 
       let points = 0;
       let exactPredictions = 0;
       let correctWinners = 0;
 
-      for (const pred of preds) {
+      for (const pred of userPreds) {
         const match = finishedMatches.find((m) => m.id === pred.match_id);
         if (!match) continue;
 
@@ -145,6 +164,13 @@ export const rankingService = {
       });
     }
 
-    return buildRanking(entries);
+    return {
+      entries: buildRanking(entries),
+      finishedMatches: finishedMatches.map((m) => ({
+        id: m.id,
+        scoreA: m.home_score,
+        scoreB: m.away_score,
+      })),
+    };
   },
 };

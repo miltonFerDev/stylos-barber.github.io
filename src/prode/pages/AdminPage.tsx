@@ -4,9 +4,10 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { matchService } from '../services/match.service';
-import type { Match, MatchStatus } from '../domain/types/match';
-import { competition } from '../config/competition';
-import { getEffectiveStatus } from '../domain/logic/locking';
+import type { Match, MatchStatus, TournamentPhase } from '../domain/types/match';
+import { PHASE_LABELS } from '../domain/types/match';
+import { getEffectiveStatus, isPredictionAllowed } from '../domain/logic/locking';
+import { worldCup2026 } from '../config/competition';
 
 function AdminStatusBadge({ status, matchDate }: { status: MatchStatus; matchDate: string }) {
   const effectiveStatus = getEffectiveStatus(status, matchDate);
@@ -20,16 +21,22 @@ function AdminStatusBadge({ status, matchDate }: { status: MatchStatus; matchDat
   }
 }
 
-function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved: () => void }) {
+function AdminMatchCard({ match, onResultSaved, onTeamsUpdated }: { match: Match; onResultSaved: () => void; onTeamsUpdated: () => void }) {
   const [scoreA, setScoreA] = React.useState('');
   const [scoreB, setScoreB] = React.useState('');
   const [message, setMessage] = React.useState('');
   const [saving, setSaving] = React.useState(false);
+  const [editingTeams, setEditingTeams] = React.useState(false);
+  const [editTeamA, setEditTeamA] = React.useState(match.teamA ?? '');
+  const [editTeamB, setEditTeamB] = React.useState(match.teamB ?? '');
+
+  const canPredict = isPredictionAllowed(match);
+  const hasPlaceholder = !canPredict;
 
   const handleSave = async () => {
     const sA = parseInt(scoreA);
     const sB = parseInt(scoreB);
-    
+
     if (isNaN(sA) || isNaN(sB) || scoreA === '' || scoreB === '') {
       setMessage('Ingresá ambos resultados');
       return;
@@ -42,7 +49,7 @@ function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved:
     setScoreA('');
     setScoreB('');
     onResultSaved();
-    
+
     setTimeout(() => setMessage(''), 2000);
   };
 
@@ -67,6 +74,18 @@ function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved:
     setTimeout(() => setMessage(''), 2000);
   };
 
+  const handleSaveTeams = async () => {
+    const result = await matchService.updateMatchTeams(match.id, editTeamA || null, editTeamB || null);
+    if (result) {
+      setMessage('Equipos actualizados');
+      setEditingTeams(false);
+      onTeamsUpdated();
+    } else {
+      setMessage('Error al actualizar equipos');
+    }
+    setTimeout(() => setMessage(''), 2000);
+  };
+
   const date = new Date(match.matchDate);
   const formattedDate = date.toLocaleDateString('es-AR', {
     day: 'numeric',
@@ -79,14 +98,22 @@ function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved:
 
   return (
     <Card className="p-4">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <span className="text-textMuted text-xs">{formattedDate}</span>
-        <AdminStatusBadge status={match.status} matchDate={match.matchDate} />
+        <div className="flex items-center gap-2">
+          {match.group && <span className="text-textMuted text-xs bg-primaryLight px-2 py-0.5 rounded">Grupo {match.group}</span>}
+          {hasPlaceholder && <span className="text-yellow-400 text-xs bg-yellow-400/10 px-2 py-0.5 rounded">Por definir</span>}
+          <AdminStatusBadge status={match.status} matchDate={match.matchDate} />
+        </div>
       </div>
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex-1 text-center">
-          <p className="text-textLight font-medium">{match.teamA}</p>
+          {match.teamA ? (
+            <p className="text-textLight font-medium">{match.teamA}</p>
+          ) : (
+            <p className="text-textMuted italic text-sm" title={match.teamAPlaceholder ?? ''}>{match.teamAPlaceholder ?? 'Por definir'}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-2 px-4">
@@ -120,7 +147,11 @@ function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved:
         </div>
 
         <div className="flex-1 text-center">
-          <p className="text-textLight font-medium">{match.teamB}</p>
+          {match.teamB ? (
+            <p className="text-textLight font-medium">{match.teamB}</p>
+          ) : (
+            <p className="text-textMuted italic text-sm" title={match.teamBPlaceholder ?? ''}>{match.teamBPlaceholder ?? 'Por definir'}</p>
+          )}
         </div>
       </div>
 
@@ -128,38 +159,58 @@ function AdminMatchCard({ match, onResultSaved }: { match: Match; onResultSaved:
         <p className="text-center text-sm text-green-400 mb-2">{message}</p>
       )}
 
-      <div className="flex gap-2">
-        {match.status !== 'finished' ? (
-          <Button size="sm" fullWidth onClick={handleSave} disabled={saving}>
-            {saving ? 'Guardando...' : 'Guardar resultado'}
-          </Button>
-        ) : (
-          <button
-            onClick={handleReset}
-            className="flex-1 text-sm text-textMuted hover:text-yellow-400 transition-colors underline"
-          >
-            Resetear partido
-          </button>
-        )}
-
-        {match.status === 'upcoming' && (
-          <button
-            onClick={handleSetLive}
-            className="px-3 py-1 text-sm bg-accent/15 text-accent border border-accent/20 rounded-lg hover:bg-accent/25 transition-colors"
-          >
-            En curso
-          </button>
-        )}
-
-        {match.status === 'live' && (
-          <button
-            onClick={handleSetUpcoming}
-            className="px-3 py-1 text-sm bg-white/5 text-textMuted border border-white/10 rounded-lg hover:text-textLight transition-colors"
-          >
-            Próximo
-          </button>
-        )}
-      </div>
+      {editingTeams ? (
+        <div className="space-y-2 mb-2">
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="text"
+              value={editTeamA}
+              onChange={(e) => setEditTeamA(e.target.value)}
+              className="bg-primary/50 border border-accentMuted/30 rounded-lg px-3 py-2 text-textLight text-sm focus:border-accent focus:outline-none"
+              placeholder={match.teamAPlaceholder ?? 'Equipo local'}
+            />
+            <input
+              type="text"
+              value={editTeamB}
+              onChange={(e) => setEditTeamB(e.target.value)}
+              className="bg-primary/50 border border-accentMuted/30 rounded-lg px-3 py-2 text-textLight text-sm focus:border-accent focus:outline-none"
+              placeholder={match.teamBPlaceholder ?? 'Equipo visitante'}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" fullWidth onClick={handleSaveTeams}>Guardar equipos</Button>
+            <button onClick={() => setEditingTeams(false)} className="flex-1 text-sm text-textMuted hover:text-textLight transition-colors underline">Cancelar</button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          {match.status !== 'finished' && (
+            <Button size="sm" fullWidth onClick={handleSave} disabled={saving}>
+              {saving ? 'Guardando...' : 'Guardar resultado'}
+            </Button>
+          )}
+          {match.status === 'finished' && (
+            <button onClick={handleReset} className="flex-1 text-sm text-textMuted hover:text-yellow-400 transition-colors underline">
+              Resetear partido
+            </button>
+          )}
+          {match.status === 'upcoming' && (
+            <button onClick={handleSetLive} className="px-3 py-1 text-sm bg-accent/15 text-accent border border-accent/20 rounded-lg hover:bg-accent/25 transition-colors">
+              En curso
+            </button>
+          )}
+          {match.status === 'live' && (
+            <button onClick={handleSetUpcoming} className="px-3 py-1 text-sm bg-white/5 text-textMuted border border-white/10 rounded-lg hover:text-textLight transition-colors">
+              Próximo
+            </button>
+          )}
+          {hasPlaceholder && (
+            <button onClick={() => setEditingTeams(true)} className="px-3 py-1 text-sm bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 rounded-lg hover:bg-yellow-400/20 transition-colors">
+              Definir equipos
+            </button>
+          )}
+        </div>
+      )}
     </Card>
   );
 }
@@ -168,80 +219,35 @@ export function AdminPage() {
   const [matches, setMatches] = React.useState<Match[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [filter, setFilter] = React.useState<'all' | 'upcoming' | 'live' | 'finished'>('all');
-  const [showCreateForm, setShowCreateForm] = React.useState(false);
-  const [newMatchDate, setNewMatchDate] = React.useState('');
-  const [newTeamA, setNewTeamA] = React.useState('');
-  const [newTeamB, setNewTeamB] = React.useState('');
-  const [newMatchday, setNewMatchday] = React.useState('');
-  const [newMatchNumber, setNewMatchNumber] = React.useState('');
-  const [createMessage, setCreateMessage] = React.useState('');
+  const [phaseFilter, setPhaseFilter] = React.useState<TournamentPhase | 'all'>('all');
 
   const refreshMatches = React.useCallback(async () => {
-    const data = await matchService.getMatches(competition.id);
+    const data = await matchService.getMatches(worldCup2026.id);
     setMatches(data);
     setLoading(false);
   }, []);
-
-  const argToUTC = (localValue: string): string => {
-    const d = new Date(`${localValue}:00-03:00`);
-    return d.toISOString();
-  };
-
-  const handleCreateMatch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMatchDate || !newTeamA || !newTeamB || !newMatchday) {
-      setCreateMessage('Completá todos los campos obligatorios');
-      return;
-    }
-
-    const mNumber = newMatchNumber ? parseInt(newMatchNumber) : undefined;
-    if (newMatchNumber && isNaN(mNumber!)) {
-      setCreateMessage('Número de partido inválido');
-      return;
-    }
-
-    const result = await matchService.addMatch({
-      matchDate: argToUTC(newMatchDate),
-      teamA: newTeamA,
-      teamB: newTeamB,
-      matchday: newMatchday,
-      competition: competition.id,
-      matchNumber: mNumber,
-    });
-
-    if (result) {
-      setCreateMessage('Partido creado correctamente');
-      setNewMatchDate('');
-      setNewTeamA('');
-      setNewTeamB('');
-      setNewMatchday('');
-      setNewMatchNumber('');
-      setShowCreateForm(false);
-      refreshMatches();
-    } else {
-      setCreateMessage('Error al crear el partido');
-    }
-
-    setTimeout(() => setCreateMessage(''), 3000);
-  };
 
   React.useEffect(() => {
     refreshMatches();
   }, [refreshMatches]);
 
-  const filteredMatches = matches.filter((m) => {
-    if (filter === 'upcoming') return m.status === 'upcoming';
-    if (filter === 'live') return m.status === 'live';
-    if (filter === 'finished') return m.status === 'finished';
-    return true;
-  });
+  const filteredMatches = React.useMemo(() => {
+    let result = matches;
+    if (filter === 'upcoming') result = result.filter((m) => m.status === 'upcoming');
+    if (filter === 'live') result = result.filter((m) => m.status === 'live');
+    if (filter === 'finished') result = result.filter((m) => m.status === 'finished');
+    if (phaseFilter !== 'all') result = result.filter((m) => m.phase === phaseFilter);
+    return result;
+  }, [matches, filter, phaseFilter]);
+
+  const phases: (TournamentPhase | 'all')[] = ['all', 'groups', 'round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'third_place', 'final'];
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-textLight text-2xl font-bold">Panel Admin</h1>
-          <p className="text-textMuted text-sm mt-1">Gestionar resultados y estados de partidos</p>
+          <p className="text-textMuted text-sm mt-1">Gestionar resultados y equipos</p>
         </div>
         <Link
           to="/"
@@ -254,87 +260,24 @@ export function AdminPage() {
         </Link>
       </div>
 
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => setShowCreateForm((s) => !s)}
-          className="px-3 py-1.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accentHover transition-colors"
-        >
-          {showCreateForm ? 'Cancelar' : 'Nuevo partido'}
-        </button>
+      {/* Phase filter */}
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+        {phases.map((phase) => (
+          <button
+            key={phase}
+            onClick={() => setPhaseFilter(phase)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+              phaseFilter === phase
+                ? 'bg-accent text-white'
+                : 'bg-primaryLight text-textMuted hover:text-textLight'
+            }`}
+          >
+            {phase === 'all' ? 'Todas las fases' : PHASE_LABELS[phase]}
+          </button>
+        ))}
       </div>
 
-      {showCreateForm && (
-        <Card className="p-4">
-          <h3 className="text-textLight font-semibold mb-3">Crear nuevo partido</h3>
-          <form onSubmit={handleCreateMatch} className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-textMuted text-xs mb-1">Fecha y hora (ARG)</label>
-                <input
-                  type="datetime-local"
-                  value={newMatchDate}
-                  onChange={(e) => setNewMatchDate(e.target.value)}
-                  className="w-full bg-primary/50 border border-accentMuted/30 rounded-lg px-3 py-2 text-textLight text-sm focus:border-accent focus:outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-textMuted text-xs mb-1">Número de partido</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={newMatchNumber}
-                  onChange={(e) => setNewMatchNumber(e.target.value)}
-                  className="w-full bg-primary/50 border border-accentMuted/30 rounded-lg px-3 py-2 text-textLight text-sm focus:border-accent focus:outline-none"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-textMuted text-xs mb-1">Equipo local</label>
-                <input
-                  type="text"
-                  value={newTeamA}
-                  onChange={(e) => setNewTeamA(e.target.value)}
-                  className="w-full bg-primary/50 border border-accentMuted/30 rounded-lg px-3 py-2 text-textLight text-sm focus:border-accent focus:outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-textMuted text-xs mb-1">Equipo visitante</label>
-                <input
-                  type="text"
-                  value={newTeamB}
-                  onChange={(e) => setNewTeamB(e.target.value)}
-                  className="w-full bg-primary/50 border border-accentMuted/30 rounded-lg px-3 py-2 text-textLight text-sm focus:border-accent focus:outline-none"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-textMuted text-xs mb-1">Grupo / Jornada</label>
-              <input
-                type="text"
-                value={newMatchday}
-                onChange={(e) => setNewMatchday(e.target.value)}
-                placeholder="Ej: Semifinales"
-                className="w-full bg-primary/50 border border-accentMuted/30 rounded-lg px-3 py-2 text-textLight text-sm focus:border-accent focus:outline-none"
-                required
-              />
-            </div>
-            {createMessage && (
-              <p className="text-sm text-center text-green-400">{createMessage}</p>
-            )}
-            <button
-              type="submit"
-              className="w-full px-3 py-2 text-sm font-medium bg-accent text-white rounded-lg hover:bg-accentHover transition-colors"
-            >
-              Crear partido
-            </button>
-          </form>
-        </Card>
-      )}
-
+      {/* Status filter */}
       <div className="flex gap-2 flex-wrap">
         {(['all', 'upcoming', 'live', 'finished'] as const).map((f) => (
           <button
@@ -358,7 +301,7 @@ export function AdminPage() {
       ) : (
         <div className="space-y-3">
           {filteredMatches.map((match) => (
-            <AdminMatchCard key={match.id} match={match} onResultSaved={refreshMatches} />
+            <AdminMatchCard key={match.id} match={match} onResultSaved={refreshMatches} onTeamsUpdated={refreshMatches} />
           ))}
         </div>
       )}

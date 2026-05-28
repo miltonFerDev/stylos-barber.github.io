@@ -5,7 +5,7 @@ import { Card } from '../components/ui/Card';
 
 export function ResetPasswordPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  useSearchParams();
   
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');

@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabase';
-import type { Match, MatchStatus } from '../domain/types/match';
+import type { Match, MatchStatus, TournamentPhase } from '../domain/types/match';
 
 interface MatchRow {
   id: string;
@@ -10,6 +10,10 @@ interface MatchRow {
   away_score: number | null;
   match_number: number | null;
   group: string | null;
+  phase: string | null;
+  matchday_order: number | null;
+  home_team_placeholder: string | null;
+  away_team_placeholder: string | null;
   competition: string | null;
   status: string | null;
 }
@@ -21,12 +25,19 @@ function rowToMatch(row: MatchRow): Match {
     dbStatus === 'finished' ? 'finished' :
     'upcoming';
 
+  const phase: TournamentPhase = (row.phase as TournamentPhase) ?? 'groups';
+
   return {
     id: row.id,
-    matchday: row.group ?? '',
+    matchNumber: row.match_number ?? 0,
+    phase,
+    group: row.group as Match['group'],
+    matchday: row.matchday_order ?? null,
     matchDate: row.date,
-    teamA: row.home_team ?? '',
-    teamB: row.away_team ?? '',
+    teamA: row.home_team ?? null,
+    teamB: row.away_team ?? null,
+    teamAPlaceholder: row.home_team_placeholder ?? null,
+    teamBPlaceholder: row.away_team_placeholder ?? null,
     scoreA: row.home_score,
     scoreB: row.away_score,
     status,
@@ -39,7 +50,7 @@ export const matchesRepository = {
     let query = supabase
       .from('matches')
       .select('*')
-      .order('date', { ascending: true });
+      .order('match_number', { ascending: true });
 
     if (competition) {
       query = query.eq('competition', competition);
@@ -73,24 +84,32 @@ export const matchesRepository = {
   },
 
   async create(matchData: {
+    matchNumber: number;
+    phase: TournamentPhase;
+    group?: string | null;
+    matchday?: number | null;
     matchDate: string;
-    teamA: string;
-    teamB: string;
-    matchday: string;
+    teamA?: string | null;
+    teamB?: string | null;
+    teamAPlaceholder?: string | null;
+    teamBPlaceholder?: string | null;
     competition?: string;
-    matchNumber?: number;
   }): Promise<Match | null> {
     const { data, error } = await supabase
       .from('matches')
       .insert({
         date: matchData.matchDate,
-        home_team: matchData.teamA,
-        away_team: matchData.teamB,
+        home_team: matchData.teamA ?? null,
+        away_team: matchData.teamB ?? null,
         home_score: null,
         away_score: null,
-        group: matchData.matchday,
-        competition: matchData.competition ?? 'beta-liga-argentina',
-        match_number: matchData.matchNumber ?? null,
+        match_number: matchData.matchNumber,
+        group: matchData.group ?? null,
+        phase: matchData.phase,
+        matchday_order: matchData.matchday ?? null,
+        home_team_placeholder: matchData.teamAPlaceholder ?? null,
+        away_team_placeholder: matchData.teamBPlaceholder ?? null,
+        competition: matchData.competition ?? 'world-cup-2026',
         status: 'upcoming',
       })
       .select()
@@ -134,6 +153,26 @@ export const matchesRepository = {
 
     if (error) {
       console.error('[matchesRepository] updateStatus error:', error.message);
+      return null;
+    }
+
+    return rowToMatch(data as MatchRow);
+  },
+
+  async updateTeams(id: string, homeTeam: string | null, awayTeam: string | null): Promise<Match | null> {
+    const updateData: Record<string, unknown> = {};
+    if (homeTeam !== undefined) updateData.home_team = homeTeam;
+    if (awayTeam !== undefined) updateData.away_team = awayTeam;
+
+    const { data, error } = await supabase
+      .from('matches')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[matchesRepository] updateTeams error:', error.message);
       return null;
     }
 

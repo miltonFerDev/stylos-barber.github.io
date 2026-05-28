@@ -4,7 +4,9 @@ import { Card } from '../components/ui/Card';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { useAuth } from '../hooks/useAuth';
 import { useRankings } from '../hooks/useRankings';
-import type { RankingEntry } from '../domain/types/ranking';
+import type { RankingEntry, PhaseIdentifier } from '../domain/types/ranking';
+import { phaseIdToString, getPhaseLabel } from '../domain/types/ranking';
+import { worldCup2026 } from '../config/competition';
 
 function RankingTable({ entries, highlightAlias }: { entries: RankingEntry[]; highlightAlias?: string | null }) {
   return (
@@ -75,10 +77,13 @@ function RankingTable({ entries, highlightAlias }: { entries: RankingEntry[]; hi
 
 export function RankingPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = React.useState<'weekly' | 'general'>('weekly');
-  const { weekly, general, userAlias, loading, error, refreshRankings } = useRankings(user?.id ?? null);
+  const [view, setView] = React.useState<'phases' | 'general'>('phases');
+  const [selectedPhaseIdx, setSelectedPhaseIdx] = React.useState(0);
+  const { phase, general, userAlias, loading, error, refreshRankings, availablePhases } = useRankings(user?.id ?? null);
 
-  const data = activeTab === 'weekly' ? weekly : general;
+  const selectedPhase: PhaseIdentifier | null = availablePhases[selectedPhaseIdx] ?? null;
+
+  const prizeInfo = worldCup2026.prizes.perPhase;
 
   return (
     <div className="space-y-5">
@@ -98,21 +103,22 @@ export function RankingPage() {
         </Link>
       </div>
 
+      {/* View tabs */}
       <div className="flex bg-white/5 rounded-xl p-1">
         <button
-          onClick={() => setActiveTab('weekly')}
+          onClick={() => setView('phases')}
           className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'weekly'
+            view === 'phases'
               ? 'bg-white/10 text-textLight shadow-sm'
               : 'text-textMuted hover:text-textLight'
           }`}
         >
-          Semanal
+          Por fase
         </button>
         <button
-          onClick={() => setActiveTab('general')}
+          onClick={() => setView('general')}
           className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
-            activeTab === 'general'
+            view === 'general'
               ? 'bg-white/10 text-textLight shadow-sm'
               : 'text-textMuted hover:text-textLight'
           }`}
@@ -120,6 +126,27 @@ export function RankingPage() {
           General
         </button>
       </div>
+
+      {/* Phase selector */}
+      {view === 'phases' && availablePhases.length > 0 && (
+        <div className="relative">
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+            {availablePhases.map((ph, idx) => (
+              <button
+                key={phaseIdToString(ph)}
+                onClick={() => setSelectedPhaseIdx(idx)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
+                  selectedPhaseIdx === idx
+                    ? 'bg-accent text-white shadow-md'
+                    : 'bg-primaryLight/50 text-textMuted hover:text-textLight border border-accentMuted/20'
+                }`}
+              >
+                {getPhaseLabel(ph)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {error && <ErrorMessage message={error} onRetry={refreshRankings} />}
 
@@ -129,17 +156,37 @@ export function RankingPage() {
             <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin mx-auto mb-3" />
             <p className="text-textMuted">Cargando rankings...</p>
           </div>
-        ) : data.length === 0 ? (
+        ) : view === 'phases' && selectedPhase && phase.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 rounded-full bg-primaryLight/30 flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-textMuted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
+            <p className="text-textMuted">Aún no hay resultados en esta fase</p>
+            {prizeInfo && (
+              <p className="text-textMuted text-xs mt-2">🏆 {prizeInfo}</p>
+            )}
+          </div>
+        ) : view === 'phases' || view === 'general' ? (
+          <>
+            {view === 'phases' && selectedPhase && (
+              <div className="mb-4 pb-3 border-b border-white/10">
+                <h2 className="text-textLight font-bold text-lg">{getPhaseLabel(selectedPhase)}</h2>
+                {prizeInfo && (
+                  <p className="text-textMuted text-xs mt-1">🥇 1° puesto: {prizeInfo}</p>
+                )}
+              </div>
+            )}
+            <RankingTable
+              entries={view === 'phases' ? phase : general}
+              highlightAlias={userAlias}
+            />
+          </>
+        ) : (
+          <div className="text-center py-12">
             <p className="text-textMuted">No hay rankings disponibles</p>
           </div>
-        ) : (
-          <RankingTable entries={data} highlightAlias={userAlias} />
         )}
       </Card>
     </div>

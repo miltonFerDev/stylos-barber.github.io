@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { AuthButtons } from '../auth/AuthButtons';
 import { UserProfile } from '../auth/UserProfile';
-import { competition } from '../../config/competition';
+import { worldCup2026 } from '../../config/competition';
 
 const navItems = [
   { path: '/', label: 'Dashboard' },
@@ -16,7 +16,7 @@ const navItems = [
 
 export function ProdeNav() {
   const location = useLocation();
-  const { user, isAuthenticated, login, logout, loading } = useAuth();
+  const { user, isAuthenticated, logout, loading } = useAuth();
   const { profile } = useProfile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const isAdmin = profile?.role === 'admin';
@@ -41,7 +41,7 @@ export function ProdeNav() {
               <svg className="w-7 h-7 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C9.5 2 7.5 4 7 6H5C3.9 6 3 6.9 3 8V10C3 11.1 3.9 12 5 12H5.2C5.6 14.3 7.2 16.2 9.4 17H8C6.3 17 5 18.3 5 20V21C5 21.6 5.4 22 6 22H18C18.6 22 19 21.6 19 21V20C19 18.3 17.7 17 16 17H14.6C16.8 16.2 18.4 14.3 18.8 12H19C20.1 12 21 11.1 21 10V8C21 6.9 20.1 6 19 6H17C16.5 4 14.5 2 12 2ZM7 8C7 6.9 7.9 6 9 6H9.4C9.7 6.8 10.3 7.5 11 7.8V9H7V8ZM13 7.8C13.7 7.5 14.3 6.8 14.6 6H15C16.1 6 17 6.9 17 8V9H13V7.8ZM5 10H19V12H5V10Z"/>
               </svg>
-              <span>{competition.shortName}</span>
+              <span>{worldCup2026.shortName}</span>
             </Link>
 
             {/* Center: Navigation links */}
@@ -83,7 +83,7 @@ export function ProdeNav() {
             <svg className="w-7 h-7 text-amber-400" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2C9.5 2 7.5 4 7 6H5C3.9 6 3 6.9 3 8V10C3 11.1 3.9 12 5 12H5.2C5.6 14.3 7.2 16.2 9.4 17H8C6.3 17 5 18.3 5 20V21C5 21.6 5.4 22 6 22H18C18.6 22 19 21.6 19 21V20C19 18.3 17.7 17 16 17H14.6C16.8 16.2 18.4 14.3 18.8 12H19C20.1 12 21 11.1 21 10V8C21 6.9 20.1 6 19 6H17C16.5 4 14.5 2 12 2ZM7 8C7 6.9 7.9 6 9 6H9.4C9.7 6.8 10.3 7.5 11 7.8V9H7V8ZM13 7.8C13.7 7.5 14.3 6.8 14.6 6H15C16.1 6 17 6.9 17 8V9H13V7.8ZM5 10H19V12H5V10Z"/>
             </svg>
-            <span>{competition.shortName}</span>
+            <span>{worldCup2026.shortName}</span>
           </Link>
 
           <div className="flex items-center gap-2">

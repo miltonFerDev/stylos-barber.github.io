@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from '../ui/Card';
 import { useNavigate } from 'react-router-dom';
-import { competition } from '../../config/competition';
+import { worldCup2026 } from '../../config/competition';
 
 export function RulesPreviewCard() {
   const navigate = useNavigate();
@@ -31,8 +31,9 @@ export function RulesPreviewCard() {
       </div>
 
       <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10">
-        <p className="text-textMuted text-xs font-semibold mb-0.5">{competition.prizes.note ?? 'Modo beta'}</p>
-        <p className="text-textLight text-base font-bold">Competencia de prueba</p>
+        <p className="text-textMuted text-xs font-semibold mb-0.5">{worldCup2026.prizes.note ?? 'Premios activos'}</p>
+        <p className="text-textLight text-base font-bold">Phase: {worldCup2026.prizes.perPhase ?? '50% descuento'}</p>
+        <p className="text-textLight text-base font-bold">Final: {worldCup2026.prizes.final ?? '$100.000'}</p>
       </div>
     </Card>
   );

@@ -85,17 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSignupError(null);
     setSignupSuccess(false);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (data.user?.identities?.length === 0) {
-        setSignupError('Este email ya está registrado');
-        throw new Error('Email already registered');
-      }
+      await authService.signUp(email, password);
 
       setSignupSuccess(true);
     } catch (error: any) {

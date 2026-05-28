@@ -141,7 +141,7 @@ Deno.serve(async (req: Request) => {
 
     const apiMatches: ApiMatch[] = await response.json();
 
-    const competition = Deno.env.get('COMPETITION_ID') ?? 'beta-liga-argentina';
+    const competition = Deno.env.get('COMPETITION_ID') ?? 'world-cup-2026';
 
     const results = {
       synced: 0,
@@ -179,6 +179,7 @@ Deno.serve(async (req: Request) => {
             home_score: scores.home_score,
             away_score: scores.away_score,
             status,
+            phase: 'groups',
           })
           .eq('id', existing.id);
 
@@ -194,14 +195,15 @@ Deno.serve(async (req: Request) => {
           .from('matches')
           .insert({
             date: matchDate,
-            home_team: apiMatch.team1.teamName,
-            away_team: apiMatch.team2.teamName,
+            home_team: mapTeamName(apiMatch.team1),
+            away_team: mapTeamName(apiMatch.team2),
             home_score: scores.home_score,
             away_score: scores.away_score,
             group: apiMatch.group.groupName,
             competition,
             match_number: apiMatch.matchID,
             status,
+            phase: 'groups',
           });
 
         if (insertError) {
