@@ -10,7 +10,7 @@ import { FreshaCTA } from '../components/dashboard/FreshaCTA';
 import { competition } from '../config/competition';
 
 export function DashboardPage() {
-  const { isAuthenticated, login, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   return (
     <div className="space-y-5">

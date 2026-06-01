@@ -63,7 +63,7 @@ export const profilesRepository = {
     const alias = generateAlias(data.firstName, data.lastName, data.birthDate);
     const now = new Date().toISOString();
 
-    const { data: row, error } = await supabase
+    const { error } = await supabase
       .from('profiles')
       .upsert({
         id: userId,

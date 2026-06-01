@@ -16,7 +16,7 @@ const navItems = [
 
 export function ProdeNav() {
   const location = useLocation();
-  const { user, isAuthenticated, login, logout, loading } = useAuth();
+  const { user, isAuthenticated, logout, loading } = useAuth();
   const { profile } = useProfile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const isAdmin = profile?.role === 'admin';

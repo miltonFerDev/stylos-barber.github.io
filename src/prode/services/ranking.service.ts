@@ -101,7 +101,7 @@ export const rankingService = {
     }
 
     const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
+      .from('public_aliases')
       .select('id, public_alias');
 
     if (profilesError || !profiles) {
