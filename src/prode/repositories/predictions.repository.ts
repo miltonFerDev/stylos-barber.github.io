@@ -91,4 +91,18 @@ export const predictionsRepository = {
     }
     return true;
   },
+
+  async getAll(): Promise<Prediction[]> {
+    const { data, error } = await supabase
+      .from('predictions')
+      .select('*');
+
+    if (error) {
+      console.error('[predictionsRepository] getAll error:', error.message);
+      return [];
+    }
+
+    if (!data) return [];
+    return (data as PredictionRow[]).map(rowToPrediction);
+  },
 };

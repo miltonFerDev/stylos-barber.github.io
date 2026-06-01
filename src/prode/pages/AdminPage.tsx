@@ -4,7 +4,9 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { matchService } from '../services/match.service';
+import { adminService } from '../services/admin.service';
 import type { Match, MatchStatus } from '../domain/types/match';
+import type { Profile } from '../domain/types/profile';
 import { competition } from '../config/competition';
 import { getEffectiveStatus } from '../domain/logic/locking';
 
@@ -175,12 +177,29 @@ export function AdminPage() {
   const [newMatchday, setNewMatchday] = React.useState('');
   const [newMatchNumber, setNewMatchNumber] = React.useState('');
   const [createMessage, setCreateMessage] = React.useState('');
+  const [showUsers, setShowUsers] = React.useState(false);
+  const [users, setUsers] = React.useState<{ profile: Profile; predictions: any[] }[]>([]);
+  const [usersLoading, setUsersLoading] = React.useState(false);
 
   const refreshMatches = React.useCallback(async () => {
     const data = await matchService.getMatches(competition.id);
     setMatches(data);
     setLoading(false);
   }, []);
+
+  const refreshUsers = React.useCallback(async () => {
+    setUsersLoading(true);
+    const data = await adminService.getUsersWithPredictions();
+    setUsers(data);
+    setUsersLoading(false);
+  }, []);
+
+  const handleToggleAdmin = async (userId: string, currentIsAdmin: boolean) => {
+    const success = await adminService.setAdminRole(userId, !currentIsAdmin);
+    if (success) {
+      refreshUsers();
+    }
+  };
 
   const argToUTC = (localValue: string): string => {
     const d = new Date(`${localValue}:00-03:00`);
@@ -260,6 +279,19 @@ export function AdminPage() {
           className="px-3 py-1.5 rounded-lg text-sm font-medium bg-accent text-white hover:bg-accentHover transition-colors"
         >
           {showCreateForm ? 'Cancelar' : 'Nuevo partido'}
+        </button>
+        <button
+          onClick={() => {
+            setShowUsers((s) => !s);
+            if (!showUsers) refreshUsers();
+          }}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            showUsers
+              ? 'bg-accent text-white'
+              : 'bg-primaryLight text-textMuted hover:text-textLight'
+          }`}
+        >
+          {showUsers ? 'Ver partidos' : 'Ver usuarios'}
         </button>
       </div>
 
@@ -351,22 +383,71 @@ export function AdminPage() {
         ))}
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
+      {showUsers ? (
+        <div className="space-y-3">
+          {usersLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
+            </div>
+          ) : users.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-textMuted">No hay usuarios registrados</p>
+            </div>
+          ) : (
+            users.map(({ profile, predictions }) => (
+              <Card key={profile.id} className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="text-textLight font-semibold">{profile.firstName} {profile.lastName}</p>
+                    <p className="text-textMuted text-sm">@{profile.alias} · {profile.email}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {profile.role === 'admin' && (
+                      <Badge variant="scored">Admin</Badge>
+                    )}
+                    <button
+                      onClick={() => handleToggleAdmin(profile.id, profile.role === 'admin')}
+                      className={`px-3 py-1 text-sm rounded-lg border transition-colors ${
+                        profile.role === 'admin'
+                          ? 'border-red-500/30 text-red-400 hover:bg-red-500/10'
+                          : 'border-accent/30 text-accent hover:bg-accent/10'
+                      }`}
+                    >
+                      {profile.role === 'admin' ? 'Quitar admin' : 'Hacer admin'}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-textMuted text-xs">
+                  <span>WhatsApp: {profile.whatsapp}</span>
+                  <span>·</span>
+                  <span>Predicciones: {predictions.length}</span>
+                  <span>·</span>
+                  <span>Registrado: {new Date(profile.createdAt).toLocaleDateString('es-AR')}</span>
+                </div>
+              </Card>
+            ))
+          )}
         </div>
       ) : (
-        <div className="space-y-3">
-          {filteredMatches.map((match) => (
-            <AdminMatchCard key={match.id} match={match} onResultSaved={refreshMatches} />
-          ))}
-        </div>
-      )}
+        <>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredMatches.map((match) => (
+                <AdminMatchCard key={match.id} match={match} onResultSaved={refreshMatches} />
+              ))}
+            </div>
+          )}
 
-      {filteredMatches.length === 0 && !loading && (
-        <div className="text-center py-8">
-          <p className="text-textMuted">No hay partidos en esta categoría</p>
-        </div>
+          {filteredMatches.length === 0 && !loading && !showUsers && (
+            <div className="text-center py-8">
+              <p className="text-textMuted">No hay partidos en esta categoría</p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
