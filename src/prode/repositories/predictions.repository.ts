@@ -92,6 +92,11 @@ export const predictionsRepository = {
     return true;
   },
 
+  /**
+   * @deprecated Admin-only. Requires RLS policy predictions_admin_all (is_admin check).
+   * adminService uses this internally. Do NOT call from non-admin context.
+   * RLS will block usage for non-admin users, but do not rely on this alone for security.
+   */
   async getAll(): Promise<Prediction[]> {
     const { data, error } = await supabase
       .from('predictions')

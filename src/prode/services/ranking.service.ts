@@ -78,73 +78,22 @@ export const rankingService = {
   },
 
   async getMatchdayRankings(matchday: string): Promise<RankingEntry[]> {
-    const { data: matchRows, error: matchError } = await supabase
-      .from('matches')
-      .select('id')
-      .eq('group', matchday);
+    const { data, error } = await supabase.rpc('get_matchday_rankings', { p_matchday: matchday });
 
-    if (matchError || !matchRows || matchRows.length === 0) {
+    if (error) {
+      console.error('[rankingService] getMatchdayRankings error:', error.message);
       return [];
     }
 
-    const matchIds = matchRows.map((m) => m.id);
+    if (!data || data.length === 0) return [];
 
-    const { data: finishedMatches, error: finishedError } = await supabase
-      .from('matches')
-      .select('*')
-      .in('id', matchIds)
-      .not('home_score', 'is', null)
-      .not('away_score', 'is', null);
+    const rawEntries = data.map((row: any) => ({
+      alias: row.alias as string,
+      points: Number(row.points),
+      exactPredictions: Number(row.exact_predictions ?? 0),
+      correctWinners: Number(row.correct_winners ?? 0),
+    }));
 
-    if (finishedError || !finishedMatches) {
-      return [];
-    }
-
-    const { data: profiles, error: profilesError } = await supabase
-      .from('public_aliases')
-      .select('id, public_alias');
-
-    if (profilesError || !profiles) {
-      return [];
-    }
-
-    const entries: UserStats[] = [];
-
-    for (const profile of profiles) {
-      const { data: preds } = await supabase
-        .from('predictions')
-        .select('match_id, home_score, away_score')
-        .eq('user_id', profile.id)
-        .in('match_id', matchIds);
-
-      if (!preds || preds.length === 0) continue;
-
-      let points = 0;
-      let exactPredictions = 0;
-      let correctWinners = 0;
-
-      for (const pred of preds) {
-        const match = finishedMatches.find((m) => m.id === pred.match_id);
-        if (!match) continue;
-
-        const pts = calculatePoints(
-          { predictedScoreA: pred.home_score, predictedScoreB: pred.away_score },
-          { scoreA: match.home_score, scoreB: match.away_score }
-        );
-
-        points += pts;
-        if (pts === 3) exactPredictions++;
-        else if (pts === 1) correctWinners++;
-      }
-
-      entries.push({
-        alias: profile.public_alias,
-        points,
-        exactPredictions,
-        correctWinners,
-      });
-    }
-
-    return buildRanking(entries);
+    return buildRanking(rawEntries);
   },
 };
