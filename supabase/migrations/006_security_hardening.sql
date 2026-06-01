@@ -122,6 +122,21 @@ REVOKE ALL ON FUNCTION public.get_matchday_rankings(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_matchday_rankings(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_matchday_rankings(text) TO anon;
 
+-- 6. Grants mínimos según AGENTS.md
+-- profiles: authenticated -> SELECT, INSERT, UPDATE | anon -> sin permisos
+GRANT SELECT, INSERT, UPDATE ON public.profiles TO authenticated;
+
+-- predictions: authenticated -> SELECT, INSERT, UPDATE | anon -> sin permisos
+GRANT SELECT, INSERT, UPDATE ON public.predictions TO authenticated;
+
+-- matches: anon -> SELECT, authenticated -> SELECT, admin -> INSERT, UPDATE, DELETE (via RLS + is_admin)
+GRANT SELECT ON public.matches TO anon;
+GRANT SELECT ON public.matches TO authenticated;
+
+-- rankings view: anon -> SELECT, authenticated -> SELECT
+GRANT SELECT ON public.rankings TO anon;
+GRANT SELECT ON public.rankings TO authenticated;
+
 -- NOTA: get_matchday_rankings es SECURITY DEFINER, por eso GRANT a anon funciona.
 -- La función se ejecuta como el owner (postgres), bypassing RLS de las tablas base.
 -- No expone predicciones crudas, solo alias + puntos agregados.
