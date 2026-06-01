@@ -6,7 +6,7 @@ Sitio web de Stylo's Barber (barbería). El sitio actual es el punto de partida 
 
 ---
 
-## Feature en planificación: Prode Mundial 2026
+## Feature implementada: Prode Mundial 2026
 
 ### Ubicación
 `/prode`
@@ -23,18 +23,19 @@ Sitio web de Stylo's Barber (barbería). El sitio actual es el punto de partida 
 - Perfil con: nombre real, alias público, WhatsApp, email de Google, aceptación de reglas.
 - Ranking público usando alias.
 - No mostrar email, WhatsApp ni nombre real en rankings públicos.
-- Partidos agrupados por fecha.
+- Partidos agrupados por grupo/fecha/etapa.
 - Predicciones editables hasta el inicio de cada partido.
-- Cuando empieza un partido, esa predicción queda bloqueada.
-- Ranking por fecha/semanal.
-- Ranking general.
+- Cuando empieza el partido, esa predicción queda bloqueada.
+- Ranking por fecha/grupo/etapa y ranking general.
 - Premio por fecha: 50% de descuento en cualquier servicio.
 - Premio final: gift card por $100.000.
 - Admin inicial: solo el dueño.
 
 ---
 
-## Reglas de planificación
+## Reglas de trabajo
+
+### Para features nuevas
 
 Antes de implementar una feature grande, el agente debe planificar.
 
@@ -48,6 +49,19 @@ Para `/prode`, no escribir código ni modificar archivos hasta entregar:
 6. Roadmap incremental.
 7. Criterios de aceptación.
 8. Archivos o zonas del repo que probablemente se tocarán.
+
+### Para mantenimiento y hardening
+
+El agente debe:
+
+- Auditar estado actual del código y Supabase antes de modificar.
+- No implementar features nuevas durante una auditoría.
+- No rediseñar la app durante auditoría funcional.
+- No tocar la landing principal.
+- No mezclar datos beta con datos productivos.
+- No corregir a ciegas sin explicar origen y riesgo.
+- Toda corrección debe ser mínima, verificable y con criterio de aceptación.
+- Si falta información, marcarla como pendiente en vez de asumirla.
 
 El agente no debe:
 - escribir código durante la planificación;
@@ -68,22 +82,30 @@ El prode debe pensarse como una mini-app dentro del sitio actual.
 ```
 src/
   prode/
-    ui/                    # Componentes visuales puros (sin lógica de negocio)
-    components/            # Componentes de presentación
-    hooks/                 # Preparación de datos para vistas (view models)
-    view-models/           # Estado y lógica de UI
-    services/              # Reglas de negocio y flujos
-    repositories/          # Acceso a Supabase
-    domain/
-      types/               # Tipos e interfaces TypeScript
-      entities/            # Entidades de dominio
-      logic/                # Lógica pura (scoring, bloqueo, etc.)
+    components/           # Componentes de presentación y UI
+      auth/               # AuthProvider, ProfileProvider, guards
+      dashboard/          # Cards del dashboard
+      fixture/            # MatchCard
+      layout/             # ProdeShell, ProdeNav
+      predictions/        # MatchRow, MatchStatusBadge
+      rankings/           # (vacío, por implementar)
+      ui/                 # Primitivas: Button, Card, Badge, LoadingSpinner, etc.
     config/
-      supabase.ts          # Cliente Supabase
-      constants.ts         # Constantes del prode
-      env.ts               # Variables de entorno
-    pages/
-      index.tsx            # Página principal del prode
+      api.ts             # Cliente OpenLigaDB
+      competition.ts     # Constantes del prode (nombre, scoring, premios)
+      supabase.ts        # Cliente Supabase con lifecycle hooks
+    data/
+      mocks.ts           # Datos de ejemplo para desarrollo offline
+    domain/
+      logic/             # Lógica pura (scoring, locking, ranking)
+        __tests__/       # Tests de dominio
+      types/             # Tipos e interfaces TypeScript
+    hooks/               # useAuth, useProfile, usePredictions, useRankings
+    pages/               # 10 páginas: Dashboard, Login, Fixture, etc.
+    repositories/         # profiles, matches, predictions
+    services/            # auth, match, prediction, ranking, admin, api-sync
+    utils/
+      validation.ts      # Type guards
 ```
 
 ### Reglas obligatorias de arquitectura
@@ -98,18 +120,18 @@ src/
 - Un usuario no debe poder editar predicciones después del inicio del partido.
 - Las acciones admin deben estar protegidas.
 
-### Estructura de datos probable (Supabase)
+### Estructura de datos (Supabase)
 
 **Tablas:**
-- `users` - Perfiles de usuario (nombre real, alias, whatsapp, google email)
-- `matches` - Partidos (fecha/hora, equipo A, equipo B, resultado)
-- `predictions` - Predicciones de usuarios (user_id, match_id, score_a, score_b)
-- `rankings` - Rankings calculados (user_id, puntaje total, posición)
+- `profiles` - Perfil de usuario (id FK auth.users, email, first_name, last_name, birth_date, public_alias, whatsapp, is_admin, accepted_rules_at, created_at). **No es `users`.**
+- `matches` - Partidos (id, date, home_team, away_team, home_score, away_score, group, competition, match_number, status)
+- `predictions` - Predicciones (id, user_id FK profiles, match_id FK matches, home_score, away_score, created_at, updated_at, UNIQUE(user_id, match_id))
+
+**Views:**
+- `public_aliases` - VIEW pública que expone solo (id, public_alias). Usada para rankings sin exponer datos privados.
+- `rankings` - VIEW computada que expone (alias, points, exact_predictions, correct_winners). **No es una tabla.** Se calcula desde profiles + predictions + matches.
 
 **RLS Policies:**
-- Usuarios solo ven/editen sus propias predicciones.
-- Rankings públicos ocultan datos privados.
-- Admin tiene acceso completo.
 
 ---
 
@@ -144,13 +166,13 @@ No dar tutoriales largos salvo que el usuario los pida.
 |---|----------|-----------|
 | 1 | Scoring | Resultado exacto = 3 pts, ganador correcto = 1 pt, incorrecto = 0 pts |
 | 2 | Framework UI | React |
-| 3 | Desempate | Más resultados exactos → más ganadores correctos → alfabético por alias |
-| 4 | Jornadas | Las que defina FIFA |
+| 3 | Desempate | 1. Mayor cantidad de resultados exactos -> 2. Mayor cantidad de aciertos de ganador/empate -> 3. Mayor cantidad de fechas/grupos/etapas participadas -> 4. Sorteo si persiste el empate |
+| 4 | jornadas | Las que defina FIFA |
 | 5 | No predicho | 0 puntos |
 | 6 | Alias | Autogenerado: iniciales nombre + apellido + DDMM de nacimiento. No editable |
 | 7 | Cambio de alias | No |
 | 8 | Colisión de alias | Formato incluye fecha de nacimiento, colisión prácticamente imposible |
-| 9 | Estado "live" | Fuera del MVP. Solo `upcoming` y `finished` |
+| 9 | Estado `live` | Implementado: `upcoming`, `live`, `finished`. Las predicciones se bloquean al inicio del partido, no al estado `finished`. `live` representa partido en curso. |
 | 10 | Router | react-router-dom |
 
 ---
@@ -159,33 +181,38 @@ No dar tutoriales largos salvo que el usuario los pida.
 
 ### Épicas y orden
 
-1. **E1: Estructura visual y shell** — Shell de la mini-app, UI primitives, dashboard skeleton con mocks
-2. **E2: Domain y tipos** — Tipos TypeScript para Match, Prediction, Profile, Ranking
-3. **E3: Scoring** — Lógica pura de puntaje, bloqueo y ranking
-4. **E4: Auth** — Login con Google via Supabase
-5. **E5: Perfil** — Onboarding con generación de alias
-6. **E6: Fixture** — CRUD de partidos, vista por jornada
-7. **E7: Predicciones** — CRUD de predicciones con bloqueo
-8. **E8: Rankings** — Rankings semanal y general
-9. **E9: Admin** — Panel mínimo para cargar partidos y resultados
-10. **E10: Hardening** — Seguridad, tests, SEO, deploy
+| # | Épica | Estado |
+|---|--------|--------|
+| E1 | Estructura visual y shell | Completada |
+| E2 | Domain y tipos | Completada |
+| E3 | Scoring | Completada |
+| E4 | Auth | Completada |
+| E5 | Perfil | Completada |
+| E6 | Fixture | Completada |
+| E7 | Predicciones | Completada |
+| E8 | Rankings | Completada |
+| E9 | Admin | Completada |
+| E10 | Hardening | Parcial |
 
 ### Qué se puede mockear en primera instancia
 
-- Datos de perfil, partidos, predicciones y rankings (todo hardcodeado en `src/prode/data/mocks.ts`)
-- Auth service con sesión hardcodeada para desarrollo sin Google OAuth
-- Admin panel con datos locales
+> La sección de mocks aplica solo para desarrollo local offline. En producción usar datos reales.
 
-### Qué debe estar sí o sí antes de conectar Supabase/Auth
+- Datos de perfil, partidos, predicciones y rankings para desarrollo offline (`src/prode/data/mocks.ts`)
+- El cliente Supabase permite desarrollo sin conexión a internet usando datos locales
 
-1. React integration en Astro funcionando
-2. Página `/prode` renderiza sin errores
-3. Todos los tipos TypeScript definidos
-4. Lógica de scoring implementada y testeada
-5. Cliente Supabase configurado
-6. Tablas creadas en Supabase (profiles, matches, predictions)
-7. Google OAuth configurado
-8. RLS policies creadas
+### Estado de conexión Supabase
+
+| Requisito | Estado |
+|-----------|--------|
+| React integration en Astro funcionando | Listo |
+| Página `/prode` renderiza sin errores | Listo |
+| Todos los tipos TypeScript definidos | Listo |
+| Lógica de scoring implementada y testeada | Listo |
+| Cliente Supabase configurado | Listo |
+| Tablas creadas en Supabase (profiles, matches, predictions) | Listo |
+| Google OAuth configurado | Listo |
+| RLS policies creadas | Listo |
 
 ---
 
@@ -194,4 +221,170 @@ No dar tutoriales largos salvo que el usuario los pida.
 Verificar antes de comprometer cambios:
 - `npm run lint` - Linting
 - `npm run typecheck` - Verificación de tipos
-- `npm test` - Tests (si existen)
+- `npm run test` - Tests (si existen)
+
+---
+
+## Fixture y datos reales del Mundial 2026
+
+El Prode final debe usar partidos, grupos, fechas y horarios reales del Mundial 2026.
+
+### Datos beta (no mezclar con producción)
+
+Los siguientes datos son de prueba y **no deben mezclarse** con el producto final:
+
+- Liga Argentina de prueba (`beta-liga-argentina`)
+- Equipos locales inventados (Belgrano, Racing, etc.)
+- Edge function `sync-matches` apunta a OpenLigaDB que puede tener datos no oficiales
+- Semifinales con equipos de Liga Argentina
+
+### Verificaciones obligatorias antes de lanzar fixture real
+
+- Los grupos deben ser los 8 grupos reales del Mundial 2026 (A-H)
+- Cada equipo debe corresponder al grupo correcto
+- Los partidos no deben estar duplicados
+- Cada partido debe tener ID único estable
+- Cada equipo debe tener representación consistente: nombre, código, bandera/ícono
+- Los horarios deben permitir bloquear predicciones correctamente
+- Los partidos eliminatorios (octavos, cuartos, semis, final) no deben usar equipos inventados
+
+---
+
+## Estado esperado de Supabase
+
+### Tablas y views públicas
+
+| Objeto | Tipo | Descripción |
+|--------|------|-------------|
+| `profiles` | tabla | Perfil de usuario (FK auth.users) |
+| `matches` | tabla | Partidos con resultado y estado |
+| `predictions` | tabla | Predicciones de usuarios |
+| `public_aliases` | view | Solo (id, public_alias) - sin datos privados |
+| `rankings` | view | Solo (alias, points, exact_predictions, correct_winners) - sin datos privados |
+
+### RLS activo en
+
+- `profiles` - rowsecurity true
+- `matches` - rowsecurity true
+- `predictions` - rowsecurity true
+
+### Policies esperadas
+
+**profiles:**
+- `profiles_select_own` - usuario ve su propio perfil
+- `profiles_insert_own` - usuario crea su propio perfil
+- `profiles_update_own` - usuario actualiza su propio perfil
+- `profiles_admin_select` - admin ve todos los perfiles
+- `profiles_admin_update` - admin actualiza cualquier perfil
+- **NO debe existir** `profiles_select_public` ni policy con `USING (true)` que exponga todos los campos
+
+**predictions:**
+- `predictions_select_own` - usuario ve sus propias predicciones
+- `predictions_insert_before_match` - inserta solo si el partido no empezó
+- `predictions_update_before_match` - actualiza solo si el partido no empezó
+- `predictions_admin_all` - admin tiene acceso total
+- **NO debe existir** `predictions_select_all_auth` - usuarios comunes no deben leer predicciones crudas de otros
+
+**matches:**
+- `matches_select_all` - lectura pública del fixture
+- `matches_admin_insert` - solo admin crea partidos
+- `matches_admin_update` - solo admin actualiza partidos/resultados
+- `matches_admin_delete` - solo admin elimina partidos
+
+### Grants esperados
+
+```
+profiles:
+  authenticated -> SELECT, INSERT, UPDATE
+  anon -> sin permisos
+
+predictions:
+  authenticated -> SELECT, INSERT, UPDATE
+  anon -> sin permisos
+
+matches:
+  anon -> SELECT
+  authenticated -> SELECT
+  admin -> INSERT, UPDATE, DELETE (via RLS + is_admin)
+
+public_aliases:
+  anon -> SELECT
+  authenticated -> SELECT
+
+rankings:
+  anon -> SELECT
+  authenticated -> SELECT
+```
+
+---
+
+## Hardening de seguridad
+
+### Función is_admin()
+
+La función `is_admin()` debe usarse para proteger todas las acciones admin en RLS.
+
+```sql
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.profiles
+    WHERE id = auth.uid()
+      AND is_admin = true
+  );
+$$;
+
+REVOKE ALL ON FUNCTION public.is_admin() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+```
+
+### profiles_update_own con WITH CHECK
+
+```sql
+DROP POLICY IF EXISTS profiles_update_own ON public.profiles;
+
+CREATE POLICY profiles_update_own
+ON public.profiles
+FOR UPDATE
+TO public
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id);
+```
+
+### Reglas de seguridad
+
+- La seguridad real está en Supabase/RLS, **no en la UI**
+- El admin panel en frontend no es suficiente - RLS debe impedir acciones no autorizadas
+- Usuario común no debe poder cambiar roles ni acceder a acciones admin
+- Cambios de rol/admin deben estar protegidos por RLS con `is_admin()`
+- `predictions_select_all_auth` debe eliminarse - el ranking público se consume desde `rankings` view
+
+---
+
+## Auditoría funcional pre-lanzamiento
+
+Verificar todos estos puntos antes de lanzar a producción:
+
+1. Login con Google funciona y redirige correctamente
+2. Creación de perfil con alias autogenerado
+3. Edición de perfil (nombre, WhatsApp)
+4. Aceptación de reglas al registrarse
+5. Carga de predicciones para partidos abiertos
+6. Edición de predicciones antes del inicio del partido
+7. Bloqueo automático de predicciones al inicio del partido (no al estado `finished`)
+8. Cálculo correcto de puntos (3 exacto, 1 ganador, 0 incorrecto)
+9. Ranking por fecha/grupo/etapa
+10. Ranking general
+11. Admin: crear partidos y cargar resultados
+12. Admin: verificar que usuario común no pueda acceder a acciones admin
+13. No exposición de datos privados en rankings (alias público solo, sin email/WhatsApp/nombre)
+14. Fixture real del Mundial sin duplicados, equipos correctos, horarios consistentes
+15. Mobile usable - navegación, ingreso de predicciones, visualización de rankings
+16. `npm run typecheck` pasa sin errores
+17. `npm test` pasa (20 tests en scoring, locking, ranking)
+18. Build completo sin errores
