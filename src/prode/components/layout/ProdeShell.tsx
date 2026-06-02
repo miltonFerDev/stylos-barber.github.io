@@ -9,6 +9,7 @@ import { DashboardPage } from '../../pages/DashboardPage';
 import { AdminGuard } from '../auth/AdminGuard';
 import { ErrorBoundary } from './ErrorBoundary';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { BugReportButton } from '../feedback/BugReportButton';
 
 // Lazy load non-critical pages to reduce initial bundle
 const FixturePage = React.lazy(() => import('../../pages/FixturePage').then(m => ({ default: m.FixturePage })));
@@ -61,6 +62,7 @@ export function ProdeShell() {
               </Suspense>
             </ErrorBoundary>
           </main>
+          <BugReportButton />
         </div>
         </ProfileProvider>
       </AuthProvider>
