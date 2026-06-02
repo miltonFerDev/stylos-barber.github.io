@@ -14,6 +14,10 @@ describe('isPredictionLocked', () => {
     expect(isPredictionLocked(new Date('2020-01-01'))).toBe(true);
     expect(isPredictionLocked(new Date('2030-01-01'))).toBe(false);
   });
+
+  it('devuelve true para date null (sin fecha = bloqueado)', () => {
+    expect(isPredictionLocked(null)).toBe(true);
+  });
 });
 
 describe('getEffectiveStatus', () => {
@@ -31,5 +35,13 @@ describe('getEffectiveStatus', () => {
 
   it('devuelve "upcoming" si el status es "upcoming" y todavia no empieza', () => {
     expect(getEffectiveStatus('upcoming', '2030-01-01T00:00:00Z')).toBe('upcoming');
+  });
+
+  it('devuelve "upcoming" si date es null y status es "upcoming"', () => {
+    expect(getEffectiveStatus('upcoming', null)).toBe('upcoming');
+  });
+
+  it('devuelve "finished" si status es "finished" y date es null', () => {
+    expect(getEffectiveStatus('finished', null)).toBe('finished');
   });
 });

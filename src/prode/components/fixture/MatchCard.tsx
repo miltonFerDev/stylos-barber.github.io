@@ -114,7 +114,8 @@ function TeamDisplay({ name, placeholder }: { name: string | null; placeholder: 
   );
 }
 
-function formatMatchDate(dateStr: string): string {
+function formatMatchDate(dateStr: string | null): string {
+  if (!dateStr) return 'Fecha por confirmar';
   const date = new Date(dateStr);
   return date.toLocaleDateString('es-AR', {
     weekday: 'short',
@@ -123,7 +124,8 @@ function formatMatchDate(dateStr: string): string {
   });
 }
 
-function formatMatchTime(dateStr: string): string {
+function formatMatchTime(dateStr: string | null): string {
+  if (!dateStr) return '';
   const date = new Date(dateStr);
   return date.toLocaleTimeString('es-AR', {
     hour: '2-digit',

@@ -3,7 +3,7 @@ import type { Match, MatchStatus, TournamentPhase } from '../domain/types/match'
 
 interface MatchRow {
   id: string;
-  date: string;
+  date: string | null;
   home_team: string | null;
   away_team: string | null;
   home_score: number | null;
@@ -33,7 +33,7 @@ function rowToMatch(row: MatchRow): Match {
     phase,
     group: row.group as Match['group'],
     matchday: row.matchday_order ?? null,
-    matchDate: row.date,
+    matchDate: row.date ?? null,
     teamA: row.home_team ?? null,
     teamB: row.away_team ?? null,
     teamAPlaceholder: row.home_team_placeholder ?? null,
@@ -97,7 +97,7 @@ export const matchesRepository = {
     phase: TournamentPhase;
     group?: string | null;
     matchday?: number | null;
-    matchDate: string;
+    matchDate: string | null;
     teamA?: string | null;
     teamB?: string | null;
     teamAPlaceholder?: string | null;

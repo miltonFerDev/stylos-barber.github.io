@@ -11,6 +11,8 @@
     "build": "astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "typecheck": "astro check",
+    "lint": "astro check",
     "test": "vitest"
   },
   "dependencies": {

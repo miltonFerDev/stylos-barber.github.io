@@ -1,11 +1,11 @@
 import React from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import { Card } from '../components/ui/Card';
 
 export function ResetPasswordPage() {
   const navigate = useNavigate();
-  useSearchParams();
+
   
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');

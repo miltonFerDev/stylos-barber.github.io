@@ -46,7 +46,9 @@ export function FixturePage() {
       if (gm.length > 0) {
         map.set(g, gm.sort((a, b) => {
           if (a.matchday !== b.matchday) return (a.matchday ?? 0) - (b.matchday ?? 0);
-          return new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime();
+          const timeA = a.matchDate ? new Date(a.matchDate).getTime() : Infinity;
+          const timeB = b.matchDate ? new Date(b.matchDate).getTime() : Infinity;
+          return timeA - timeB;
         }));
       }
     });

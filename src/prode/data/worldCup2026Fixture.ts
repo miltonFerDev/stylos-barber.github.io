@@ -1,3 +1,14 @@
+// =====================================================
+// OBSOLETO — Reemplazado por fixture-world-cup-2026.ts
+// =====================================================
+// Este archivo contiene datos viejos e incorrectos:
+// - Nombres en español (inconsistentes con fixture principal)
+// - Horarios inventados (6-day uniform spacing)
+// - Fechas placeholder de eliminatorias (inventadas)
+// NO USAR como fuente de verdad.
+// El fixture autoritativo es fixture-world-cup-2026.ts.
+// =====================================================
+
 import type { TournamentPhase, GroupLetter } from '../domain/types/match';
 
 export interface SeedMatch {

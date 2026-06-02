@@ -172,25 +172,50 @@ Deno.serve(async (req: Request) => {
         : apiMatch.matchDateTimeUTC + 'Z';
 
       if (existing) {
-        const { error: updateError } = await supabase
-          .from('matches')
-          .update({
-            date: matchDate,
-            home_score: scores.home_score,
-            away_score: scores.away_score,
-            status,
-            phase: 'groups',
-          })
-          .eq('id', existing.id);
+        if (competition === 'world-cup-2026') {
+          const { error: updateError } = await supabase
+            .from('matches')
+            .update({
+              home_score: scores.home_score,
+              away_score: scores.away_score,
+              status,
+            })
+            .eq('id', existing.id);
 
-        if (updateError) {
-          console.error(`Error updating match ${apiMatch.matchID}:`, updateError.message);
-          results.errors++;
+          if (updateError) {
+            console.error(`Error updating match ${apiMatch.matchID}:`, updateError.message);
+            results.errors++;
+          } else {
+            results.updated++;
+            results.synced++;
+          }
         } else {
-          results.updated++;
-          results.synced++;
+          const { error: updateError } = await supabase
+            .from('matches')
+            .update({
+              date: matchDate,
+              home_score: scores.home_score,
+              away_score: scores.away_score,
+              status,
+              phase: 'groups',
+            })
+            .eq('id', existing.id);
+
+          if (updateError) {
+            console.error(`Error updating match ${apiMatch.matchID}:`, updateError.message);
+            results.errors++;
+          } else {
+            results.updated++;
+            results.synced++;
+          }
         }
       } else {
+        if (competition === 'world-cup-2026') {
+          console.warn(`Skipping insert for world-cup-2026 match ${apiMatch.matchID}: OpenLigaDB no es fuente confiable para world-cup-2026`);
+          results.errors++;
+          continue;
+        }
+
         const { error: insertError } = await supabase
           .from('matches')
           .insert({

@@ -28,7 +28,7 @@ export interface Match {
   phase: TournamentPhase;
   group: GroupLetter | null;
   matchday: number | null;
-  matchDate: string;
+  matchDate: string | null;
   teamA: string | null;
   teamB: string | null;
   teamAPlaceholder: string | null;

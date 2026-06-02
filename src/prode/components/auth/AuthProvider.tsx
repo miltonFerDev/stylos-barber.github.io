@@ -6,6 +6,7 @@ export interface AuthContextValue {
   user: any | null;
   loading: boolean;
   isAuthenticated: boolean;
+  sessionExpired: boolean;
   loginError: string | null;
   signupError: string | null;
   signupSuccess: boolean;
@@ -17,12 +18,14 @@ export interface AuthContextValue {
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
+  dismissSessionExpired: () => void;
 }
 
 const AuthContext = React.createContext<AuthContextValue>({
   user: null,
   loading: true,
   isAuthenticated: false,
+  sessionExpired: false,
   loginError: null,
   signupError: null,
   signupSuccess: false,
@@ -34,12 +37,14 @@ const AuthContext = React.createContext<AuthContextValue>({
   resetPassword: async () => {},
   updatePassword: async () => {},
   logout: async () => {},
+  dismissSessionExpired: () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<any | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [loginError, setLoginError] = React.useState<string | null>(null);
+  const [sessionExpired, setSessionExpired] = React.useState(false);
   const [signupError, setSignupError] = React.useState<string | null>(null);
   const [signupSuccess, setSignupSuccess] = React.useState(false);
   const [resetPasswordSent, setResetPasswordSent] = React.useState(false);
@@ -48,6 +53,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'TOKEN_REFRESHED') return;
+
+      if (event === 'SIGNED_OUT') {
+        setSessionExpired(true);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
 
       setUser(session?.user ?? null);
       setLoading(false);
@@ -120,11 +132,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await authService.signOut();
   }, []);
 
+  const dismissSessionExpired = React.useCallback(() => {
+    setSessionExpired(false);
+  }, []);
+
   const value = React.useMemo(
     () => ({
       user,
       loading,
       isAuthenticated: !!user,
+      sessionExpired,
       loginError,
       signupError,
       signupSuccess,
@@ -136,8 +153,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       resetPassword,
       updatePassword,
       logout,
+      dismissSessionExpired,
     }),
-    [user, loading, loginError, signupError, signupSuccess, resetPasswordSent, resetPasswordError, login, loginWithGoogle, signup, resetPassword, updatePassword, logout]
+    [user, loading, sessionExpired, loginError, signupError, signupSuccess, resetPasswordSent, resetPasswordError, login, loginWithGoogle, signup, resetPassword, updatePassword, logout, dismissSessionExpired]
   );
 
   return (

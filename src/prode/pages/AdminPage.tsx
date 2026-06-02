@@ -9,7 +9,7 @@ import { PHASE_LABELS } from '../domain/types/match';
 import { getEffectiveStatus, isPredictionAllowed } from '../domain/logic/locking';
 import { worldCup2026 } from '../config/competition';
 
-function AdminStatusBadge({ status, matchDate }: { status: MatchStatus; matchDate: string }) {
+function AdminStatusBadge({ status, matchDate }: { status: MatchStatus; matchDate: string | null }) {
   const effectiveStatus = getEffectiveStatus(status, matchDate);
   switch (effectiveStatus) {
     case 'upcoming':
@@ -86,13 +86,14 @@ function AdminMatchCard({ match, onResultSaved, onTeamsUpdated }: { match: Match
     setTimeout(() => setMessage(''), 2000);
   };
 
-  const date = new Date(match.matchDate);
-  const formattedDate = date.toLocaleDateString('es-AR', {
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const formattedDate = match.matchDate
+    ? new Date(match.matchDate).toLocaleDateString('es-AR', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'Fecha por confirmar';
 
   const effectiveStatus = getEffectiveStatus(match.status, match.matchDate);
 
@@ -294,23 +295,22 @@ export function AdminPage() {
         ))}
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filteredMatches.map((match) => (
+      {/* Matches */}
+      <div className="space-y-3">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
+          </div>
+        ) : filteredMatches.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-textMuted">No hay partidos en esta categoria</p>
+          </div>
+        ) : (
+          filteredMatches.map((match) => (
             <AdminMatchCard key={match.id} match={match} onResultSaved={refreshMatches} onTeamsUpdated={refreshMatches} />
-          ))}
-        </div>
-      )}
-
-      {filteredMatches.length === 0 && !loading && (
-        <div className="text-center py-8">
-          <p className="text-textMuted">No hay partidos en esta categoría</p>
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }

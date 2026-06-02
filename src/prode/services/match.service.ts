@@ -27,7 +27,7 @@ export const matchService = {
     phase: TournamentPhase;
     group?: string | null;
     matchday?: number | null;
-    matchDate: string;
+    matchDate: string | null;
     teamA?: string | null;
     teamB?: string | null;
     teamAPlaceholder?: string | null;

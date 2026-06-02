@@ -153,15 +153,18 @@ export function MatchRow({ match, prediction, onPredictionChange }: MatchRowProp
     }
   };
 
-  const date = new Date(match.matchDate);
-  const formattedDate = date.toLocaleDateString('es-AR', {
-    day: 'numeric',
-    month: 'short',
-  });
-  const formattedTime = date.toLocaleTimeString('es-AR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const formattedDate = match.matchDate
+    ? new Date(match.matchDate).toLocaleDateString('es-AR', {
+        day: 'numeric',
+        month: 'short',
+      })
+    : 'Fecha por confirmar';
+  const formattedTime = match.matchDate
+    ? new Date(match.matchDate).toLocaleTimeString('es-AR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '';
 
   return (
     <Card className={`${isLocked || isFinished || !canPredict ? 'opacity-75' : ''}`}>
