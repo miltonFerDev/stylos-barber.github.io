@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Card } from '../components/ui/Card';
+import { trackSignupClick } from '../utils/analytics';
 
 export function SignupPage() {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ export function SignupPage() {
       return;
     }
 
+    trackSignupClick();
     setSubmitting(true);
     try {
       await signup(email, password);

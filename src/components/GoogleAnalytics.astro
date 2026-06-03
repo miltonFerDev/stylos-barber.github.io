@@ -1,0 +1,16 @@
+---
+export interface Props {
+  sendPageView?: boolean;
+}
+
+const { sendPageView = true } = Astro.props;
+const GA_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-VW2HRJZDZ8';
+---
+
+<script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
+<script is:inline define:vars={{ gaId: GA_ID, sendPageView }}>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', gaId, { send_page_view: sendPageView });
+</script>

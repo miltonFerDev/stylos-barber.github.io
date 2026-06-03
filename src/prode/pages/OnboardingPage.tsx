@@ -8,6 +8,7 @@ import { useProfile } from '../hooks/useProfile';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
+import { trackOnboardingCompleted } from '../utils/analytics';
 
 export function OnboardingPage() {
   const navigate = useNavigate();
@@ -69,6 +70,7 @@ export function OnboardingPage() {
       });
 
       if (profile) {
+        trackOnboardingCompleted();
         navigate('/');
       } else {
         setSubmitError('Error al crear el perfil. Intentá de nuevo.');

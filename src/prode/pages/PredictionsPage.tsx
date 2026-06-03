@@ -11,6 +11,7 @@ import type { PredictionInput } from '../domain/types/prediction';
 import type { Match, TournamentPhase, GroupLetter } from '../domain/types/match';
 import { PHASE_LABELS, getGroupLabel } from '../domain/types/match';
 import { worldCup2026 } from '../config/competition';
+import { trackPredictionSaved } from '../utils/analytics';
 
 type ViewMode = 'groups' | 'knockout';
 
@@ -116,6 +117,7 @@ export function PredictionsPage() {
       await savePredictions(inputs);
       setPendingPredictions({});
       setSaveMessage('Predicciones guardadas!');
+      trackPredictionSaved(inputs.length);
     } catch (e) {
       setSaveMessage('Error al guardar. Intentá de nuevo.');
     } finally {

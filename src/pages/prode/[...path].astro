@@ -1,6 +1,7 @@
 ---
 import { ProdeShell } from '../../prode/components/layout/ProdeShell';
 import '../../styles/global.css';
+import GoogleAnalytics from '../../components/GoogleAnalytics.astro';
 
 export function getStaticPaths() {
   return [
@@ -16,6 +17,7 @@ export function getStaticPaths() {
 
 <html lang="es" class="scroll-smooth">
   <head>
+    <GoogleAnalytics sendPageView={false} />
     <meta charset="utf-8" />
     <link rel="icon" type="image/png" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

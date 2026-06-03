@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useProfile';
 import { Card } from '../components/ui/Card';
+import { trackLoginClick } from '../utils/analytics';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ export function LoginPage() {
       return;
     }
 
+    trackLoginClick('email');
     setSubmitting(true);
     try {
       await login(email, password);
@@ -46,6 +48,7 @@ export function LoginPage() {
   const handleGoogleLogin = async () => {
     setError('');
     try {
+      trackLoginClick('google');
       await loginWithGoogle();
     } catch (err: any) {
       setError('Error al iniciar sesión con Google');

@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ProdeNav } from './ProdeNav';
 import { AuthProvider } from '../auth/AuthProvider';
 import { ProfileProvider } from '../auth/ProfileProvider';
@@ -10,6 +10,7 @@ import { AdminGuard } from '../auth/AdminGuard';
 import { ErrorBoundary } from './ErrorBoundary';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { BugReportButton } from '../feedback/BugReportButton';
+import { trackPageView } from '../../utils/analytics';
 
 // Lazy load non-critical pages to reduce initial bundle
 const FixturePage = React.lazy(() => import('../../pages/FixturePage').then(m => ({ default: m.FixturePage })));
@@ -31,11 +32,25 @@ function PageLoader() {
   );
 }
 
+function usePageViews() {
+  const location = useLocation();
+
+  React.useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
+}
+
+function PageViews() {
+  usePageViews();
+  return null;
+}
+
 export function ProdeShell() {
   return (
     <BrowserRouter basename="/prode">
       <AuthProvider>
         <ProfileProvider>
+          <PageViews />
           <div
           className="min-h-screen font-gothic"
           style={{

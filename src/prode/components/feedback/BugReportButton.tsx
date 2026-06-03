@@ -1,10 +1,13 @@
 import React from 'react';
 import { useProfile } from '../../hooks/useProfile';
+import { trackBugReportClick } from '../../utils/analytics';
 
 export function BugReportButton() {
   const { profile } = useProfile();
 
   const handleClick = () => {
+    trackBugReportClick();
+
     const subject = "Error en Prode Stylo's";
     const alias = profile?.alias ?? 'No identificado';
     const pantalla = window.location.href;
