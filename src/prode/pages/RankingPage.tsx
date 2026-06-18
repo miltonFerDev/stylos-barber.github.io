@@ -79,9 +79,15 @@ export function RankingPage() {
   const { user } = useAuth();
   const [view, setView] = React.useState<'phases' | 'general'>('phases');
   const [selectedPhaseIdx, setSelectedPhaseIdx] = React.useState(0);
-  const { phase, general, userAlias, loading, error, refreshRankings, availablePhases } = useRankings(user?.id ?? null);
+  const [activePhase, setActivePhase] = React.useState<PhaseIdentifier | null>(null);
 
-  const selectedPhase: PhaseIdentifier | null = availablePhases[selectedPhaseIdx] ?? null;
+  const { phase, general, userAlias, loading, error, refreshRankings, availablePhases, selectedPhase } = useRankings(user?.id ?? null, activePhase);
+
+  React.useEffect(() => {
+    if (availablePhases.length > 0 && selectedPhaseIdx < availablePhases.length) {
+      setActivePhase(availablePhases[selectedPhaseIdx]);
+    }
+  }, [availablePhases, selectedPhaseIdx]);
 
   const prizeInfo = worldCup2026.prizes.perPhase;
 

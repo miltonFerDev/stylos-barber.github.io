@@ -83,13 +83,16 @@ export function useRankings(userId?: string | null, phaseId?: PhaseIdentifier | 
 
       if (userAlias && userId && targetPhase) {
         const predictions = await predictionService.getPredictions(userId);
-        const phaseFinished = phaseFinishedMatches;
+        const allFinishedMatches = matches
+          .filter((m) => m.scoreA !== null && m.scoreB !== null)
+          .map((m) => ({ id: m.id, scoreA: m.scoreA as number, scoreB: m.scoreB as number }));
 
-        if (phaseFinished.length > 0 && predictions.length > 0) {
-          const userStats = calculateUserStats(predictions, phaseFinished, userAlias);
+        if (predictions.length > 0) {
+          const phaseUserStats = calculateUserStats(predictions, phaseFinishedMatches, userAlias);
+          const generalUserStats = calculateUserStats(predictions, allFinishedMatches, userAlias);
 
-          const phaseWithUser = buildRankingWithUser(userStats, phase.filter((e) => e.alias !== userAlias));
-          const generalWithUser = buildRankingWithUser(userStats, generalRankings.filter((e) => e.alias !== userAlias));
+          const phaseWithUser = buildRankingWithUser(phaseUserStats, phase.filter((e) => e.alias !== userAlias));
+          const generalWithUser = buildRankingWithUser(generalUserStats, generalRankings.filter((e) => e.alias !== userAlias));
 
           setState({
             phase: phaseWithUser,
