@@ -1,5 +1,5 @@
 import React from 'react';
-import triondaImg from '../../../../assets/TRIONDA.png';
+import triondaImg from '../../../assets/TRIONDA.png';
 
 interface BallLoaderProps {
   size?: 'sm' | 'md' | 'lg';
