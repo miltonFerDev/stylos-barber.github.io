@@ -1,5 +1,6 @@
 import React from 'react';
 import { rankingService, calculateUserStats, buildRankingWithUser } from '../services/ranking.service';
+import { getCurrentPhaseIndex } from '../domain/logic/ranking';
 import { matchService } from '../services/match.service';
 import { predictionService } from '../services/prediction.service';
 import { profilesRepository } from '../repositories/profiles.repository';
@@ -72,7 +73,8 @@ export function useRankings(userId?: string | null, phaseId?: PhaseIdentifier | 
 
       let targetPhase = phaseId ?? null;
       if (!targetPhase && availablePhases.length > 0) {
-        targetPhase = availablePhases[0];
+        const currentIdx = getCurrentPhaseIndex(matches, availablePhases);
+        targetPhase = availablePhases[currentIdx];
       }
 
       let phase: RankingEntry[] = [];

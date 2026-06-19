@@ -1,4 +1,6 @@
-import type { RankingEntry } from '../types/ranking';
+import type { RankingEntry, PhaseIdentifier } from '../types/ranking';
+import type { Match } from '../types/match';
+import { phaseIdToString } from '../types/ranking';
 
 interface RankingInput {
   alias: string;
@@ -59,4 +61,37 @@ export function buildRanking(entries: RankingInput[]): RankingEntry[] {
     exactPredictions: entry.exactPredictions,
     correctWinners: entry.correctWinners,
   }));
+}
+
+/**
+ * Devuelve el índice de la fase "en curso" dentro de availablePhases.
+ *
+ * Lógica:
+ * 1. Recorre las fases de la última a la primera.
+ * 2. La primera fase que tenga al menos un partido upcoming o live es la actual.
+ * 3. Si todas las fases están finished, devuelve la última.
+ * 4. Si no hay fases, devuelve 0.
+ */
+export function getCurrentPhaseIndex(
+  matches: Match[],
+  availablePhases: PhaseIdentifier[]
+): number {
+  if (availablePhases.length === 0) return 0;
+
+  for (let i = availablePhases.length - 1; i >= 0; i--) {
+    const phase = availablePhases[i];
+    const phaseMatches = matches.filter((m) => {
+      if (m.phase !== phase.phase) return false;
+      if (phase.phase === 'groups' && phase.matchday !== null && m.matchday !== phase.matchday) {
+        return false;
+      }
+      return true;
+    });
+
+    if (phaseMatches.some((m) => m.status === 'upcoming' || m.status === 'live')) {
+      return i;
+    }
+  }
+
+  return availablePhases.length - 1;
 }

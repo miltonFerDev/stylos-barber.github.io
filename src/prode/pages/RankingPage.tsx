@@ -79,10 +79,15 @@ function RankingTable({ entries, highlightAlias }: { entries: RankingEntry[]; hi
 export function RankingPage() {
   const { user } = useAuth();
   const [view, setView] = React.useState<'phases' | 'general'>('phases');
-  const [selectedPhaseIdx, setSelectedPhaseIdx] = React.useState(0);
   const [activePhase, setActivePhase] = React.useState<PhaseIdentifier | null>(null);
 
   const { phase, general, userAlias, loading, error, refreshRankings, availablePhases, selectedPhase } = useRankings(user?.id ?? null, activePhase);
+
+  const selectedPhaseIdx = React.useMemo(() => {
+    const target = activePhase ?? selectedPhase;
+    if (!target || availablePhases.length === 0) return -1;
+    return availablePhases.findIndex((ph) => phaseIdToString(ph) === phaseIdToString(target));
+  }, [activePhase, selectedPhase, availablePhases]);
 
   const prizeInfo = worldCup2026.prizes.perPhase;
 
@@ -136,7 +141,6 @@ export function RankingPage() {
               <button
                 key={phaseIdToString(ph)}
                 onClick={() => {
-                  setSelectedPhaseIdx(idx);
                   setActivePhase(availablePhases[idx]);
                 }}
                 className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
