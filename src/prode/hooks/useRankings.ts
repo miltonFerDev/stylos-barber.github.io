@@ -56,7 +56,10 @@ export function useRankings(userId?: string | null, phaseId?: PhaseIdentifier | 
     selectedPhase: null,
   });
 
+  const phaseKey = phaseId ? `${phaseId.phase}-${phaseId.matchday ?? 'null'}` : '';
+
   const loadRankings = React.useCallback(async () => {
+    setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const [generalRankings, profile] = await Promise.all([
         rankingService.getRankings(),
@@ -128,7 +131,7 @@ export function useRankings(userId?: string | null, phaseId?: PhaseIdentifier | 
         selectedPhase: null,
       });
     }
-  }, [userId, phaseId]);
+  }, [userId, phaseKey]);
 
   React.useEffect(() => {
     loadRankings();

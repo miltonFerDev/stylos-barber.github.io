@@ -84,12 +84,6 @@ export function RankingPage() {
 
   const { phase, general, userAlias, loading, error, refreshRankings, availablePhases, selectedPhase } = useRankings(user?.id ?? null, activePhase);
 
-  React.useEffect(() => {
-    if (availablePhases.length > 0 && selectedPhaseIdx < availablePhases.length) {
-      setActivePhase(availablePhases[selectedPhaseIdx]);
-    }
-  }, [availablePhases, selectedPhaseIdx]);
-
   const prizeInfo = worldCup2026.prizes.perPhase;
 
   return (
@@ -141,7 +135,10 @@ export function RankingPage() {
             {availablePhases.map((ph, idx) => (
               <button
                 key={phaseIdToString(ph)}
-                onClick={() => setSelectedPhaseIdx(idx)}
+                onClick={() => {
+                  setSelectedPhaseIdx(idx);
+                  setActivePhase(availablePhases[idx]);
+                }}
                 className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
                   selectedPhaseIdx === idx
                     ? 'bg-accent text-white shadow-md'
