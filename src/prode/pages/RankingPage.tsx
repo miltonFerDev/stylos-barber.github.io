@@ -1,4 +1,5 @@
 import React from 'react';
+import { BallLoader } from '../components/ui/BallLoader';
 import { Link } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
@@ -158,10 +159,7 @@ export function RankingPage() {
 
       <Card className="p-4">
         {loading ? (
-          <div className="text-center py-12">
-            <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-textMuted">Cargando rankings...</p>
-          </div>
+          <BallLoader text="Cargando rankings..." />
         ) : view === 'phases' && selectedPhase && phase.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 rounded-full bg-primaryLight/30 flex items-center justify-center mx-auto mb-4">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { BallLoader } from '../components/ui/BallLoader';
 import type { Match, TournamentPhase, GroupLetter } from '../domain/types/match';
 import { matchService } from '../services/match.service';
 import { MatchCard } from '../components/fixture/MatchCard';
@@ -74,11 +75,7 @@ export function FixturePage() {
   }, [knockoutMatches]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
-      </div>
-    );
+    return <BallLoader />;
   }
 
   if (error) {

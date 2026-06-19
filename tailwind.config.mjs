@@ -37,10 +37,20 @@ export default {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(8px)' },
 				},
+				ballBounce: {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-20px)' },
+				},
+				shadowPulse: {
+					'0%, 100%': { transform: 'scaleX(1)', opacity: '0.25' },
+					'50%': { transform: 'scaleX(0.5)', opacity: '0.08' },
+				},
 			},
 			animation: {
 				fadeUp: 'fadeUp 0.6s ease-out forwards',
 				bounceDown: 'bounceDown 2s ease-in-out infinite',
+				ballBounce: 'ballBounce 1.2s ease-in-out infinite',
+				shadowPulse: 'shadowPulse 1.2s ease-in-out infinite',
 			},
 			boxShadow: {
 				'accent': '0 10px 40px -10px rgba(62, 82, 213, 0.3)',

@@ -1,4 +1,5 @@
 import React from 'react';
+import { BallLoader } from '../components/ui/BallLoader';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
@@ -130,11 +131,7 @@ export function PredictionsPage() {
   const hasPendingChanges = Object.keys(pendingPredictions).length > 0;
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
-      </div>
-    );
+    return <BallLoader />;
   }
 
   if (error) {

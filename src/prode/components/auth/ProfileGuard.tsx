@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
-import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { BallLoader } from '../ui/BallLoader';
 
 export function ProfileGuard({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
@@ -11,7 +11,7 @@ export function ProfileGuard({ children }: { children: React.ReactNode }) {
   if (authLoading || profileLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <LoadingSpinner />
+        <BallLoader />
       </div>
     );
   }

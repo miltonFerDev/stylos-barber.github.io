@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
-import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { BallLoader } from '../ui/BallLoader';
 
 interface AdminGuardProps {
   children: React.ReactNode;
@@ -15,7 +15,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
   if (authLoading || profileLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner />
+        <BallLoader />
       </div>
     );
   }

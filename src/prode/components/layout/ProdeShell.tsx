@@ -8,7 +8,7 @@ import { ProfileGuard } from '../auth/ProfileGuard';
 import { DashboardPage } from '../../pages/DashboardPage';
 import { AdminGuard } from '../auth/AdminGuard';
 import { ErrorBoundary } from './ErrorBoundary';
-import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { BallLoader } from '../ui/BallLoader';
 import { BugReportButton } from '../feedback/BugReportButton';
 import { trackPageView } from '../../utils/analytics';
 
@@ -27,7 +27,7 @@ const NotFoundPage = React.lazy(() => import('../../pages/NotFoundPage').then(m 
 function PageLoader() {
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <LoadingSpinner size="lg" />
+      <BallLoader size="lg" />
     </div>
   );
 }

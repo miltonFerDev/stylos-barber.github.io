@@ -1,4 +1,5 @@
 import React from 'react';
+import { BallLoader } from '../ui/BallLoader';
 import { Card } from '../ui/Card';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -55,7 +56,7 @@ export function RankingPreviewCard({ type }: RankingPreviewCardProps) {
 
       {loading ? (
         <div className="flex items-center justify-center py-6">
-          <div className="w-6 h-6 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
+          <BallLoader size="sm" />
         </div>
       ) : top3.length === 0 ? (
         <div className="text-center py-6">
