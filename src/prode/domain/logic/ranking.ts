@@ -67,9 +67,9 @@ export function buildRanking(entries: RankingInput[]): RankingEntry[] {
  * Devuelve el índice de la fase "en curso" dentro de availablePhases.
  *
  * Lógica:
- * 1. Recorre las fases de la última a la primera.
- * 2. La primera fase que tenga al menos un partido upcoming o live es la actual.
- * 3. Si todas las fases están finished, devuelve la última.
+ * 1. Recorre las fases de la primera a la última.
+ * 2. La primera fase que tenga al menos un partido no finalizado es la actual.
+ * 3. Si todas las fases están finished, devuelve la primera.
  * 4. Si no hay fases, devuelve 0.
  */
 export function getCurrentPhaseIndex(
@@ -78,7 +78,7 @@ export function getCurrentPhaseIndex(
 ): number {
   if (availablePhases.length === 0) return 0;
 
-  for (let i = availablePhases.length - 1; i >= 0; i--) {
+  for (let i = 0; i < availablePhases.length; i++) {
     const phase = availablePhases[i];
     const phaseMatches = matches.filter((m) => {
       if (m.phase !== phase.phase) return false;
@@ -88,10 +88,10 @@ export function getCurrentPhaseIndex(
       return true;
     });
 
-    if (phaseMatches.some((m) => m.status === 'upcoming' || m.status === 'live')) {
+    if (phaseMatches.some((m) => m.status !== 'finished')) {
       return i;
     }
   }
 
-  return availablePhases.length - 1;
+  return 0;
 }

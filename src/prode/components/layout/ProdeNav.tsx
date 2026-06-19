@@ -39,7 +39,7 @@ export function ProdeNav() {
           <div className="flex items-center justify-between h-16">
             {/* Left: Logo */}
             <Link to="/" className="flex items-center gap-2.5 text-textLight font-bold text-lg tracking-tight shrink-0">
-              <img src={copa.src} alt="Copa" className="w-7 h-7 rounded object-contain" />
+              <img src={copa.src} alt="Copa" className="w-[34px] h-[34px] rounded object-contain" />
               <span>{worldCup2026.shortName}</span>
             </Link>
 
@@ -79,7 +79,7 @@ export function ProdeNav() {
       <div className="md:hidden">
         <div className="flex items-center justify-between h-14 px-4">
           <Link to="/" className="flex items-center gap-2 text-textLight font-bold text-lg tracking-tight">
-            <img src={copa.src} alt="Copa" className="w-7 h-7 rounded object-contain" />
+            <img src={copa.src} alt="Copa" className="w-[34px] h-[34px] rounded object-contain" />
             <span>{worldCup2026.shortName}</span>
           </Link>
 
