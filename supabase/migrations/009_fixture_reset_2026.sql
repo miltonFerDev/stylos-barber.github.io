@@ -106,22 +106,22 @@ INSERT INTO public.matches (date, home_team, away_team, "group", competition, ma
 
 -- 16avos de Final
 INSERT INTO public.matches (date, home_team, away_team, "group", competition, match_number, phase, matchday_order, home_team_placeholder, away_team_placeholder, status) VALUES
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 73, 'round_of_32', NULL, '2° Grupo A', '2° Grupo B', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 74, 'round_of_32', NULL, '1° Grupo C', '2° Grupo F', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 75, 'round_of_32', NULL, '1° Grupo E', '3° A/B/C/D/F', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 76, 'round_of_32', NULL, '1° Grupo F', '2° Grupo C', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 77, 'round_of_32', NULL, '2° Grupo E', '2° Grupo I', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 78, 'round_of_32', NULL, '1° Grupo I', '3° C/D/F/G/H', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 79, 'round_of_32', NULL, '1° Grupo A', '3° C/E/F/H/I', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 80, 'round_of_32', NULL, '1° Grupo L', '3° E/H/I/J/K', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 81, 'round_of_32', NULL, '1° Grupo D', '3° B/E/F/I/J', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 82, 'round_of_32', NULL, '1° Grupo G', '3° A/E/H/I/J', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 83, 'round_of_32', NULL, '2° Grupo K', '2° Grupo L', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 84, 'round_of_32', NULL, '1° Grupo H', '2° Grupo J', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 85, 'round_of_32', NULL, '1° Grupo B', '3° E/F/G/I/J', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 86, 'round_of_32', NULL, '1° Grupo J', '2° Grupo H', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 87, 'round_of_32', NULL, '1° Grupo K', '3° D/E/I/J/L', 'upcoming'),
-(NULL, NULL, NULL, NULL, 'world-cup-2026', 88, 'round_of_32', NULL, '2° Grupo D', '2° Grupo G', 'upcoming');
+('2026-06-28T19:00:00Z', 'South Africa', 'Canada', NULL, 'world-cup-2026', 73, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-06-29T17:00:00Z', 'Brazil', 'Japan', NULL, 'world-cup-2026', 74, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-06-29T20:30:00Z', 'Germany', 'Paraguay', NULL, 'world-cup-2026', 75, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-06-30T01:00:00Z', 'Netherlands', 'Morocco', NULL, 'world-cup-2026', 76, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-06-30T17:00:00Z', 'Ivory Coast', 'Norway', NULL, 'world-cup-2026', 77, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-06-30T21:00:00Z', 'France', 'Sweden', NULL, 'world-cup-2026', 78, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-07-01T01:00:00Z', 'Mexico', 'Ecuador', NULL, 'world-cup-2026', 79, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-07-01T16:00:00Z', 'England', 'DR Congo', NULL, 'world-cup-2026', 80, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-07-02T00:00:00Z', 'United States', 'Bosnia and Herzegovina', NULL, 'world-cup-2026', 81, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-07-01T20:00:00Z', 'Belgium', 'Senegal', NULL, 'world-cup-2026', 82, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-07-02T23:00:00Z', 'Portugal', 'Croatia', NULL, 'world-cup-2026', 83, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-07-02T19:00:00Z', 'Spain', 'Austria', NULL, 'world-cup-2026', 84, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-07-03T03:00:00Z', 'Switzerland', 'Algeria', NULL, 'world-cup-2026', 85, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-07-03T22:00:00Z', 'Argentina', 'Cape Verde', NULL, 'world-cup-2026', 86, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-07-04T01:30:00Z', 'Colombia', 'Ghana', NULL, 'world-cup-2026', 87, 'round_of_32', NULL, NULL, NULL, 'upcoming'),
+('2026-07-03T18:00:00Z', 'Australia', 'Egypt', NULL, 'world-cup-2026', 88, 'round_of_32', NULL, NULL, NULL, 'upcoming');
 
 -- Octavos de Final
 INSERT INTO public.matches (date, home_team, away_team, "group", competition, match_number, phase, matchday_order, home_team_placeholder, away_team_placeholder, status) VALUES
