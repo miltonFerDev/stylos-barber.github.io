@@ -33,7 +33,7 @@ export function RulesPreviewCard() {
       <div className="mt-4 p-3 bg-white/5 rounded-xl border border-white/10">
         <p className="text-textMuted text-xs font-semibold mb-0.5">{worldCup2026.prizes.note ?? 'Premios activos'}</p>
         <p className="text-textLight text-base font-bold">Phase: {worldCup2026.prizes.perPhase ?? '50% descuento'}</p>
-        <p className="text-textLight text-base font-bold">Final: {worldCup2026.prizes.final ?? '$100.000'}</p>
+        <p className="text-textLight text-base font-bold">Final: {worldCup2026.prizes.final ?? '$50.000'}</p>
       </div>
     </Card>
   );

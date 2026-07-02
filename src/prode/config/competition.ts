@@ -11,7 +11,7 @@ export const worldCup2026 = {
   },
   prizes: {
     perPhase: '50% de descuento en cualquier servicio',
-    final: 'Gift card por $100.000',
+    final: 'Gift card por $50.000',
     note: null,
   },
 } as const;

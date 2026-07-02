@@ -1,16 +1,17 @@
 import React from 'react';
 import { Card } from '../ui/Card';
+import { FRESHA_BOOKING_URL } from '../../../config/site';
 
 export function FreshaCTA() {
   return (
     <a
-      href="https://www.fresha.com/es/a/stylos-barber-ituzaingo-general-miguel-soler-398-jtabqara/booking?allOffer=true&menu=true"
+      href={FRESHA_BOOKING_URL}
       target="_blank"
       rel="noopener noreferrer"
       className="block"
     >
       <Card borderTopColor="cupCyan" className="bg-gradient-to-r from-cupCyan/12 to-transparent border-cupCyan/30 hover:border-cupCyan/50 hover:shadow-[0_0_24px_rgba(25,200,232,0.12)] transition-all group">
-        <a href="https://www.fresha.com/es/a/stylos-barber-ituzaingo-general-miguel-soler-398-jtabqara/booking?allOffer=true&menu=true" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
+        <a href={FRESHA_BOOKING_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-cupCyan/15 flex items-center justify-center text-cupCyan shrink-0 group-hover:scale-105 transition-transform">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

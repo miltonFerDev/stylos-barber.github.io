@@ -1,0 +1,83 @@
+---
+---
+
+<section id="faq" class="w-full py-12 lg:py-20 text-center font-gothic" aria-label="Preguntas frecuentes">
+  <div class="max-w-3xl mx-auto px-4">
+    <div class="mb-10 lg:mb-16 opacity-0" data-animate>
+      <span class="text-accent text-xs font-semibold tracking-widest uppercase mb-3 block">Preguntas frecuentes</span>
+      <h2 class="font-bold text-3xl sm:text-4xl lg:text-5xl xl:text-6xl uppercase text-textLight">Preguntas frecuentes</h2>
+      <div class="w-12 h-1 bg-accent rounded-full mx-auto mt-4"></div>
+    </div>
+
+    <div class="space-y-4 text-left opacity-0" data-animate style="animation-delay: 100ms">
+      <details class="faq-item group bg-surface border border-accentMuted rounded-2xl overflow-hidden transition-all duration-300 hover:border-accent/50">
+        <summary class="cursor-pointer p-6 lg:p-8 flex items-center justify-between select-none">
+          <span class="text-base lg:text-lg font-semibold text-textLight pr-4">¿Se puede reservar online?</span>
+          <svg class="w-5 h-5 text-textMuted shrink-0 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <div class="px-6 lg:px-8 pb-6 lg:pb-8">
+          <p class="text-base lg:text-lg text-textMuted leading-relaxed">Sí. Podés reservar desde la web y elegir día, horario y barbero según disponibilidad.</p>
+        </div>
+      </details>
+
+      <details class="faq-item group bg-surface border border-accentMuted rounded-2xl overflow-hidden transition-all duration-300 hover:border-accent/50">
+        <summary class="cursor-pointer p-6 lg:p-8 flex items-center justify-between select-none">
+          <span class="text-base lg:text-lg font-semibold text-textLight pr-4">¿Atienden sin turno?</span>
+          <svg class="w-5 h-5 text-textMuted shrink-0 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <div class="px-6 lg:px-8 pb-6 lg:pb-8">
+          <p class="text-base lg:text-lg text-textMuted leading-relaxed">Sí, atendemos sin turno también. Aunque recomendamos agendar para acceder a los beneficios y para mayor practicidad.</p>
+        </div>
+      </details>
+
+      <details class="faq-item group bg-surface border border-accentMuted rounded-2xl overflow-hidden transition-all duration-300 hover:border-accent/50">
+        <summary class="cursor-pointer p-6 lg:p-8 flex items-center justify-between select-none">
+          <span class="text-base lg:text-lg font-semibold text-textLight pr-4">¿Qué incluye Mañanas Invernales?</span>
+          <svg class="w-5 h-5 text-textMuted shrink-0 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <div class="px-6 lg:px-8 pb-6 lg:pb-8">
+          <p class="text-base lg:text-lg text-textMuted leading-relaxed">Durante la campaña, los turnos de corte iniciados hasta las 11 incluyen café de especialidad.</p>
+        </div>
+      </details>
+
+      <details class="faq-item group bg-surface border border-accentMuted rounded-2xl overflow-hidden transition-all duration-300 hover:border-accent/50">
+        <summary class="cursor-pointer p-6 lg:p-8 flex items-center justify-between select-none">
+          <span class="text-base lg:text-lg font-semibold text-textLight pr-4">¿Cómo uso el beneficio GEI?</span>
+          <svg class="w-5 h-5 text-textMuted shrink-0 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <div class="px-6 lg:px-8 pb-6 lg:pb-8">
+          <p class="text-base lg:text-lg text-textMuted leading-relaxed">Presentando carnet de socio los martes y miércoles.</p>
+        </div>
+      </details>
+
+      <details class="faq-item group bg-surface border border-accentMuted rounded-2xl overflow-hidden transition-all duration-300 hover:border-accent/50">
+        <summary class="cursor-pointer p-6 lg:p-8 flex items-center justify-between select-none">
+          <span class="text-base lg:text-lg font-semibold text-textLight pr-4">¿Hacen cortes clásicos?</span>
+          <svg class="w-5 h-5 text-textMuted shrink-0 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </summary>
+        <div class="px-6 lg:px-8 pb-6 lg:pb-8">
+          <p class="text-base lg:text-lg text-textMuted leading-relaxed">Sí. Trabajamos cortes clásicos, estilos actuales, degradados, mantenimiento de corte y servicios de barba.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <script is:inline>
+    document.getElementById('faq')?.addEventListener('toggle', function (e) {
+      const details = e.target.closest && e.target.closest('details');
+      if (details && details.open && typeof gtag === 'function') {
+        gtag('event', 'click:faq_open', { event_category: 'engagement' });
+      }
+    }, true);
+  </script>
+</section>

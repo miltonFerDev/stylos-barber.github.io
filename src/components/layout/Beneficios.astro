@@ -1,0 +1,46 @@
+---
+import Button from "../Button.astro";
+import { FRESHA_BOOKING_URL } from "../../config/site";
+---
+
+<section id="beneficios" class="w-full py-16 lg:py-28 text-center font-gothic" aria-label="Beneficios activos">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="mb-10 lg:mb-16 opacity-0" data-animate>
+      <span class="text-accent text-xs font-semibold tracking-widest uppercase mb-3 block">Beneficios</span>
+      <h2 class="font-bold text-3xl sm:text-4xl lg:text-5xl xl:text-6xl uppercase text-textLight">Beneficios activos</h2>
+      <div class="w-12 h-1 bg-accent rounded-full mx-auto mt-4"></div>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6 lg:gap-8 mb-12 lg:mb-16 opacity-0" data-animate style="animation-delay: 100ms">
+      <div class="group relative bg-surface border border-accentMuted rounded-2xl p-8 lg:p-10 transition-all duration-300 hover:border-accent/50 hover:shadow-cardHover hover:-translate-y-1 text-left flex flex-col">
+        <h3 class="text-xl lg:text-2xl font-semibold text-textLight pb-2 lg:pb-3">Mañanas Invernales</h3>
+        <p class="text-base lg:text-lg text-textMuted leading-relaxed mb-2">Hasta las 11, tu corte viene con café de especialidad incluido.</p>
+        <p class="text-sm lg:text-base text-textMuted leading-relaxed mb-6">Vení temprano, cortate tranquilo y seguí con el día resuelto.</p>
+        <div class="mt-auto">
+          <Button
+            buttonText="Reservar temprano"
+            buttonLink={FRESHA_BOOKING_URL}
+            eventName="click:beneficio_mananas"
+            classString="inline-block text-center text-base sm:text-lg py-3 px-6 w-full max-w-[360px] bg-accent hover:bg-accentHover hover:shadow-accent transition-all duration-300 rounded-xl text-white font-bold uppercase"
+          />
+        </div>
+        <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+      </div>
+
+      <div class="group relative bg-surface border border-accentMuted rounded-2xl p-8 lg:p-10 transition-all duration-300 hover:border-accent/50 hover:shadow-cardHover hover:-translate-y-1 text-left flex flex-col">
+        <h3 class="text-xl lg:text-2xl font-semibold text-textLight pb-2 lg:pb-3">Socios GEI</h3>
+        <p class="text-base lg:text-lg text-textMuted leading-relaxed mb-2">20% OFF en servicios de barbería.</p>
+        <p class="text-sm lg:text-base text-textMuted leading-relaxed mb-6">Disponible martes y miércoles presentando carnet de socio.</p>
+        <div class="mt-auto">
+          <Button
+            buttonText="Reservar turno"
+            buttonLink={FRESHA_BOOKING_URL}
+            eventName="click:beneficio_gei"
+            classString="inline-block text-center text-base sm:text-lg py-3 px-6 w-full max-w-[360px] bg-accent hover:bg-accentHover hover:shadow-accent transition-all duration-300 rounded-xl text-white font-bold uppercase"
+          />
+        </div>
+        <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+      </div>
+    </div>
+  </div>
+</section>

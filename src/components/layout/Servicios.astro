@@ -1,33 +1,38 @@
 ---
 import Button from "../Button.astro"
 import CardServicios from "../CardServicios.astro"
+import { FRESHA_BOOKING_URL } from "../../config/site"
 ---
 <section id="servicios" class="w-full py-16 lg:py-28 text-center font-gothic" aria-label="Servicios ofrecidos">
     <div class="max-w-6xl mx-auto px-4">
-        <h2 class="font-bold text-3xl sm:text-4xl lg:text-5xl xl:text-6xl uppercase mb-10 lg:mb-16 text-textLight">Servicios</h2>
+        <div class="mb-10 lg:mb-16 opacity-0" data-animate>
+            <span class="text-accent text-xs font-semibold tracking-widest uppercase mb-3 block">Servicios</span>
+            <h2 class="font-bold text-3xl sm:text-4xl lg:text-5xl xl:text-6xl uppercase text-textLight">Servicios</h2>
+            <div class="w-12 h-1 bg-accent rounded-full mx-auto mt-4"></div>
+        </div>
 
-        <div class="grid lg:grid-cols-3 gap-6 lg:gap-8 mb-12 lg:mb-16">
+        <div class="grid lg:grid-cols-3 gap-6 lg:gap-8 mb-12 lg:mb-16 opacity-0" data-animate style="animation-delay: 100ms">
             <CardServicios
                 serviceTitle="Corte"
-                servicePrice="$16.000"
-                serviceText= "Corte del estilo que desees, terminación con cera o gel."
+                servicePrice="$17.000"
+                serviceText= "Corte masculino adaptado a tu estilo, tipo de pelo y mantenimiento habitual."
             />
             <CardServicios
                 serviceTitle="Barba"
                 servicePrice="$12.000"
-                serviceText= "Servicio de barba completo, incluye servicio de toalla caliente."
+                serviceText= "Perfilado y arreglo de barba según largo, forma del rostro y estilo buscado."
             />
             <CardServicios
                 serviceTitle="Combo"
-                servicePrice="$20.000"
-                serviceText= "Corte y barba completos, incluye servicio de toalla caliente"
+                servicePrice="$22.000"
+                serviceText= "Servicio integral para resolver corte y barba en una misma visita."
             />
         </div>
 
         <Button
             buttonText="Reservá online"
-            buttonLink="https://www.fresha.com/es/a/stylos-barber-ituzaingo-general-miguel-soler-398-jtabqara/booking?allOffer=true&menu=true"
-            classString="inline-block text-center text-base sm:text-lg lg:text-xl py-4 px-8 w-full max-w-[360px] bg-accent hover:bg-accentHover hover:shadow-accent transition-all duration-300 rounded-xl text-white font-bold uppercase"
+            buttonLink={FRESHA_BOOKING_URL}
+            classString="inline-block text-center text-base sm:text-lg lg:text-xl py-4 px-8 w-full max-w-[360px] border-2 border-accent text-accent hover:bg-accent hover:text-white transition-all duration-300 rounded-xl font-bold uppercase"
         />
     </div>
   </section>

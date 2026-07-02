@@ -1,5 +1,6 @@
 ---
 import Button from "../Button.astro"
+import { FRESHA_BOOKING_URL } from "../../config/site"
 import '@fontsource/gothic-a1';
 ---
 
@@ -32,7 +33,7 @@ import '@fontsource/gothic-a1';
           <Button
             classString="w-full rounded-xl bg-accent px-6 py-5 text-center text-lg sm:text-xl lg:text-2xl font-bold uppercase text-white transition-all duration-300 hover:bg-accentHover hover:shadow-accent"
             buttonText="Reservá online"
-            buttonLink="https://www.fresha.com/es/a/stylos-barber-ituzaingo-general-miguel-soler-398-jtabqara/booking?allOffer=true&menu=true"
+            buttonLink={FRESHA_BOOKING_URL}
           />
         </div>
         <div class="opacity-0 animate-fadeUp text-sm sm:text-base text-textMuted" style="animation-delay: 300ms">

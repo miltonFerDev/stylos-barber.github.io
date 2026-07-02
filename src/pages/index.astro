@@ -1,9 +1,12 @@
 ---
 import Navigation from "../components/layout/Navigation.astro";
 import Hero from "../components/layout/Hero.astro";
-import DondeEstamos from "../components/layout/DondeEstamos.astro";
+import Beneficios from "../components/layout/Beneficios.astro";
 import Servicios from "../components/layout/Servicios.astro";
+import ElegirCuandoVenir from "../components/layout/ElegirCuandoVenir.astro";
 import Testimonios from "../components/layout/Testimonios.astro";
+import FAQ from "../components/layout/FAQ.astro";
+import DondeEstamos from "../components/layout/DondeEstamos.astro";
 import Footer from "../components/layout/Footer.astro";
 import GoogleAnalytics from "../components/GoogleAnalytics.astro";
 ---
@@ -86,11 +89,10 @@ import GoogleAnalytics from "../components/GoogleAnalytics.astro";
 			document.addEventListener('DOMContentLoaded', () => {
 				const observer = new IntersectionObserver((entries) => {
 					entries.forEach(entry => {
-						if (entry.isIntersecting) {
-							entry.target.classList.add('animate-fadeUp');
-							entry.target.style.opacity = '1';
-							observer.unobserve(entry.target);
-						}
+				if (entry.isIntersecting) {
+					entry.target.classList.add('animate-fadeUp');
+					observer.unobserve(entry.target);
+				}
 					});
 				}, { threshold: 0.1 });
 
@@ -104,11 +106,20 @@ import GoogleAnalytics from "../components/GoogleAnalytics.astro";
 
 	<Hero />
 	<main class="text-textFooter flex flex-col items-center">
-		<div class="w-full bg-[#2A2A3D]">
+		<div class="w-full bg-primary">
+			<Beneficios />
+		</div>
+		<div class="w-full bg-surface">
 			<Servicios />
 		</div>
 		<div class="w-full bg-primary">
+			<ElegirCuandoVenir />
+		</div>
+		<div class="w-full bg-[#2A2A3D]">
 			<Testimonios />
+		</div>
+		<div class="w-full bg-primary">
+			<FAQ />
 		</div>
 		<div class="w-full bg-primary">
 			<DondeEstamos />
