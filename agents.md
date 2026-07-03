@@ -6,6 +6,58 @@ Sitio web de Stylo's Barber (barbería). El sitio actual es el punto de partida 
 
 ---
 
+## Landing principal
+
+### Estructura actual (`src/pages/index.astro`)
+
+| Orden | Sección | Componente | Fondo |
+|-------|---------|------------|-------|
+| 1 | Hero | `Hero.astro` | bg-primary |
+| 2 | Beneficios | `Beneficios.astro` | bg-primary |
+| 3 | Servicios | `Servicios.astro` + `CardServicios.astro` | bg-surface |
+| 4 | Testimonios | `Testimonios.astro` + `CardTestimonios.astro` | bg-[#2A2A3D] |
+| 5 | Ubicación / Contacto | `DondeEstamos.astro` | bg-primary |
+| 6 | FAQ | `FAQ.astro` | bg-primary |
+| Footer | — | `Footer.astro` | bg-[#14141C] |
+
+### Secciones eliminadas / no implementar
+- ~~`ElegirCuandoVenir` ("Elegí cuándo venir")~~ — Eliminada por redundancia con Beneficios.
+- ~~"Escuela Stylo's"~~ — No implementar. Rechazado por producto.
+- ~~"El sistema Stylo's"~~ — No implementar. Rechazado por producto.
+
+### Cambios recientes en landing
+**Commit:** `349c111` — `landing: ajusta espaciado, elimina ElegirCuandoVenir, reordena secciones y agrega FAQ rulos`
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/layout/Navigation.astro` | `py-[5px]` → `py-3` (más respirado) |
+| `src/components/layout/Beneficios.astro` | Botones normalizados a `py-4 px-8`, párrafos hermanos con `mb-3` |
+| `src/components/layout/Hero.astro` | Botón normalizado a `py-4 px-8` |
+| `src/components/layout/Footer.astro` | `text-m` → `text-sm` (clase inválida de Tailwind) |
+| `src/components/Button.astro` | Defaults limpios, sin `absolute bottom-10` ni colores hardcodeados |
+| `src/components/layout/FAQ.astro` | Nuevo item "¿Trabajan cortes en pelo con rulos?", `pt-2` en bodies |
+| `src/pages/index.astro` | Quitado ElegirCuandoVenir, reordenado DondeEstamos antes de FAQ |
+
+### FAQ
+- 6 items en acordeón (agregado item de rulos en jul 2026).
+- Tracking: event delegation sobre `#faq` dispara `click:faq_open` en gtag al abrir cualquier `<details>`.
+
+### Componentes de la landing
+| Componente | Ubicación | Rol |
+|------------|-----------|-----|
+| `Navigation.astro` | Header fijo | Nav principal + menú mobile |
+| `Hero.astro` | Inicio | CTA principal reserva Fresha |
+| `Beneficios.astro` | Post-hero | Mañanas Invernales + Socios GEI |
+| `CardServicios.astro` | En Servicios | Cards de Corte / Barba / Combo |
+| `CardTestimonios.astro` | En Testimonios | Cards de testimonios con avatar |
+| `DondeEstamos.astro` | Pre-footer | Misión + ubicación + mapa |
+| `Footer.astro` | Footer | Redes + copyright + Malvinas |
+
+### Deploy
+Automático vía GitHub Actions (`.github/workflows/deploy.yml`) al hacer push a `main`. Deploya a GitHub Pages.
+
+---
+
 ## Feature implementada: Prode Mundial 2026
 
 ### Ubicación
