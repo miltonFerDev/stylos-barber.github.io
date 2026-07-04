@@ -154,14 +154,14 @@ export const WORLD_CUP_2026_FIXTURE: FixtureMatch[] = [
 
   // --- Octavos de Final (4-7 julio 2026) ---
 
-  { matchNumber: 89, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M73', awayTeamPlaceholder: 'Ganador M75', dateUTC: null, status: 'upcoming' },
-  { matchNumber: 90, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M74', awayTeamPlaceholder: 'Ganador M77', dateUTC: null, status: 'upcoming' },
-  { matchNumber: 91, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M76', awayTeamPlaceholder: 'Ganador M78', dateUTC: null, status: 'upcoming' },
-  { matchNumber: 92, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M79', awayTeamPlaceholder: 'Ganador M80', dateUTC: null, status: 'upcoming' },
-  { matchNumber: 93, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M83', awayTeamPlaceholder: 'Ganador M84', dateUTC: null, status: 'upcoming' },
-  { matchNumber: 94, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M81', awayTeamPlaceholder: 'Ganador M82', dateUTC: null, status: 'upcoming' },
-  { matchNumber: 95, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M86', awayTeamPlaceholder: 'Ganador M88', dateUTC: null, status: 'upcoming' },
-  { matchNumber: 96, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M85', awayTeamPlaceholder: 'Ganador M87', dateUTC: null, status: 'upcoming' },
+  { matchNumber: 89, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: 'Canada', awayTeam: 'Morocco', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-04T17:00:00Z', status: 'upcoming' },
+  { matchNumber: 90, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: 'Paraguay', awayTeam: 'France', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-04T21:00:00Z', status: 'upcoming' },
+  { matchNumber: 91, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: 'Brazil', awayTeam: 'Norway', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-05T20:00:00Z', status: 'upcoming' },
+  { matchNumber: 92, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: 'Mexico', awayTeam: 'England', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-06T00:00:00Z', status: 'upcoming' },
+  { matchNumber: 93, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: 'Portugal', awayTeam: 'Spain', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-06T19:00:00Z', status: 'upcoming' },
+  { matchNumber: 94, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: 'United States', awayTeam: 'Belgium', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-07T00:00:00Z', status: 'upcoming' },
+  { matchNumber: 95, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: 'Argentina', awayTeam: 'Egypt', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-07T16:00:00Z', status: 'upcoming' },
+  { matchNumber: 96, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: 'Switzerland', awayTeam: 'Colombia', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-07T20:00:00Z', status: 'upcoming' },
 
   // --- Cuartos de Final (9-11 julio 2026) ---
 
