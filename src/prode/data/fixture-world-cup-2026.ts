@@ -163,12 +163,12 @@ export const WORLD_CUP_2026_FIXTURE: FixtureMatch[] = [
   { matchNumber: 95, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: 'Argentina', awayTeam: 'Egypt', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-07T16:00:00Z', status: 'upcoming' },
   { matchNumber: 96, competition: 'world-cup-2026', phase: 'round_of_16', group: null, matchdayOrder: null, homeTeam: 'Switzerland', awayTeam: 'Colombia', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-07T20:00:00Z', status: 'upcoming' },
 
-  // --- Cuartos de Final (9-11 julio 2026) ---
+  // --- Cuartos de Final (9-12 julio 2026) ---
 
-  { matchNumber: 97, competition: 'world-cup-2026', phase: 'quarter_finals', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M89', awayTeamPlaceholder: 'Ganador M90', dateUTC: null, status: 'upcoming' },
-  { matchNumber: 98, competition: 'world-cup-2026', phase: 'quarter_finals', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M93', awayTeamPlaceholder: 'Ganador M94', dateUTC: null, status: 'upcoming' },
-  { matchNumber: 99, competition: 'world-cup-2026', phase: 'quarter_finals', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M91', awayTeamPlaceholder: 'Ganador M92', dateUTC: null, status: 'upcoming' },
-  { matchNumber: 100, competition: 'world-cup-2026', phase: 'quarter_finals', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M95', awayTeamPlaceholder: 'Ganador M96', dateUTC: null, status: 'upcoming' },
+  { matchNumber: 97, competition: 'world-cup-2026', phase: 'quarter_finals', group: null, matchdayOrder: null, homeTeam: 'France', awayTeam: 'Morocco', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-09T20:00:00Z', status: 'upcoming' },
+  { matchNumber: 98, competition: 'world-cup-2026', phase: 'quarter_finals', group: null, matchdayOrder: null, homeTeam: 'Spain', awayTeam: 'Belgium', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-10T19:00:00Z', status: 'upcoming' },
+  { matchNumber: 99, competition: 'world-cup-2026', phase: 'quarter_finals', group: null, matchdayOrder: null, homeTeam: 'Norway', awayTeam: 'England', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-11T21:00:00Z', status: 'upcoming' },
+  { matchNumber: 100, competition: 'world-cup-2026', phase: 'quarter_finals', group: null, matchdayOrder: null, homeTeam: 'Argentina', awayTeam: 'Switzerland', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-12T01:00:00Z', status: 'upcoming' },
 
   // --- Semifinales (14-15 julio 2026) ---
 
