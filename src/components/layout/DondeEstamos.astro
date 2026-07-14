@@ -2,7 +2,7 @@
 import '@fontsource/gothic-a1';
 ---
 
-<div id="donde-estamos" class="w-full py-16 lg:py-28 font-gothic" aria-label="Ubicación y horarios">
+<div id="donde-estamos" class="w-full py-16 lg:py-28 font-gothic" aria-label="Ubicación y horarios" data-analytics-section-view>
     <div class="max-w-3xl mx-auto px-4 mb-16 lg:mb-24 text-center">
         <div class="relative" id="mision-container">
             <svg class="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-6 text-accent opacity-50" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -40,14 +40,20 @@ import '@fontsource/gothic-a1';
                 </div>
             </div>
 
-            <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3281.9307212144267!2d-58.67314667304684!3d-34.656452499999986!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcbf609e9d19df%3A0x71a8e1d95bd46dfc!2sStylos%20Barber!5e0!3m2!1ses-419!2sar!4v1726241389255!5m2!1ses-419!2sar"
-                class="w-full h-[300px] sm:h-[350px] lg:h-[400px] rounded-2xl shadow-mapa border border-accentMuted"
-                allowfullscreen=""
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-                title="Ubicación de Stylo's Barber en el mapa"
-            ></iframe>
+            <div class="flex flex-col">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3281.9307212144267!2d-58.67314667304684!3d-34.656452499999986!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcbf609e9d19df%3A0x71a8e1d95bd46dfc!2sStylos%20Barber!5e0!3m2!1ses-419!2sar!4v1726241389255!5m2!1ses-419!2sar"
+                    class="w-full h-[300px] sm:h-[350px] lg:h-[400px] rounded-2xl shadow-mapa border border-accentMuted"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Ubicación de Stylo's Barber en el mapa"
+                ></iframe>
+                <a href="https://www.google.com/maps/search/?api=1&query=Stylos+Barber+Soler+398+Ituzaing%C3%B3" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 mt-4 text-accent hover:text-accentHover transition-colors" data-analytics-event="click_ubicacion">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    Cómo llegar
+                </a>
+            </div>
         </div>
     </div>
 </div>

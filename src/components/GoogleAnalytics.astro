@@ -14,3 +14,82 @@ const GA_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || 'G-VW2HRJZDZ8';
   gtag('js', new Date());
   gtag('config', gaId, { send_page_view: sendPageView });
 </script>
+
+<script is:inline>
+;(function () {
+  'use strict';
+
+  function fire(name, params) {
+    if (typeof gtag !== 'function') return;
+    try { gtag('event', name, params || undefined); } catch (e) { /* ad-blocker */ }
+  }
+
+  function fireDual(newName, legacyName, params) {
+    var p = params || {};
+    fire(newName, Object.keys(p).length ? p : undefined);
+    fire(legacyName, Object.keys(p).length ? p : { event_category: 'conversion' });
+  }
+
+  /* Click delegation */
+  document.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest && e.target.closest('[data-analytics-event]');
+    if (!el) return;
+
+    var eventName = el.getAttribute('data-analytics-event');
+    var legacyEvent = el.getAttribute('data-analytics-legacy');
+    var params = {};
+
+    var location = el.getAttribute('data-analytics-location');
+    if (location) params.location = location;
+
+    if (legacyEvent) {
+      fireDual(eventName, legacyEvent, params);
+    } else {
+      fire(eventName, params);
+    }
+  }, true);
+
+  /* Section visibility (once per session) */
+  (function () {
+    if (typeof IntersectionObserver === 'undefined') return;
+
+    var STORAGE_KEY = 'analytics_section_seen';
+
+    function getSeen() {
+      try { return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '[]'); } catch (e) { return []; }
+    }
+
+    function markSeen(id) {
+      var seen = getSeen();
+      if (seen.indexOf(id) === -1) {
+        seen.push(id);
+        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(seen)); } catch (e) { /* quota */ }
+      }
+    }
+
+    function initObserver() {
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            var id = entry.target.id;
+            if (getSeen().indexOf(id) === -1) {
+              markSeen(id);
+              fire('section_view', { section_id: id });
+            }
+          }
+        });
+      }, { threshold: 0.5 });
+
+      document.querySelectorAll('[data-analytics-section-view]').forEach(function (el) {
+        observer.observe(el);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initObserver);
+    } else {
+      initObserver();
+    }
+  })();
+})();
+</script>

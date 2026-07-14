@@ -3,7 +3,7 @@ import Button from "../Button.astro";
 import { FRESHA_BOOKING_URL } from "../../config/site";
 ---
 
-<section id="beneficios" class="w-full py-16 lg:py-28 text-center font-gothic" aria-label="Beneficios activos">
+<section id="beneficios" class="w-full py-16 lg:py-28 text-center font-gothic" aria-label="Beneficios activos" data-analytics-section-view>
   <div class="max-w-6xl mx-auto px-4">
     <div class="mb-10 lg:mb-16 opacity-0" data-animate>
       <span class="text-accent text-xs font-semibold tracking-widest uppercase mb-3 block">Beneficios</span>
@@ -20,7 +20,8 @@ import { FRESHA_BOOKING_URL } from "../../config/site";
           <Button
             buttonText="Reservar temprano"
             buttonLink={FRESHA_BOOKING_URL}
-            eventName="click:beneficio_mananas"
+            eventName="click_beneficio_mananas"
+            legacyEventName="click:beneficio_mananas"
             classString="inline-block text-center text-base sm:text-lg py-4 px-8 w-full max-w-[360px] bg-accent hover:bg-accentHover hover:shadow-accent transition-all duration-300 rounded-xl text-white font-bold uppercase"
           />
         </div>
@@ -35,7 +36,8 @@ import { FRESHA_BOOKING_URL } from "../../config/site";
           <Button
             buttonText="Reservar turno"
             buttonLink={FRESHA_BOOKING_URL}
-            eventName="click:beneficio_gei"
+            eventName="click_beneficio_gei"
+            legacyEventName="click:beneficio_gei"
             classString="inline-block text-center text-base sm:text-lg py-4 px-8 w-full max-w-[360px] bg-accent hover:bg-accentHover hover:shadow-accent transition-all duration-300 rounded-xl text-white font-bold uppercase"
           />
         </div>

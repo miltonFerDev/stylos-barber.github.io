@@ -3,7 +3,7 @@ import Button from "../Button.astro"
 import CardServicios from "../CardServicios.astro"
 import { FRESHA_BOOKING_URL } from "../../config/site"
 ---
-<section id="servicios" class="w-full py-16 lg:py-28 text-center font-gothic" aria-label="Servicios ofrecidos">
+<section id="servicios" class="w-full py-16 lg:py-28 text-center font-gothic" aria-label="Servicios ofrecidos" data-analytics-section-view>
     <div class="max-w-6xl mx-auto px-4">
         <div class="mb-10 lg:mb-16 opacity-0" data-animate>
             <span class="text-accent text-xs font-semibold tracking-widest uppercase mb-3 block">Servicios</span>
@@ -33,6 +33,7 @@ import { FRESHA_BOOKING_URL } from "../../config/site"
             buttonText="Reservá online"
             buttonLink={FRESHA_BOOKING_URL}
             classString="inline-block text-center text-base sm:text-lg lg:text-xl py-4 px-8 w-full max-w-[360px] border-2 border-accent text-accent hover:bg-accent hover:text-white transition-all duration-300 rounded-xl font-bold uppercase"
+            location="servicios"
         />
     </div>
   </section>

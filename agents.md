@@ -453,3 +453,59 @@ Verificar todos estos puntos antes de lanzar a producción:
 16. `npm run typecheck` pasa sin errores
 17. `npm test` pasa (20 tests en scoring, locking, ranking)
 18. Build completo sin errores
+
+---
+
+## Sistema de tracking GA4
+
+### Arquitectura
+
+El tracking usa **un solo listener global delegado** en `GoogleAnalytics.astro` + la **util compartida** `src/lib/analytics.ts` con constantes tipadas.
+
+| Capa | Archivo | Rol |
+|---|---|---|
+| Constantes | `src/lib/analytics.ts` | `ANALYTICS_EVENTS` y `ANALYTICS_LEGACY_EVENTS` (event names como const) |
+| Carga GA4 | `src/components/GoogleAnalytics.astro` | Loader inline de gtag + listener global (click delegation) + IntersectionObserver (section_view) |
+| Atributos declarativos | Componentes Astro | `data-analytics-event`, `data-analytics-legacy`, `data-analytics-location` en elementos HTML |
+| Componente Button | `src/components/Button.astro` | Renderiza `data-analytics-*` attributes; **no tiene `onclick` inline** |
+| Prode SPA | `src/prode/utils/analytics.ts` | Su propio `trackEvent()` helper (no refactorizado); `FreshaCTA.tsx` usa `trackEvent` |
+| FAQ | `FAQ.astro` | Script inline con `toggle` event delegation + dual-fire + `question_id` |
+
+### Cómo funciona el listener global
+
+En `GoogleAnalytics.astro` hay un script inline que se ejecuta al cargar la página:
+
+1. **Click delegation**: escucha `click` (capture phase) en `document`. Si el target (o un ancestro) tiene `[data-analytics-event]`, dispara el evento GA4. Si además tiene `[data-analytics-legacy]`, dispara también el evento legacy (colon-style).
+2. **Section visibility**: `IntersectionObserver` sobre `[data-analytics-section-view]`. Dispara `section_view` con `section_id` una sola vez por sesión (almacenado en `sessionStorage`). Threshold 50%.
+
+### Diccionario de eventos
+
+| Evento nuevo | Origen | Params | Legacy (dual-fire) |
+|---|---|---|---|
+| `click_reservar_turno` | Hero, Servicios (Button) | `location: 'hero'\|'servicios'` | `click:turno` |
+| `click_beneficio_mananas` | Beneficios card Mañanas | — | `click:beneficio_mananas` |
+| `click_beneficio_gei` | Beneficios card GEI | — | `click:beneficio_gei` |
+| `click_prode_reservar` | Prode FreshaCTA | `location: 'prode_dashboard'` | — |
+| `click_whatsapp` | Footer (wa.me) | — | — |
+| `click_instagram` | Footer Instagram | — | — |
+| `click_email` | Footer mailto | — | — |
+| `click_ubicacion` | DondeEstamos "Cómo llegar" | — | — |
+| `faq_open` | FAQ accordion | `question_id` (texto de pregunta truncado a 60 chars) | `click:faq_open` |
+| `section_view` | IntersectionObserver | `section_id` (id del elemento HTML) | — |
+
+### Reglas
+
+- Todos los eventos nuevos usan **minúsculas + guión bajo**. Sin `:` en nombres nuevos.
+- Los eventos legacy (`click:turno`, `click:faq_open`, `click:beneficio_*`) se mantienen disparando en paralelo (dual-fire) para no romper históricos de GA4.
+- El listener global usa `try/catch` + guard `typeof gtag === 'function'` + SSR guard (`typeof window !== 'undefined'` en helpers, aunque el script es browser-only). No falla si ad-blocker bloquea gtag.
+- El `sessionStorage` para section_view se resetea al cerrar pestaña.
+- No se envía PII (email, teléfono, nombre, alias, user_id) a GA4.
+- Para agregar un nuevo punto de tracking en la landing: solo agregar `data-analytics-event="nombre_evento"` al elemento HTML. Si necesita legacy, agregar `data-analytics-legacy="evento:viejo"`. Si necesita params contextuales, usar `data-analytics-location="..."`.
+
+### Verificación
+
+1. Abrir la web con GA Debug (extension Chrome) habilitada.
+2. Click en cada CTA: deben aparecer dos eventos en GA4 — el nuevo (`click_reservar_turno`) y el legacy (`click:turno`).
+3. Abrir FAQ: deben aparecer `faq_open` + `click:faq_open` con `question_id`.
+4. Scrollear: `section_view` debe aparecer una sola vez por sección (threshold 50%).
+5. `npm run typecheck` y `npm run lint` sin errores.

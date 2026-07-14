@@ -1,15 +1,22 @@
 ---
+import { ANALYTICS_EVENTS, ANALYTICS_LEGACY_EVENTS } from '../lib/analytics';
+
 interface Props {
   buttonText: string;
   buttonLink: string;
   classString: string;
   eventName?: string;
+  legacyEventName?: string;
+  location?: string;
 }
 
-const { buttonText = "Quiero un turno", buttonLink = "#", classString = "inline-block text-center py-3 px-6 rounded-xl transition-colors duration-200", eventName = "click:turno" } = Astro.props;
+const { buttonText = "Quiero un turno", buttonLink = "#", classString = "inline-block text-center py-3 px-6 rounded-xl transition-colors duration-200", eventName = ANALYTICS_EVENTS.CLICK_RESERVAR_TURNO, legacyEventName = ANALYTICS_LEGACY_EVENTS.CLICK_TURNO, location } = Astro.props;
 ---
 
-<a onclick={`if(typeof gtag==='function')gtag('event','${eventName}',{event_category:'conversion'});`}
-href={buttonLink} target="_blank" class={classString}>
+<a href={buttonLink} target="_blank" class={classString}
+  data-analytics-event={eventName}
+  data-analytics-legacy={legacyEventName}
+  {...(location ? { 'data-analytics-location': location } : {})}
+>
 {buttonText}
 </a>

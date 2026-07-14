@@ -1,7 +1,7 @@
 ---
 ---
 
-<section id="faq" class="w-full py-16 lg:py-28 text-center font-gothic" aria-label="Preguntas frecuentes">
+<section id="faq" class="w-full py-16 lg:py-28 text-center font-gothic" aria-label="Preguntas frecuentes" data-analytics-section-view>
   <div class="max-w-3xl mx-auto px-4">
     <div class="mb-10 lg:mb-16 opacity-0" data-animate>
       <span class="text-accent text-xs font-semibold tracking-widest uppercase mb-3 block">Preguntas frecuentes</span>
@@ -87,9 +87,13 @@
 
   <script is:inline>
     document.getElementById('faq')?.addEventListener('toggle', function (e) {
-      const details = e.target.closest && e.target.closest('details');
-      if (details && details.open && typeof gtag === 'function') {
-        gtag('event', 'click:faq_open', { event_category: 'engagement' });
+      var details = e.target.closest && e.target.closest('details');
+      if (details && details.open) {
+        var question = (details.querySelector('summary span')?.textContent || '').trim().slice(0, 60);
+        if (typeof gtag === 'function') {
+          gtag('event', 'faq_open', { question_id: question });
+          gtag('event', 'click:faq_open', { event_category: 'engagement' });
+        }
       }
     }, true);
   </script>

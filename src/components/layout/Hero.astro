@@ -4,7 +4,7 @@ import { FRESHA_BOOKING_URL } from "../../config/site"
 import '@fontsource/gothic-a1';
 ---
 
-<section id="inicio" class="relative min-h-dvh overflow-hidden bg-primary font-gothic" aria-label="Bienvenida">
+<section id="inicio" class="relative min-h-dvh overflow-hidden bg-primary font-gothic" aria-label="Bienvenida" data-analytics-section-view>
   <!-- <video
     autoplay
     loop
@@ -34,6 +34,7 @@ import '@fontsource/gothic-a1';
             classString="w-full rounded-xl bg-accent px-8 py-4 text-center text-lg sm:text-xl lg:text-2xl font-bold uppercase text-white transition-all duration-300 hover:bg-accentHover hover:shadow-accent"
             buttonText="Reservá online"
             buttonLink={FRESHA_BOOKING_URL}
+            location="hero"
           />
         </div>
         <div class="opacity-0 animate-fadeUp text-sm sm:text-base text-textMuted" style="animation-delay: 300ms">
