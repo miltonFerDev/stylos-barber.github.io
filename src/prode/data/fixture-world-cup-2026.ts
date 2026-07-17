@@ -172,16 +172,16 @@ export const WORLD_CUP_2026_FIXTURE: FixtureMatch[] = [
 
   // --- Semifinales (14-15 julio 2026) ---
 
-  { matchNumber: 101, competition: 'world-cup-2026', phase: 'semi_finals', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M97', awayTeamPlaceholder: 'Ganador M98', dateUTC: null, status: 'upcoming' },
-  { matchNumber: 102, competition: 'world-cup-2026', phase: 'semi_finals', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M99', awayTeamPlaceholder: 'Ganador M100', dateUTC: null, status: 'upcoming' },
+  { matchNumber: 101, competition: 'world-cup-2026', phase: 'semi_finals', group: null, matchdayOrder: null, homeTeam: 'France', awayTeam: 'Spain', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-14T19:00:00Z', status: 'upcoming' },
+  { matchNumber: 102, competition: 'world-cup-2026', phase: 'semi_finals', group: null, matchdayOrder: null, homeTeam: 'England', awayTeam: 'Argentina', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-15T19:00:00Z', status: 'upcoming' },
 
   // --- 3er Puesto (18 julio 2026) ---
 
-  { matchNumber: 103, competition: 'world-cup-2026', phase: 'third_place', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Perdedor M101', awayTeamPlaceholder: 'Perdedor M102', dateUTC: null, status: 'upcoming' },
+  { matchNumber: 103, competition: 'world-cup-2026', phase: 'third_place', group: null, matchdayOrder: null, homeTeam: 'France', awayTeam: 'England', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-18T21:00:00Z', status: 'upcoming' },
 
   // --- Final (19 julio 2026) ---
 
-  { matchNumber: 104, competition: 'world-cup-2026', phase: 'final', group: null, matchdayOrder: null, homeTeam: null, awayTeam: null, homeTeamPlaceholder: 'Ganador M101', awayTeamPlaceholder: 'Ganador M102', dateUTC: null, status: 'upcoming' },
+  { matchNumber: 104, competition: 'world-cup-2026', phase: 'final', group: null, matchdayOrder: null, homeTeam: 'Spain', awayTeam: 'Argentina', homeTeamPlaceholder: null, awayTeamPlaceholder: null, dateUTC: '2026-07-19T19:00:00Z', status: 'upcoming' },
 ];
 
 // =====================================================
