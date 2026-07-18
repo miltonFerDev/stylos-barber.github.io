@@ -1,6 +1,9 @@
 import React from 'react';
 import { rankingService, calculateUserStats, buildRankingWithUser } from '../services/ranking.service';
-import { getCurrentPhaseIndex } from '../domain/logic/ranking';
+import {
+  getCurrentGroupIndex,
+  getAvailablePredictionGroups,
+} from '../domain/logic/ranking';
 import { matchService } from '../services/match.service';
 import { predictionService } from '../services/prediction.service';
 import { profilesRepository } from '../repositories/profiles.repository';
@@ -15,6 +18,8 @@ interface RankingsState {
   error: string | null;
   availablePhases: PhaseIdentifier[];
   selectedPhase: PhaseIdentifier | null;
+  availableGroups: string[];
+  selectedGroup: string | null;
 }
 
 function getMatchdaysForPhase(matches: Match[], phase: TournamentPhase): number[] {
@@ -27,7 +32,7 @@ function getMatchdaysForPhase(matches: Match[], phase: TournamentPhase): number[
   return [];
 }
 
-export function getAvailablePhases(matches: Match[]): PhaseIdentifier[] {
+function getAvailablePhases(matches: Match[]): PhaseIdentifier[] {
   const result: PhaseIdentifier[] = [];
   const phases = Array.from(new Set(matches.map((m) => m.phase))) as TournamentPhase[];
 
@@ -46,7 +51,11 @@ export function getAvailablePhases(matches: Match[]): PhaseIdentifier[] {
   return result;
 }
 
-export function useRankings(userId?: string | null, phaseId?: PhaseIdentifier | null) {
+export { getAvailablePredictionGroups };
+
+export { getAvailablePhases };
+
+export function useRankings(userId?: string | null, groupId?: string | null) {
   const [state, setState] = React.useState<RankingsState>({
     phase: [],
     general: [],
@@ -55,9 +64,11 @@ export function useRankings(userId?: string | null, phaseId?: PhaseIdentifier | 
     error: null,
     availablePhases: [],
     selectedPhase: null,
+    availableGroups: [],
+    selectedGroup: null,
   });
 
-  const phaseKey = phaseId ? `${phaseId.phase}-${phaseId.matchday ?? 'null'}` : '';
+  const groupKey = groupId ?? '';
 
   const loadRankings = React.useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -69,24 +80,24 @@ export function useRankings(userId?: string | null, phaseId?: PhaseIdentifier | 
 
       const userAlias = profile?.alias ?? null;
       const matches = await matchService.getMatches();
-      const availablePhases = getAvailablePhases(matches);
+      const availableGroups = getAvailablePredictionGroups(matches);
 
-      let targetPhase = phaseId ?? null;
-      if (!targetPhase && availablePhases.length > 0) {
-        const currentIdx = getCurrentPhaseIndex(matches, availablePhases);
-        targetPhase = availablePhases[currentIdx];
+      let targetGroup = groupId ?? null;
+      if (!targetGroup && availableGroups.length > 0) {
+        const currentIdx = getCurrentGroupIndex(matches, availableGroups);
+        targetGroup = availableGroups[currentIdx];
       }
 
       let phase: RankingEntry[] = [];
       let phaseFinishedMatches: { id: string; scoreA: number; scoreB: number }[] = [];
 
-      if (targetPhase) {
-        const result = await rankingService.getPhaseRankings(targetPhase);
+      if (targetGroup) {
+        const result = await rankingService.getGroupRankings(targetGroup);
         phase = result.entries;
         phaseFinishedMatches = result.finishedMatches;
       }
 
-      if (userAlias && userId && targetPhase) {
+      if (userAlias && userId && targetGroup) {
         const predictions = await predictionService.getPredictions(userId);
         const allFinishedMatches = matches
           .filter((m) => m.scoreA !== null && m.scoreB !== null)
@@ -105,8 +116,10 @@ export function useRankings(userId?: string | null, phaseId?: PhaseIdentifier | 
             userAlias,
             loading: false,
             error: null,
-            availablePhases,
-            selectedPhase: targetPhase,
+            availablePhases: getAvailablePhases(matches),
+            selectedPhase: null,
+            availableGroups,
+            selectedGroup: targetGroup,
           });
           return;
         }
@@ -118,8 +131,10 @@ export function useRankings(userId?: string | null, phaseId?: PhaseIdentifier | 
         userAlias,
         loading: false,
         error: null,
-        availablePhases,
-        selectedPhase: targetPhase,
+        availablePhases: getAvailablePhases(matches),
+        selectedPhase: null,
+        availableGroups,
+        selectedGroup: targetGroup,
       });
     } catch (error) {
       console.error('[useRankings] loadRankings error:', error);
@@ -131,9 +146,11 @@ export function useRankings(userId?: string | null, phaseId?: PhaseIdentifier | 
         error: 'Error al cargar rankings',
         availablePhases: [],
         selectedPhase: null,
+        availableGroups: [],
+        selectedGroup: null,
       });
     }
-  }, [userId, phaseKey]);
+  }, [userId, groupKey]);
 
   React.useEffect(() => {
     loadRankings();

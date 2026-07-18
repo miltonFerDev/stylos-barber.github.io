@@ -1,11 +1,12 @@
 import React from 'react';
 import { BallLoader } from '../components/ui/BallLoader';
-import type { Match, TournamentPhase, GroupLetter } from '../domain/types/match';
+import type { Match, GroupLetter } from '../domain/types/match';
 import { matchService } from '../services/match.service';
 import { MatchCard } from '../components/fixture/MatchCard';
 import { GroupAccordion } from '../components/ui/GroupAccordion';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
-import { PHASE_LABELS, GROUPS, getGroupLabel } from '../domain/types/match';
+import { GROUPS, getGroupLabel } from '../domain/types/match';
+import { getPredictionGroupId, getPredictionGroupLabelForId } from '../domain/logic/ranking';
 import { worldCup2026 } from '../config/competition';
 
 export function FixturePage() {
@@ -56,19 +57,20 @@ export function FixturePage() {
     return map;
   }, [groupMatches]);
 
-  const knockoutPhasesWithData = React.useMemo(() => {
-    const phaseOrder: TournamentPhase[] = ['round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'third_place', 'final'];
-    const map = new Map<TournamentPhase, Match[]>();
+  const knockoutGroupsWithData = React.useMemo(() => {
+    const order = ['round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'final_stage'];
+    const map = new Map<string, Match[]>();
     knockoutMatches.forEach((m) => {
-      const existing = map.get(m.phase) ?? [];
+      const groupId = getPredictionGroupId(m);
+      const existing = map.get(groupId) ?? [];
       existing.push(m);
-      map.set(m.phase, existing);
+      map.set(groupId, existing);
     });
-    const result: { phase: TournamentPhase; matches: Match[] }[] = [];
-    phaseOrder.forEach((p) => {
-      const pm = map.get(p);
-      if (pm) {
-        result.push({ phase: p, matches: pm.sort((a, b) => a.matchNumber - b.matchNumber) });
+    const result: { groupId: string; matches: Match[] }[] = [];
+    order.forEach((g) => {
+      const gm = map.get(g);
+      if (gm) {
+        result.push({ groupId: g, matches: gm.sort((a, b) => a.matchNumber - b.matchNumber) });
       }
     });
     return result;
@@ -113,16 +115,16 @@ export function FixturePage() {
       </div>
 
       {/* Knockout stage */}
-      {knockoutPhasesWithData.length > 0 && (
+      {knockoutGroupsWithData.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-textLight font-bold text-lg">Eliminatorias</h2>
-          {knockoutPhasesWithData.map(({ phase, matches: phaseMatches }) => (
+          {knockoutGroupsWithData.map(({ groupId, matches: groupMatches }) => (
             <GroupAccordion
-              key={phase}
-              title={PHASE_LABELS[phase]}
-              subtitle={`${phaseMatches.length} partido${phaseMatches.length !== 1 ? 's' : ''}`}
+              key={groupId}
+              title={getPredictionGroupLabelForId(groupId)}
+              subtitle={`${groupMatches.length} partido${groupMatches.length !== 1 ? 's' : ''}`}
             >
-              {phaseMatches.map((match) => (
+              {groupMatches.map((match) => (
                 <MatchCard key={match.id} match={match} />
               ))}
             </GroupAccordion>

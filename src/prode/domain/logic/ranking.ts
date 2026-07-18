@@ -1,6 +1,6 @@
 import type { RankingEntry, PhaseIdentifier } from '../types/ranking';
 import type { Match } from '../types/match';
-import { phaseIdToString } from '../types/ranking';
+import { getPredictionGroupLabel } from '../types/ranking';
 
 interface RankingInput {
   alias: string;
@@ -72,6 +72,68 @@ export function buildRanking(entries: RankingInput[]): RankingEntry[] {
  * 3. Si todas las fases están finished, devuelve la primera.
  * 4. Si no hay fases, devuelve 0.
  */
+export function getPredictionGroupId(match: Match): string {
+  if (match.predictionGroup !== null && match.predictionGroup !== undefined) {
+    return match.predictionGroup;
+  }
+  if (match.matchday !== null) {
+    return `${match.phase}-${match.matchday}`;
+  }
+  return match.phase;
+}
+
+export function getPredictionGroupLabelForId(groupId: string): string {
+  return getPredictionGroupLabel(groupId);
+}
+
+export const PREDICTION_GROUP_ORDER: string[] = [
+  'groups-1',
+  'groups-2',
+  'groups-3',
+  'round_of_32',
+  'round_of_16',
+  'quarter_finals',
+  'semi_finals',
+  'final_stage',
+];
+
+export function getAvailablePredictionGroups(matches: Match[]): string[] {
+  const set = new Set<string>();
+  for (const m of matches) {
+    set.add(getPredictionGroupId(m));
+  }
+
+  const result: string[] = [];
+  for (const g of PREDICTION_GROUP_ORDER) {
+    if (set.has(g)) {
+      result.push(g);
+      set.delete(g);
+    }
+  }
+  for (const remaining of Array.from(set).sort()) {
+    result.push(remaining);
+  }
+  return result;
+}
+
+export function getCurrentGroupIndex(
+  matches: Match[],
+  availableGroups: string[]
+): number {
+  if (availableGroups.length === 0) return 0;
+
+  for (let i = 0; i < availableGroups.length; i++) {
+    const groupId = availableGroups[i];
+    const groupMatches = matches.filter((m) => getPredictionGroupId(m) === groupId);
+
+    if (groupMatches.some((m) => m.status !== 'finished')) {
+      return i;
+    }
+  }
+
+  return 0;
+}
+
 export function getCurrentPhaseIndex(
   matches: Match[],
   availablePhases: PhaseIdentifier[]

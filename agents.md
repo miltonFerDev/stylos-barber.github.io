@@ -1,3 +1,48 @@
+# Stylo's Barber — flujo de trabajo con OpenCode
+
+Stack: Astro · React · TypeScript · Supabase · Vercel.
+
+## Fases (siempre en este orden)
+
+1. **Audit** — inspección de solo lectura. Agente `audit`. Produce diagnóstico.
+2. **Plan** — plan accionable sin editar. Agente `plan`. Produce plan.
+3. **Spec** — convierte plan en spec en `docs/specs/<feature>.md`. Agente `spec`.
+4. **Apply** — implementa un spec aprobado en código. Agente `apply`. Requiere referencia a spec previo.
+5. **Verify** — corre lint / typecheck / build. Agente `verify`. Reporta PASS/FAIL.
+
+`Archive` será fase futura (no en v1).
+
+## Regla de oro
+
+Ningún agente edita código fuente sin una auditoría / plan previo y, para Apply, sin un spec referenciado en `docs/specs/`. Si se solicita una edición sin estos antecedentes, el agente debe detenerse y pedir la fase anterior.
+
+## Permisos
+
+- `audit`, `plan`, `verify`: `edit: deny`. No tocan archivos.
+- `spec`: `edit: ask` pero solo dentro de `docs/specs/` (restringido por el prompt del agente).
+- `apply`: `edit: ask` en `src/` y config. Gate por spec referenciado.
+- `bash`: comandos de lectura / verificación (`npm run lint`, `tsc --noEmit`, `astro check`, `astro build`, `git status`, `git diff`, `git log`) permitidos; resto `ask`.
+
+## Convenciones (resumen — ver skills)
+
+- Componentes React: carpetas bajo `src/components/`; rutas Astro en `src/pages/`.
+- Supabase: client / queries en `src/lib/supabase/`; respetar RLS.
+- Deploy: Vercel — verificar variables de entorno antes de cambios.
+- Comentarios: solo si el usuario los pide.
+
+## Modelos
+
+- `audit`, `plan`, `spec`: `opencode-go/glm-5.1`
+- `apply`: `opencode-go/kimi-k2.6`
+- `verify`: `opencode-go/deepseek-v4-pro`
+- `small_model`: `opencode-go/minimax-m2.7`
+
+## Reinicio
+
+opencode no recarga config en caliente. Tras editar `opencode.jsonc`, `agents.md`, agentes, skills o comandos: salir y reiniciar opencode.
+
+---
+
 # Agentes - Stylo's Barber
 
 ## Contexto del proyecto
@@ -380,6 +425,18 @@ rankings:
   anon -> SELECT
   authenticated -> SELECT
 ```
+
+### `prediction_group` (columna opcional, migration 015)
+
+- Columna `prediction_group text NULL` en `matches`. Es **ortogonal a `phase`**: no renombra ni sustituye fases, solo agrupa partido para UI/predicción/ranking.
+- `NULL` = agrupación por `phase` (+ `matchday_order` para fase de grupos), comportamiento legacy.
+- Para `competition='world-cup-2026'`, los partidos `match_number=103` (3er puesto, `phase='third_place'`) y `match_number=104` (Final, `phase='final'`) comparten `prediction_group='final_stage'` → la UI los colapsa como una sola "fecha" con label "3er puesto y Final".
+- **Invariante decounts NO cambia**: 104 partidos, `third_place`=1, `final`=1, `prediction_group='final_stage'`=2, NULL=102.
+- **`sync-matches` intocable**: no inserta partidos para `world-cup-2026` y solo actualiza `home_score`, `away_score`, `status`. Nunca pisa `prediction_group`, teams, dates, phase, match_number, group.
+- **No es PII**. No habilita acceso a datos privados. La seguridad sigue viviendo en RLS existente (sin policies nuevas sobre esta columna). Es writable solo a través de `matches_admin_update` (is_admin).
+- **Bloqueo por partido**: la columna no cambia el locking. Cada partido sigue bloqueándose por su propio kickoff (`m.date > now()`). Pueden coexistir 3er bloqueado y Final editable dentro del mismo grupo.
+- **Premio de la fecha unificada**: `prizes.perPhase` (50% descuento). La gift card de `prizes.final` sigue asociada exclusivamente al ranking general final. Ver `docs/specs/prode-final-stage-group.md`.
+- **Specs / referencias**: feature completa en `docs/specs/prode-final-stage-group.md` (spec) y migración `supabase/migrations/015_final_stage_group.sql`.
 
 ---
 

@@ -37,6 +37,7 @@ export interface Match {
   scoreB: number | null;
   status: MatchStatus;
   competition?: string;
+  predictionGroup?: string | null;
 }
 
 export function getMatchLabel(match: Match): string {

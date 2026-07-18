@@ -16,6 +16,7 @@ interface MatchRow {
   away_team_placeholder: string | null;
   competition: string | null;
   status: string | null;
+  prediction_group: string | null;
 }
 
 function rowToMatch(row: MatchRow): Match {
@@ -42,6 +43,7 @@ function rowToMatch(row: MatchRow): Match {
     scoreB: row.away_score,
     status,
     competition: row.competition ?? undefined,
+    predictionGroup: row.prediction_group ?? null,
   };
 }
 
@@ -103,6 +105,7 @@ export const matchesRepository = {
     teamAPlaceholder?: string | null;
     teamBPlaceholder?: string | null;
     competition?: string;
+    predictionGroup?: string | null;
   }): Promise<Match | null> {
     const { data, error } = await supabase
       .from('matches')
@@ -119,6 +122,7 @@ export const matchesRepository = {
         home_team_placeholder: matchData.teamAPlaceholder ?? null,
         away_team_placeholder: matchData.teamBPlaceholder ?? null,
         competition: matchData.competition ?? 'world-cup-2026',
+        prediction_group: matchData.predictionGroup ?? null,
         status: 'upcoming',
       })
       .select()

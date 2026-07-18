@@ -9,8 +9,9 @@ import { matchService } from '../services/match.service';
 import { useAuth } from '../hooks/useAuth';
 import { usePredictions } from '../hooks/usePredictions';
 import type { PredictionInput } from '../domain/types/prediction';
-import type { Match, TournamentPhase, GroupLetter } from '../domain/types/match';
-import { PHASE_LABELS, getGroupLabel } from '../domain/types/match';
+import type { Match, GroupLetter } from '../domain/types/match';
+import { getGroupLabel } from '../domain/types/match';
+import { getPredictionGroupId, getPredictionGroupLabelForId } from '../domain/logic/ranking';
 import { worldCup2026 } from '../config/competition';
 import { trackPredictionSaved } from '../utils/analytics';
 
@@ -30,7 +31,7 @@ export function PredictionsPage() {
 
   const [viewMode, setViewMode] = React.useState<ViewMode>('groups');
   const [selectedMatchday, setSelectedMatchday] = React.useState<number>(1);
-  const [selectedPhase, setSelectedPhase] = React.useState<TournamentPhase>('round_of_32');
+  const [selectedGroup, setSelectedGroup] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     loadMatches();
@@ -75,20 +76,25 @@ export function PredictionsPage() {
     [groupMatches, selectedMatchday]
   );
 
-  const knockoutPhases = React.useMemo(
-    () => Array.from(new Set(knockoutMatches.map((m) => m.phase))).sort(
-      (a, b) => {
-        const order: TournamentPhase[] = ['round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'third_place', 'final'];
-        return order.indexOf(a) - order.indexOf(b);
-      }
-    ) as TournamentPhase[],
-    [knockoutMatches]
-  );
+  const knockoutGroups = React.useMemo(() => {
+    const order = ['round_of_32', 'round_of_16', 'quarter_finals', 'semi_finals', 'final_stage'];
+    const set = new Set<string>();
+    knockoutMatches.forEach((m) => set.add(getPredictionGroupId(m)));
+    return order.filter((g) => set.has(g));
+  }, [knockoutMatches]);
 
-  const matchesForPhase = React.useMemo(
-    () => knockoutMatches.filter((m) => m.phase === selectedPhase),
-    [knockoutMatches, selectedPhase]
-  );
+  React.useEffect(() => {
+    if (knockoutGroups.length > 0 && (selectedGroup === null || !knockoutGroups.includes(selectedGroup))) {
+      setSelectedGroup(knockoutGroups[0]);
+    }
+  }, [knockoutGroups, selectedGroup]);
+
+  const matchesForGroup = React.useMemo(() => {
+    if (!selectedGroup) return [];
+    return knockoutMatches
+      .filter((m) => getPredictionGroupId(m) === selectedGroup)
+      .sort((a, b) => a.matchNumber - b.matchNumber);
+  }, [knockoutMatches, selectedGroup]);
 
   const handlePredictionChange = (matchId: string, scoreA: number, scoreB: number) => {
     setPendingPredictions((prev) => ({
@@ -232,27 +238,27 @@ export function PredictionsPage() {
 
       {viewMode === 'knockout' && (
         <>
-          {/* Phase tabs */}
+          {/* Group tabs */}
           <div className="relative">
             <div className="flex gap-2 overflow-x-auto pb-3 -mx-4 px-4 scroll-smooth scrollbar-hide">
-              {knockoutPhases.map((phase) => (
+              {knockoutGroups.map((group) => (
                 <button
-                  key={phase}
-                  onClick={() => setSelectedPhase(phase)}
+                  key={group}
+                  onClick={() => setSelectedGroup(group)}
                   className={`px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
-                    selectedPhase === phase
+                    selectedGroup === group
                       ? 'bg-accent text-white shadow-md'
                       : 'bg-primaryLight/50 text-textMuted hover:text-textLight border border-accentMuted/20'
                   }`}
                 >
-                  {PHASE_LABELS[phase]}
+                  {getPredictionGroupLabelForId(group)}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="space-y-3">
-            {matchesForPhase.map((match) => (
+            {matchesForGroup.map((match) => (
               <MatchRow
                 key={match.id}
                 match={match}
@@ -264,7 +270,7 @@ export function PredictionsPage() {
         </>
       )}
 
-      {viewMode === 'knockout' && matchesForPhase.length === 0 && (
+      {viewMode === 'knockout' && matchesForGroup.length === 0 && (
         <div className="text-center py-8">
           <p className="text-textMuted">No hay partidos para esta fase</p>
         </div>

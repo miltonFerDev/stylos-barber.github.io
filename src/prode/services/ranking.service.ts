@@ -58,6 +58,91 @@ export function buildRankingWithUser(
   return buildRanking(entries);
 }
 
+interface RawMatchRow {
+  id: string;
+  home_score: number | null;
+  away_score: number | null;
+}
+
+async function computeRankingsFromMatches(
+  phaseMatches: RawMatchRow[]
+): Promise<PhaseRankingResult> {
+  const finishedMatches = phaseMatches.filter(
+    (m) => m.home_score !== null && m.away_score !== null
+  ) as { id: string; home_score: number; away_score: number }[];
+
+  if (finishedMatches.length === 0) {
+    return { entries: [], finishedMatches: [] };
+  }
+
+  const matchIds = finishedMatches.map((m) => m.id);
+
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id, public_alias');
+
+  if (profilesError || !profiles) {
+    return { entries: [], finishedMatches: [] };
+  }
+
+  const { data: allPredictions, error: predsError } = await supabase
+    .from('predictions')
+    .select('user_id, match_id, home_score, away_score')
+    .in('match_id', matchIds);
+
+  if (predsError) {
+    return { entries: [], finishedMatches: [] };
+  }
+
+  const predsByUser = new Map<string, { match_id: string; home_score: number; away_score: number }[]>();
+  for (const pred of allPredictions ?? []) {
+    const arr = predsByUser.get(pred.user_id) ?? [];
+    arr.push(pred);
+    predsByUser.set(pred.user_id, arr);
+  }
+
+  const entries: UserStats[] = [];
+
+  for (const profile of profiles) {
+    const userPreds = predsByUser.get(profile.id) ?? [];
+    if (userPreds.length === 0) continue;
+
+    let points = 0;
+    let exactPredictions = 0;
+    let correctWinners = 0;
+
+    for (const pred of userPreds) {
+      const match = finishedMatches.find((m) => m.id === pred.match_id);
+      if (!match) continue;
+
+      const pts = calculatePoints(
+        { predictedScoreA: pred.home_score, predictedScoreB: pred.away_score },
+        { scoreA: match.home_score, scoreB: match.away_score }
+      );
+
+      points += pts;
+      if (pts === 3) exactPredictions++;
+      else if (pts === 1) correctWinners++;
+    }
+
+    entries.push({
+      alias: profile.public_alias,
+      points,
+      exactPredictions,
+      correctWinners,
+    });
+  }
+
+  return {
+    entries: buildRanking(entries),
+    finishedMatches: finishedMatches.map((m) => ({
+      id: m.id,
+      scoreA: m.home_score,
+      scoreB: m.away_score,
+    })),
+  };
+}
+
 export const rankingService = {
   async getRankings(): Promise<RankingEntry[]> {
     const { data, error } = await supabase
@@ -172,5 +257,33 @@ export const rankingService = {
         scoreB: m.away_score,
       })),
     };
+  },
+
+  async getGroupRankings(groupId: string): Promise<PhaseRankingResult> {
+    const { data: groupMatches, error: matchError } = await supabase
+      .from('matches')
+      .select('id, home_score, away_score')
+      .eq('competition', 'world-cup-2026')
+      .eq('prediction_group', groupId);
+
+    if (matchError) {
+      console.error('[rankingService] getGroupRankings error:', matchError.message);
+    }
+
+    if (!matchError && groupMatches && groupMatches.length > 0) {
+      return computeRankingsFromMatches(groupMatches as RawMatchRow[]);
+    }
+
+    const { data: fallbackMatches, error: fallbackError } = await supabase
+      .from('matches')
+      .select('id, home_score, away_score')
+      .eq('competition', 'world-cup-2026')
+      .in('phase', ['third_place', 'final']);
+
+    if (fallbackError || !fallbackMatches || fallbackMatches.length === 0) {
+      return { entries: [], finishedMatches: [] };
+    }
+
+    return computeRankingsFromMatches(fallbackMatches as RawMatchRow[]);
   },
 };

@@ -5,8 +5,8 @@ import { Card } from '../components/ui/Card';
 import { ErrorMessage } from '../components/ui/ErrorMessage';
 import { useAuth } from '../hooks/useAuth';
 import { useRankings } from '../hooks/useRankings';
-import type { RankingEntry, PhaseIdentifier } from '../domain/types/ranking';
-import { phaseIdToString, getPhaseLabel } from '../domain/types/ranking';
+import type { RankingEntry } from '../domain/types/ranking';
+import { getPredictionGroupLabel } from '../domain/types/ranking';
 import { worldCup2026 } from '../config/competition';
 
 function RankingTable({ entries, highlightAlias }: { entries: RankingEntry[]; highlightAlias?: string | null }) {
@@ -79,15 +79,15 @@ function RankingTable({ entries, highlightAlias }: { entries: RankingEntry[]; hi
 export function RankingPage() {
   const { user } = useAuth();
   const [view, setView] = React.useState<'phases' | 'general'>('phases');
-  const [activePhase, setActivePhase] = React.useState<PhaseIdentifier | null>(null);
+  const [activeGroup, setActiveGroup] = React.useState<string | null>(null);
 
-  const { phase, general, userAlias, loading, error, refreshRankings, availablePhases, selectedPhase } = useRankings(user?.id ?? null, activePhase);
+  const { phase, general, userAlias, loading, error, refreshRankings, availableGroups, selectedGroup } = useRankings(user?.id ?? null, activeGroup);
 
-  const selectedPhaseIdx = React.useMemo(() => {
-    const target = activePhase ?? selectedPhase;
-    if (!target || availablePhases.length === 0) return -1;
-    return availablePhases.findIndex((ph) => phaseIdToString(ph) === phaseIdToString(target));
-  }, [activePhase, selectedPhase, availablePhases]);
+  const selectedGroupIdx = React.useMemo(() => {
+    const target = activeGroup ?? selectedGroup;
+    if (!target || availableGroups.length === 0) return -1;
+    return availableGroups.findIndex((g) => g === target);
+  }, [activeGroup, selectedGroup, availableGroups]);
 
   const prizeInfo = worldCup2026.prizes.perPhase;
 
@@ -133,23 +133,23 @@ export function RankingPage() {
         </button>
       </div>
 
-      {/* Phase selector */}
-      {view === 'phases' && availablePhases.length > 0 && (
+      {/* Group selector */}
+      {view === 'phases' && availableGroups.length > 0 && (
         <div className="relative">
           <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
-            {availablePhases.map((ph, idx) => (
+            {availableGroups.map((g, idx) => (
               <button
-                key={phaseIdToString(ph)}
+                key={g}
                 onClick={() => {
-                  setActivePhase(availablePhases[idx]);
+                  setActiveGroup(availableGroups[idx]);
                 }}
                 className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 ${
-                  selectedPhaseIdx === idx
+                  selectedGroupIdx === idx
                     ? 'bg-accent text-white shadow-md'
                     : 'bg-primaryLight/50 text-textMuted hover:text-textLight border border-accentMuted/20'
                 }`}
               >
-                {getPhaseLabel(ph)}
+                {getPredictionGroupLabel(g)}
               </button>
             ))}
           </div>
@@ -161,7 +161,7 @@ export function RankingPage() {
       <Card className="p-4">
         {loading ? (
           <BallLoader text="Cargando rankings..." />
-        ) : view === 'phases' && selectedPhase && phase.length === 0 ? (
+        ) : view === 'phases' && selectedGroup && phase.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 rounded-full bg-primaryLight/30 flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-textMuted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,9 +175,9 @@ export function RankingPage() {
           </div>
         ) : view === 'phases' || view === 'general' ? (
           <>
-            {view === 'phases' && selectedPhase && (
+            {view === 'phases' && selectedGroup && (
               <div className="mb-4 pb-3 border-b border-white/10">
-                <h2 className="text-textLight font-bold text-lg">{getPhaseLabel(selectedPhase)}</h2>
+                <h2 className="text-textLight font-bold text-lg">{getPredictionGroupLabel(selectedGroup)}</h2>
                 {prizeInfo && (
                   <p className="text-textMuted text-xs mt-1">🥇 1° puesto: {prizeInfo}</p>
                 )}
