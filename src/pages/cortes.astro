@@ -1,0 +1,68 @@
+---
+import Navigation from "../components/layout/Navigation.astro";
+import Footer from "../components/layout/Footer.astro";
+import GoogleAnalytics from "../components/GoogleAnalytics.astro";
+import { FRESHA_BOOKING_URL } from "../config/site";
+import "../styles/global.css";
+
+const siteUrl = "https://stylosbarber.com.ar";
+const heroImageUrl = "/og-image.png";
+const pageUrl = `${siteUrl}/cortes`;
+const title = "Galería de cortes | Stylo's Barber — Próximamente";
+const description =
+  "Estamos preparando la galería de cortes reales de Stylo's Barber. Mientras tanto, reservá tu turno.";
+---
+
+<html lang="es" class="scroll-smooth scroll-pt-20">
+  <head>
+    <GoogleAnalytics />
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={pageUrl} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:site_name" content="Stylo's Barber" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:image" content={`${siteUrl}${heroImageUrl}`} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+  </head>
+  <body class="bg-surfaceLight text-primary font-gothic min-h-screen flex flex-col">
+    <header>
+      <Navigation />
+    </header>
+
+    <main class="flex-grow">
+      <section class="max-w-3xl mx-auto px-4 py-24 text-center">
+        <h1 class="text-3xl md:text-5xl font-gothic font-bold text-primary">
+          Próximamente: galería de cortes
+        </h1>
+        <p class="mt-4 text-base md:text-lg text-primary/80 max-w-2xl mx-auto">
+          Estamos armando una galería con cortes reales para que encuentres tu próxima referencia. Mientras tanto, podés reservar y asesorarte con un barbero en el local.
+        </p>
+        <a
+          href={FRESHA_BOOKING_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-block mt-8 rounded-xl bg-accent px-8 py-4 text-center text-lg font-bold uppercase text-white transition-all duration-300 hover:bg-accentHover hover:shadow-accent"
+          data-analytics-event="click_reservar_turno"
+          data-analytics-legacy="click:turno"
+          data-analytics-location="cortes_coming_soon"
+        >
+          Reservar turno
+        </a>
+      </section>
+    </main>
+
+    <footer>
+      <Footer />
+    </footer>
+  </body>
+</html>

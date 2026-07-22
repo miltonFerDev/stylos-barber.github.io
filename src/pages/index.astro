@@ -4,13 +4,15 @@ import Hero from "../components/layout/Hero.astro";
 import Beneficios from "../components/layout/Beneficios.astro";
 import Servicios from "../components/layout/Servicios.astro";
 import Testimonios from "../components/layout/Testimonios.astro";
+import EscuelaTeaser from "../components/layout/EscuelaTeaser.astro";
 import FAQ from "../components/layout/FAQ.astro";
 import DondeEstamos from "../components/layout/DondeEstamos.astro";
 import Footer from "../components/layout/Footer.astro";
 import GoogleAnalytics from "../components/GoogleAnalytics.astro";
+import ScrollRevealScript from "../components/ScrollRevealScript.astro";
 ---
 
-<html lang="es" class="scroll-smooth">
+<html lang="es" class="scroll-smooth scroll-pt-20">
 	<head>
 <GoogleAnalytics />
 		<meta charset="utf-8" />
@@ -84,20 +86,7 @@ import GoogleAnalytics from "../components/GoogleAnalytics.astro";
 				"sameAs": ["https://instagram.com/stylosbarber"]
 			}
 		</script>
-		<script is:inline>
-			document.addEventListener('DOMContentLoaded', () => {
-				const observer = new IntersectionObserver((entries) => {
-					entries.forEach(entry => {
-				if (entry.isIntersecting) {
-					entry.target.classList.add('animate-fadeUp');
-					observer.unobserve(entry.target);
-				}
-					});
-				}, { threshold: 0.1 });
-
-				document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
-			});
-		</script>
+		<ScrollRevealScript />
 	</head>
 	<header>
 		<Navigation />
@@ -113,6 +102,9 @@ import GoogleAnalytics from "../components/GoogleAnalytics.astro";
 		</div>
 		<div class="w-full bg-[#2A2A3D]">
 			<Testimonios />
+		</div>
+		<div class="w-full bg-surface">
+			<EscuelaTeaser />
 		</div>
 		<div class="w-full bg-primary">
 			<DondeEstamos />

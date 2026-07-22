@@ -13,7 +13,7 @@ interface Props {
 const { buttonText = "Quiero un turno", buttonLink = "#", classString = "inline-block text-center py-3 px-6 rounded-xl transition-colors duration-200", eventName = ANALYTICS_EVENTS.CLICK_RESERVAR_TURNO, legacyEventName = ANALYTICS_LEGACY_EVENTS.CLICK_TURNO, location } = Astro.props;
 ---
 
-<a href={buttonLink} target="_blank" class={classString}
+<a href={buttonLink} target="_blank" rel="noopener noreferrer" class={`${classString} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2`}
   data-analytics-event={eventName}
   data-analytics-legacy={legacyEventName}
   {...(location ? { 'data-analytics-location': location } : {})}

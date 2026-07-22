@@ -1,0 +1,81 @@
+---
+import { Image } from 'astro:assets'
+import stylosLogo from "../../assets/stylosLogo.png";
+---
+
+<nav class="bg-surfaceLight py-3 w-full fixed z-50 border-b border-accentMuted" aria-label="Navegación escuela">
+   <div class="max-w-6xl mx-auto flex items-center justify-between px-4">
+      <a href="/">
+        <Image
+        src={stylosLogo}
+        alt="Logo de Stylo's Barber"
+        class="h-10 w-auto"/>
+      </a>
+
+      <button
+        id="escuela-menu-toggle"
+        type="button"
+        class="md:hidden p-2 text-primary focus:outline-none focus:ring-2 focus:ring-accent rounded-lg"
+        aria-label="Abrir menú"
+        aria-expanded="false"
+        aria-controls="escuela-mobile-menu"
+      >
+        <svg id="escuela-menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <svg id="escuela-menu-icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+
+      <ul id="escuela-mobile-menu" class="hidden absolute top-full left-0 right-0 bg-surfaceLight shadow-xl md:hidden flex-col gap-4 p-6 border-t border-accentMuted">
+        <li><a href="/" class="block py-3 text-primary hover:text-accent font-medium transition-colors duration-200">Volver al inicio</a></li>
+        <li><a href="#inscripciones" class="block py-3 text-primary hover:text-accent font-medium transition-colors duration-200">Inscripciones</a></li>
+      </ul>
+
+      <ul class="hidden md:flex items-center gap-8">
+        <li><a href="/" class="text-primary hover:text-accent font-medium transition-colors duration-200">Volver al inicio</a></li>
+        <li><a href="#inscripciones" class="text-primary hover:text-accent font-medium transition-colors duration-200">Inscripciones</a></li>
+      </ul>
+   </div>
+</nav>
+
+<script is:inline>
+  (function() {
+    var menuToggle = document.getElementById('escuela-menu-toggle');
+    var mobileMenu = document.getElementById('escuela-mobile-menu');
+    var menuIconOpen = document.getElementById('escuela-menu-icon-open');
+    var menuIconClose = document.getElementById('escuela-menu-icon-close');
+
+    menuToggle?.addEventListener('click', function() {
+      var isOpen = !mobileMenu?.classList.contains('hidden');
+
+      if (isOpen) {
+        mobileMenu?.classList.add('hidden');
+        mobileMenu?.classList.remove('flex');
+        menuIconOpen?.classList.remove('hidden');
+        menuIconClose?.classList.add('hidden');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute('aria-label', 'Abrir menú');
+      } else {
+        mobileMenu?.classList.remove('hidden');
+        mobileMenu?.classList.add('flex');
+        menuIconOpen?.classList.add('hidden');
+        menuIconClose?.classList.remove('hidden');
+        menuToggle.setAttribute('aria-expanded', 'true');
+        menuToggle.setAttribute('aria-label', 'Cerrar menú');
+      }
+    });
+
+    document.querySelectorAll('#escuela-mobile-menu a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        mobileMenu?.classList.add('hidden');
+        mobileMenu?.classList.remove('flex');
+        menuIconOpen?.classList.remove('hidden');
+        menuIconClose?.classList.add('hidden');
+        menuToggle?.setAttribute('aria-expanded', 'false');
+        menuToggle?.setAttribute('aria-label', 'Abrir menú');
+      });
+    });
+  })();
+</script>

@@ -1,0 +1,23 @@
+---
+import { ANALYTICS_EVENTS } from '../../lib/analytics';
+---
+
+<footer class="w-full py-12 bg-surfaceLight border-t border-accentMuted font-gothic" aria-label="Pie de página escuela">
+  <div class="max-w-6xl mx-auto px-4 text-center">
+    <p class="text-primary/60 text-sm mb-4">
+      Escuela Stylo’s — Ituzaingó
+    </p>
+    <p class="text-primary/60 text-sm mb-4">
+      Las inscripciones se encuentran cerradas por el momento.
+    </p>
+    <div class="flex items-center justify-center gap-6">
+      <a href="https://wa.me/5491137651150" target="_blank" class="text-primary/60 hover:text-accent transition-colors duration-200" data-analytics-event={ANALYTICS_EVENTS.CLICK_CONSULTAR_WHATSAPP_ESCUELA}>
+        WhatsApp
+      </a>
+      <a href="/" class="text-primary/60 hover:text-accent transition-colors duration-200">Volver a Stylo’s Barber</a>
+    </div>
+    <p class="text-primary/40 text-xs mt-8">
+      © 2026 Stylo’s Barber. Islas Malvinas Argentinas.
+    </p>
+  </div>
+</footer>

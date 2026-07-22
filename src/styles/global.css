@@ -43,3 +43,22 @@ html, body {
   animation: floatSlow3 18s ease-in-out infinite;
   color: #3E52D5;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeUp {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  [data-animate] {
+    opacity: 1 !important;
+  }
+  .mission-text .char {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .mission-attribution {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

@@ -9,11 +9,12 @@ import '@fontsource/gothic-a1';
                 <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
             </svg>
 
-            <p class="text-base sm:text-lg md:text-xl lg:text-2xl text-textMuted italic leading-relaxed mission-text">
+            <p class="text-base sm:text-lg md:text-xl lg:text-2xl text-textMuted italic leading-relaxed mission-text" aria-hidden="true">
                 Nuestra misión es proporcionar cortes de cabello de calidad en tiempos eficientes, sin comprometer la experiencia del cliente, en un ambiente profesional y amigable.
             </p>
+            <p class="sr-only">Nuestra misión es proporcionar cortes de cabello de calidad en tiempos eficientes, sin comprometer la experiencia del cliente, en un ambiente profesional y amigable. — Stylo's Barber</p>
 
-            <p class="mt-6 text-xs sm:text-sm md:text-base text-accent font-semibold tracking-wider mission-attribution">
+            <p class="mt-6 text-xs sm:text-sm md:text-base text-accent font-semibold tracking-wider mission-attribution" aria-hidden="true">
                 — Stylo's Barber
             </p>
         </div>
@@ -25,14 +26,14 @@ import '@fontsource/gothic-a1';
                 <h3 class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl uppercase font-bold text-textLight">Encontranos</h3>
                 <div class="flex flex-col gap-3 text-base sm:text-lg lg:text-xl text-textMuted">
                     <p class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                         Soler 398, esquina Lavalle, Ituzaingó
                     </p>
                     <p class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         Martes a Sábado de 9:30 a 20 hs.
@@ -49,8 +50,8 @@ import '@fontsource/gothic-a1';
                     referrerpolicy="no-referrer-when-downgrade"
                     title="Ubicación de Stylo's Barber en el mapa"
                 ></iframe>
-                <a href="https://www.google.com/maps/search/?api=1&query=Stylos+Barber+Soler+398+Ituzaing%C3%B3" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 mt-4 text-accent hover:text-accentHover transition-colors" data-analytics-event="click_ubicacion">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                <a href="https://www.google.com/maps/search/?api=1&query=Stylos+Barber+Soler+398+Ituzaing%C3%B3" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 mt-4 text-accent hover:text-accentHover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded-lg p-2" data-analytics-event="click_ubicacion">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                     Cómo llegar
                 </a>
             </div>
@@ -83,6 +84,7 @@ import '@fontsource/gothic-a1';
 
 <script is:inline>
     document.addEventListener('DOMContentLoaded', () => {
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const container = document.getElementById('mision-container');
         if (!container) return;
 
@@ -92,17 +94,21 @@ import '@fontsource/gothic-a1';
                     const textEl = container.querySelector('.mission-text');
                     if (textEl && !textEl.dataset.animated) {
                         textEl.dataset.animated = 'true';
-                        const text = textEl.textContent;
-                        const chars = text.split('');
-                        let html = '';
-                        chars.forEach((char, i) => {
-                            if (char === ' ') {
-                                html += ' ';
-                            } else {
-                                html += `<span class="char" style="animation-delay: calc(${i} * 20ms + 100ms)">${char}</span>`;
-                            }
-                        });
-                        textEl.innerHTML = html;
+                        if (prefersReducedMotion) {
+                            textEl.style.opacity = '1';
+                        } else {
+                            const text = textEl.textContent;
+                            const chars = text.split('');
+                            let html = '';
+                            chars.forEach((char, i) => {
+                                if (char === ' ') {
+                                    html += ' ';
+                                } else {
+                                    html += `<span class="char" style="animation-delay: calc(${i} * 20ms + 100ms)">${char}</span>`;
+                                }
+                            });
+                            textEl.innerHTML = html;
+                        }
                     }
                     observer.unobserve(entry.target);
                 }

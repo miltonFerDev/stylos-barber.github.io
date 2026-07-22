@@ -1,0 +1,59 @@
+---
+import Inscripciones from "../components/escuela/Inscripciones.astro";
+import GoogleAnalytics from "../components/GoogleAnalytics.astro";
+import ScrollRevealScript from "../components/ScrollRevealScript.astro";
+---
+
+<html lang="es">
+  <head>
+    <GoogleAnalytics />
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>Escuela Stylo's — Próximamente</title>
+
+    <meta
+      name="description"
+      content="Escuela de barbería en Ituzaingó. Próximamente. Dejanos tus datos y te avisamos cuando abramos inscripciones."
+    />
+    <meta name="generator" content={Astro.generator} />
+    <meta property="og:title" content="Escuela Stylo's — Próximamente" />
+    <meta
+      property="og:description"
+      content="Escuela de barbería en Ituzaingó. Próximamente."
+    />
+    <meta property="og:image" content="https://stylosbarber.com.ar/og-image.png" />
+    <meta property="og:url" content="https://stylosbarber.com.ar/escuela" />
+    <meta property="og:type" content="website" />
+  </head>
+
+  <body class="bg-surfaceLight text-primary font-gothic min-h-screen flex flex-col">
+    <header class="w-full py-6 px-4">
+      <div class="max-w-4xl mx-auto flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3" aria-label="Volver al inicio">
+          <img src="/favicon.ico" alt="Stylo's Barber" class="w-8 h-8" />
+        </a>
+      </div>
+    </header>
+
+    <main class="flex-grow flex flex-col items-center justify-center px-4 py-12">
+      <section class="w-full max-w-4xl mx-auto text-center mb-8">
+        <h1 class="font-bold text-4xl sm:text-5xl lg:text-6xl uppercase text-primary mb-4">
+          Próximamente
+        </h1>
+        <p class="text-lg sm:text-xl text-primary/80 max-w-2xl mx-auto">
+          Estamos preparando la Escuela Stylo's. Dejanos tus datos y te avisamos cuando abramos inscripciones.
+        </p>
+      </section>
+
+      <Inscripciones compact />
+    </main>
+
+    <footer class="w-full py-6 px-4 text-center text-sm text-primary/60">
+      <p>&copy; 2026 Stylo's Barber. Todos los derechos reservados.</p>
+    </footer>
+
+    <ScrollRevealScript />
+  </body>
+</html>

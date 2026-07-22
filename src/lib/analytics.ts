@@ -9,6 +9,17 @@ export const ANALYTICS_EVENTS = {
   CLICK_UBICACION: 'click_ubicacion',
   FAQ_OPEN: 'faq_open',
   SECTION_VIEW: 'section_view',
+  CLICK_QUIERO_RECIBIR_INFO: 'click_quiero_recibir_info',
+  FORM_SUBMIT_ESCUELA: 'form_submit_escuela',
+  CLICK_CONSULTAR_WHATSAPP_ESCUELA: 'click_consultar_whatsapp_escuela',
+  CLICK_CONOCER_ESCUELA: 'click_conocer_escuela',
+  CLICK_NAV_INICIO: 'click_nav_inicio',
+  CLICK_NAV_SERVICIOS: 'click_nav_servicios',
+  CLICK_NAV_CORTES: 'click_nav_cortes',
+  CLICK_NAV_ESCUELA: 'click_nav_escuela',
+  CLICK_NAV_TESTIMONIOS: 'click_nav_testimonios',
+  CLICK_NAV_UBICACION: 'click_nav_ubicacion',
+  CLICK_NAV_CONTACTO: 'click_nav_contacto',
 } as const;
 
 export const ANALYTICS_LEGACY_EVENTS = {

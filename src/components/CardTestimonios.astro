@@ -9,13 +9,13 @@ const initial = name.charAt(0).toUpperCase();
 ---
 <div class="bg-surface border border-accentMuted rounded-2xl p-8 lg:p-10 transition-all duration-300 hover:border-accent/50 hover:shadow-cardHover">
     <div class="flex items-center gap-4 mb-4">
-        <div class="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold text-xl shrink-0">
+        <div class="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold text-xl shrink-0" role="img" aria-label={`${name}: avatar`}>
             {initial}
         </div>
         <div>
             <p class="text-textLight font-semibold text-lg">{name}</p>
-            <div class="flex gap-1 text-accent text-sm">
-                <span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span><span>&#9733;</span>
+            <div class="flex gap-1 text-accent text-sm" role="img" aria-label="5 de 5 estrellas">
+                <span aria-hidden="true">&#9733;</span><span aria-hidden="true">&#9733;</span><span aria-hidden="true">&#9733;</span><span aria-hidden="true">&#9733;</span><span aria-hidden="true">&#9733;</span>
             </div>
         </div>
     </div>

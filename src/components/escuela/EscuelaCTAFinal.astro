@@ -1,0 +1,21 @@
+---
+import { ANALYTICS_EVENTS } from '../../lib/analytics';
+---
+
+<section id="cta-final" class="w-full py-16 lg:py-28 bg-surfaceLight font-gothic" aria-label="CTA final" data-analytics-section-view>
+  <div class="max-w-4xl mx-auto px-4 text-center">
+    <div class="opacity-0" data-animate>
+      <h2 class="font-bold text-3xl sm:text-4xl lg:text-5xl xl:text-6xl uppercase text-primary mb-6">¿Querés enterarte de la próxima camada?</h2>
+      <p class="text-lg sm:text-xl text-primary/80 leading-relaxed mb-10 max-w-2xl mx-auto">
+        Dejanos tus datos y te avisamos por mail cuando abramos nuevas inscripciones para Escuela Stylo’s.
+      </p>
+      <a href="#inscripciones"
+        class="inline-block rounded-xl bg-accent px-8 py-4 text-center text-lg sm:text-xl font-bold uppercase text-white transition-all duration-300 hover:bg-accentHover hover:shadow-accent"
+        data-analytics-event={ANALYTICS_EVENTS.CLICK_QUIERO_RECIBIR_INFO}
+        data-analytics-location="cta_final"
+      >
+        Quiero recibir información
+      </a>
+    </div>
+  </div>
+</section>

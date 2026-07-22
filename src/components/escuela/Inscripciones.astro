@@ -1,0 +1,150 @@
+---
+import { ANALYTICS_EVENTS } from '../../lib/analytics';
+
+interface Props {
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+const formAction = import.meta.env.FORMSPREE_ENDPOINT_ESCUELA || '';
+---
+
+<section id="inscripciones" class={`w-full ${compact ? 'py-8' : 'py-16 lg:py-28'} bg-surfaceLight font-gothic`} aria-label="Inscripciones" data-analytics-section-view>
+  <div class="max-w-4xl mx-auto px-4">
+    {!compact && (
+      <div class="mb-10 lg:mb-16 opacity-0" data-animate>
+        <h2 class="font-bold text-3xl sm:text-4xl lg:text-5xl xl:text-6xl uppercase text-primary text-center">Inscripciones</h2>
+        <div class="w-12 h-1 bg-accent rounded-full mx-auto mt-4"></div>
+      </div>
+    )}
+
+    {!compact && (
+      <div class="max-w-2xl mx-auto text-center opacity-0" data-animate style="animation-delay: 100ms">
+        <p class="text-lg sm:text-xl text-primary/80 leading-relaxed mb-4">
+          Las inscripciones se encuentran cerradas por el momento.
+        </p>
+        <p class="text-lg sm:text-xl text-primary/80 leading-relaxed mb-10">
+          Si querés enterarte cuando abramos una nueva camada, dejanos tus datos en el formulario y te vamos a avisar por mail.
+        </p>
+      </div>
+    )}
+
+    <form
+      id="escuela-form"
+      action={formAction}
+      method="POST"
+      class={`max-w-2xl mx-auto bg-white border border-accentMuted rounded-2xl shadow-card ${compact ? 'p-4 lg:p-6' : 'p-6 lg:p-10'} opacity-0`}
+      data-animate
+      style="animation-delay: 200ms"
+      data-analytics-event={ANALYTICS_EVENTS.FORM_SUBMIT_ESCUELA}
+      data-endpoint={formAction}
+    >
+      <div class={compact ? 'space-y-4' : 'space-y-6'}>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label for="escuela-name" class="block text-sm font-semibold text-primary mb-2">Nombre <span class="text-accent">*</span></label>
+            <input type="text" id="escuela-name" name="name" required class="w-full rounded-xl border border-accentMuted px-4 py-3 text-primary placeholder-primary/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20" placeholder="Tu nombre" />
+          </div>
+          <div>
+            <label for="escuela-apellido" class="block text-sm font-semibold text-primary mb-2">Apellido <span class="text-accent">*</span></label>
+            <input type="text" id="escuela-apellido" name="apellido" required class="w-full rounded-xl border border-accentMuted px-4 py-3 text-primary placeholder-primary/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20" placeholder="Tu apellido" />
+          </div>
+        </div>
+
+        <div>
+          <label for="escuela-email" class="block text-sm font-semibold text-primary mb-2">Email <span class="text-accent">*</span></label>
+          <input type="email" id="escuela-email" name="email" required class="w-full rounded-xl border border-accentMuted px-4 py-3 text-primary placeholder-primary/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20" placeholder="tu@email.com" />
+        </div>
+
+        <div>
+          <label for="escuela-phone" class="block text-sm font-semibold text-primary mb-2">Teléfono / WhatsApp <span class="text-accent">*</span></label>
+          <input type="tel" id="escuela-phone" name="phone" required class="w-full rounded-xl border border-accentMuted px-4 py-3 text-primary placeholder-primary/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20" placeholder="+54 9 11 0000 0000" />
+        </div>
+
+        <fieldset class="border-0 p-0">
+          <legend class="block text-sm font-semibold text-primary mb-3">¿Tenés experiencia previa en barbería? <span class="text-accent">*</span></legend>
+          <div class="flex flex-col gap-2">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="experiencia" value="no_experience" required class="accent-accent" />
+              <span class="text-primary/80">No, empiezo desde cero</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="experiencia" value="some_experience" required class="accent-accent" />
+              <span class="text-primary/80">Sí, tengo algo de experiencia</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="experiencia" value="working_improve" required class="accent-accent" />
+              <span class="text-primary/80">Ya trabajo o practico y quiero mejorar</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div>
+          <label for="escuela-message" class="block text-sm font-semibold text-primary mb-2">Mensaje (opcional)</label>
+          <textarea id="escuela-message" name="message" rows="4" class="w-full rounded-xl border border-accentMuted px-4 py-3 text-primary placeholder-primary/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20" placeholder="¿Tenés alguna consulta adicional?"></textarea>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <input type="checkbox" id="escuela-privacy" name="privacy" required class="mt-1 accent-accent" />
+          <label for="escuela-privacy" class="text-sm text-primary/80 cursor-pointer">
+            Acepto que mi información sea usada para avisarme sobre próximas inscripciones
+          </label>
+        </div>
+
+        <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="absolute opacity-0 pointer-events-none" style="position:absolute;left:-9999px;" />
+
+        <button
+          type="submit"
+          class="w-full rounded-xl bg-accent px-8 py-4 text-center text-lg font-bold uppercase text-white transition-all duration-300 hover:bg-accentHover hover:shadow-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        >
+          Quiero recibir información
+        </button>
+      </div>
+    </form>
+
+    <div id="form-success" class="mt-10 text-center hidden" role="status" aria-live="polite">
+      <p class="text-base text-primary/80">
+        Gracias por dejar tus datos. Te vamos a avisar por mail cuando abramos nuevas inscripciones para Escuela Stylo’s.
+      </p>
+    </div>
+    <div id="form-error" class="mt-4 p-4 rounded-xl bg-red-50/10 text-red-300 text-sm border border-red-500/40 hidden" role="alert"></div>
+  </div>
+
+  <script is:inline>
+    (function() {
+      var form = document.getElementById('escuela-form');
+      var success = document.getElementById('form-success');
+      var error = document.getElementById('form-error');
+      if (!form) return;
+
+      form.addEventListener('submit', function(e) {
+        var endpoint = form.getAttribute('data-endpoint');
+        if (!endpoint || endpoint === 'demo') {
+          e.preventDefault();
+          if (error) { error.textContent = 'Demo: formulario no configurado'; error.classList.remove('hidden'); }
+          return;
+        }
+
+        e.preventDefault();
+        if (error) error.classList.add('hidden');
+        var formData = new FormData(form);
+
+        fetch(endpoint, {
+          method: 'POST',
+          body: formData,
+          headers: { Accept: 'application/json' }
+        }).then(function(response) {
+          if (response.ok) {
+            form.classList.add('hidden');
+            success.classList.remove('hidden');
+            if (error) error.classList.add('hidden');
+          } else {
+            if (error) { error.textContent = 'Hubo un error al enviar. Intentá de nuevo.'; error.classList.remove('hidden'); }
+          }
+        }).catch(function() {
+          if (error) { error.textContent = 'Hubo un error de conexión. Intentá de nuevo.'; error.classList.remove('hidden'); }
+        });
+      });
+    })();
+  </script>
+</section>

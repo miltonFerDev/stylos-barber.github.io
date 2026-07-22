@@ -16,27 +16,44 @@ export function getStaticPaths() {
     { params: { path: 'reset-password' } },
   ];
 }
+
+const ROUTE_META: Record<string, { title: string; description: string }> = {
+  'admin':          { title: 'Admin · Prode Mundial 2026 · Stylo\'s Barber', description: 'Panel admin del Prode Mundial 2026 — gestión de partidos, resultados y usuarios.' },
+  'fixture':        { title: 'Fixture · Prode Mundial 2026 · Stylo\'s Barber', description: 'Fechas, grupos y partidos del Mundial 2026. Cargá tus predicciones antes del inicio de cada partido.' },
+  'predicciones':   { title: 'Mis predicciones · Prode Mundial 2026 · Stylo\'s Barber', description: 'Tus predicciones del Mundial 2026. Editá antes del kickoff.' },
+  'ranking':        { title: 'Ranking · Prode Mundial 2026 · Stylo\'s Barber', description: 'Ranking público del Prode Mundial 2026 de Stylo\'s Barber.' },
+  'reglas':         { title: 'Reglas · Prode Mundial 2026 · Stylo\'s Barber', description: 'Cómo se puntúa el Prode Mundial 2026. Resultado exacto = 3 pts, ganador correcto = 1 pt.' },
+  'onboarding':     { title: 'Completá tu perfil · Prode Mundial 2026 · Stylo\'s Barber', description: 'Configurá tu alias público y datos para participar del Prode Mundial 2026.' },
+  'login':          { title: 'Ingresá · Prode Mundial 2026 · Stylo\'s Barber', description: 'Entrá al Prode Mundial 2026 con tu cuenta de Google.' },
+  'signup':         { title: 'Registrate · Prode Mundial 2026 · Stylo\'s Barber', description: 'Creá tu cuenta para participar del Prode Mundial 2026.' },
+  'reset-password': { title: 'Recuperar contraseña · Prode Mundial 2026 · Stylo\'s Barber', description: 'Recuperá tu acceso al Prode Mundial 2026.' },
+};
+
+const path = Astro.params.path || '';
+const meta = ROUTE_META[path] || ROUTE_META['fixture'];
+const canonicalUrl = `https://stylosbarber.com.ar/prode/${path}`;
+const isNoIndex = ['admin', 'login', 'signup', 'reset-password', 'onboarding'].includes(path);
 ---
 
-<html lang="es" class="scroll-smooth">
+<html lang="es" class="scroll-smooth scroll-pt-20">
   <head>
     <GoogleAnalytics sendPageView={true} />
     <meta charset="utf-8" />
     <link rel="icon" type="image/png" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://stylosbarber.com.ar/prode" />
+    <meta name="robots" content={isNoIndex ? 'noindex, follow' : 'index, follow'} />
+    <link rel="canonical" href={canonicalUrl} />
     <meta name="theme-color" content="#0f0f0f" />
-    <title>Resultados finales del Prode Mundial 2026 · Stylo's Barber</title>
-    <meta name="description" content="El Mundial 2026 terminó. Mirá la tabla general final, los aciertos perfectos y parciales, y las estadísticas del Prode de Stylo's Barber." />
-    <meta property="og:title" content="Resultados finales del Prode Mundial 2026 · Stylo's Barber" />
-    <meta property="og:description" content="El Mundial 2026 terminó. Mirá los resultados finales del Prode de Stylo's Barber: tabla general, aciertos perfectos y parciales." />
+    <title>{meta.title}</title>
+    <meta name="description" content={meta.description} />
+    <meta property="og:title" content={meta.title} />
+    <meta property="og:description" content={meta.description} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://stylosbarber.com.ar/prode" />
+    <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="Stylo's Barber" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Resultados finales del Prode Mundial 2026 · Stylo's Barber" />
-    <meta name="twitter:description" content="El Mundial 2026 terminó. Mirá los resultados finales del Prode de Stylo's Barber." />
+    <meta name="twitter:title" content={meta.title} />
+    <meta name="twitter:description" content={meta.description} />
   </head>
   <body>
     <ProdeShell client:only="react" />

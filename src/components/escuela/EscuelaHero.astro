@@ -1,0 +1,41 @@
+---
+import { ANALYTICS_EVENTS } from '../../lib/analytics';
+---
+
+<section id="hero" class="relative min-h-dvh overflow-hidden bg-surfaceLight font-gothic pt-20" aria-label="Curso de barbería" data-analytics-section-view>
+  <div class="relative z-10 mx-auto flex min-h-[80dvh] max-w-6xl flex-col items-center justify-center px-6 text-center">
+    <div class="max-w-4xl opacity-0" data-animate>
+      <h1 class="text-primary uppercase leading-[0.95] tracking-[-0.02em] text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold">
+        Curso de barbería en Ituzaingó
+      </h1>
+
+      <p class="mt-4 text-xl sm:text-2xl lg:text-3xl text-accent font-semibold leading-tight max-w-3xl mx-auto">
+        Aprendé barbería en una barbería real.
+      </p>
+
+      <p class="mt-6 text-lg sm:text-xl lg:text-2xl text-primary/80 leading-relaxed max-w-3xl mx-auto">
+        Formación práctica desde cero en Escuela Stylo’s, con herramientas profesionales y acompañamiento docente. Corte clásico, moderno, degradés, barba, higiene y práctica guiada.
+      </p>
+
+      <p class="mt-6 text-base sm:text-lg text-primary/70 max-w-xl mx-auto">
+        Las inscripciones se encuentran cerradas por el momento. Dejanos tus datos y te avisamos por mail cuando abramos una nueva camada.
+      </p>
+
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#inscripciones"
+          class="inline-block rounded-xl bg-accent px-8 py-4 text-center text-lg sm:text-xl font-bold uppercase text-white transition-all duration-300 hover:bg-accentHover hover:shadow-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surfaceLight"
+          data-analytics-event={ANALYTICS_EVENTS.CLICK_QUIERO_RECIBIR_INFO}
+          data-analytics-location="hero"
+        >
+          Quiero recibir información
+        </a>
+        <a href="https://wa.me/5491137651150" target="_blank" rel="noopener noreferrer"
+          class="inline-block rounded-xl border-2 border-accent px-8 py-4 text-center text-lg sm:text-xl font-bold uppercase text-accent transition-all duration-300 hover:bg-accent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surfaceLight"
+          data-analytics-event={ANALYTICS_EVENTS.CLICK_CONSULTAR_WHATSAPP_ESCUELA}
+        >
+          Consultar por WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

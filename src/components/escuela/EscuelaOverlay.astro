@@ -1,0 +1,19 @@
+---
+import Inscripciones from './Inscripciones.astro';
+---
+
+<div class="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none p-4">
+  <div class="pointer-events-auto w-full max-w-2xl bg-surfaceLight/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-accentMuted p-6 lg:p-8 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+    <div class="text-center shrink-0">
+      <p class="text-lg lg:text-xl text-primary font-bold leading-tight">
+        Próximamente toda la información de la escuela stylo's
+      </p>
+      <p class="text-base text-primary/80 mt-1">
+        Dejanos tu contacto para informarte de la próxima inscripción
+      </p>
+    </div>
+    <div class="shrink-0">
+      <Inscripciones compact />
+    </div>
+  </div>
+</div>
