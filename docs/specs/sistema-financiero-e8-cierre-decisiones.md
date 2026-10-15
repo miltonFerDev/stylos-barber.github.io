@@ -71,7 +71,23 @@ Solo estas tres valen la pena confirmar con Dirección antes de E8; el resto ava
    - `recognition_policy`, `reversal_limit`, `investment_ledger_account`, `attachment_retention_days` como `settings_parameters` (flags), no como decisiones cerradas.
    - Bucket de comprobantes privado desde el día uno (P9), retención configurable.
    - Contador: rol definido pero sin policies operativas hasta resolver P10.
-2. **En paralelo**, pasar al dueño las 3 preguntas de §4.
+2. **En paralelo**, pasar al dueño las 3 preguntas de §4 — **✅ hecho, ver §6**.
 3. **Al tener respuesta**, ajustar solo los defaults de config (sin tocar schema).
 
 > Esto respeta la regla del backlog: *"No construir lógica contable definitiva hasta resolver P-REC, P7, P11 y P-CAP"* — ninguno de esos se cierra aquí; se **parametrizan** explícitamente como flags, tal como vienen haciendo los sprints 1–14.
+
+---
+
+## 6. Decisiones cerradas (2026-10-15)
+
+| # | Decisión | Resolución |
+|---|---|---|
+| P10 | ¿Contador en MVP? | **No en MVP.** Rol `CONTADOR` queda latente; solo lectura cuando se habilite en el futuro. |
+| P9 | Plazo conservación de comprobantes | **Default 5 años**, paramétrico (`attachment_retention_days = 1825`). |
+| P12 | Límite de reversión/pagos extraordinarios | **Sin límite monetario.** Tesorería puede ejecutar cualquier transacción; el control es el **log de auditoría obligatorio** (ya implementado: toda mutación registra `audit_events`). No se implementa `REVERSAL_LIMIT_EXCEEDED`. |
+
+Implicancias para E8:
+
+- `reversal_limit` **no se configura**: no hay umbral. La seguridad reposa en auditoría append-only (`audit_events` inmutable) + RLS por rol.
+- `attachment_retention_days = 1825` como `settings_parameters`.
+- Sin policies operativas para `CONTADOR` en E8 (P10).
