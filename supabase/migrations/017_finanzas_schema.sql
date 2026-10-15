@@ -407,21 +407,40 @@ CREATE INDEX IF NOT EXISTS idx_investments_status ON public.investments(status);
 -- 9. RLS habilitado (deny-all por defecto)
 --    Políticas y grants: sprint E8b.
 -- =====================================================
-DO $$
-DECLARE t text;
-BEGIN
-  FOREACH t IN ARRAY ARRAY[
-    'users','roles','user_roles','role_delegations',
-    'persons','categories','subcategories','result_lines','ledger_accounts','accounts',
-    'accounting_periods','journal_entries','journal_lines',
-    'account_movements','daily_closings','reconciliations',
-    'obligations','payments','payment_applications','transfers','income_records','income_distributions','external_settlements',
-    'income_forecasts','investments','investment_evaluations',
-    'attachments','audit_events','settings_parameters'
-  ]
-  LOOP
-    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
-  END LOOP;
-END $$;
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.role_delegations ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.persons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subcategories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.result_lines ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ledger_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.accounting_periods ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.journal_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.journal_lines ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.account_movements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.daily_closings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reconciliations ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.obligations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payment_applications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.transfers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.income_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.income_distributions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.external_settlements ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.income_forecasts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.investments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.investment_evaluations ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.attachments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.settings_parameters ENABLE ROW LEVEL SECURITY;
 
 -- Done!
