@@ -56,7 +56,6 @@ BEGIN
   RAISE EXCEPTION 'audit_events es append-only (no se puede modificar ni borrar)';
 END $$;
 
-DROP TRIGGER IF EXISTS trg_audit_events_immutable ON public.audit_events;
 CREATE TRIGGER trg_audit_events_immutable
   BEFORE UPDATE OR DELETE ON public.audit_events
   FOR EACH ROW EXECUTE FUNCTION public.prevent_audit_events_mutation();
@@ -70,7 +69,6 @@ BEGIN
   RAISE EXCEPTION 'journal_lines son inmutables (corregir por reversión, no por update)';
 END $$;
 
-DROP TRIGGER IF EXISTS trg_journal_lines_immutable ON public.journal_lines;
 CREATE TRIGGER trg_journal_lines_immutable
   BEFORE UPDATE OR DELETE ON public.journal_lines
   FOR EACH ROW EXECUTE FUNCTION public.prevent_journal_lines_mutation();
@@ -103,7 +101,6 @@ BEGIN
   RETURN NEW;
 END $$;
 
-DROP TRIGGER IF EXISTS trg_journal_entries_immutable ON public.journal_entries;
 CREATE TRIGGER trg_journal_entries_immutable
   BEFORE UPDATE OR DELETE ON public.journal_entries
   FOR EACH ROW EXECUTE FUNCTION public.prevent_journal_entries_mutation();
