@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import type { ResultLine } from '../categories';
+import type { JournalEntry, JournalLineDraft } from '../journal';
 import type { Obligation } from '../obligations';
 import {
+  computeIncomeStatement,
   isOverdue,
   obligationAmount,
   overdueSummary,
@@ -9,6 +12,46 @@ import {
 import type { UserId } from '../types';
 
 const userId = 'user-1' as UserId;
+
+function makeResultLine(
+  id: string,
+  code: string,
+  name: string,
+  nature: ResultLine['nature'],
+  order: number,
+  ledgerAccountId: string
+): ResultLine {
+  return {
+    id,
+    entityType: 'RESULT_LINE',
+    code,
+    name,
+    nature,
+    order,
+    ledgerAccountId,
+    validFrom: '2026-01-01',
+    validTo: null,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    createdBy: userId,
+  };
+}
+
+function makeEntry(lines: JournalLineDraft[]): JournalEntry {
+  return {
+    id: `entry-${Math.random()}`,
+    periodId: 'period-1',
+    entryDate: '2026-10-01',
+    postingDate: '2026-10-01T00:00:00.000Z',
+    status: 'CONFIRMADO',
+    sourceDocumentType: 'income_record',
+    sourceDocumentId: 'inc-1',
+    idempotencyKey: 'entry-idem',
+    createdBy: userId,
+    createdAt: '2026-10-01T00:00:00.000Z',
+    description: 'test',
+    lines,
+  };
+}
 
 function makeObligation(overrides: Partial<Obligation>): Obligation {
   return {
@@ -83,5 +126,58 @@ describe('summarizeByStatus y overdueSummary', () => {
     const overdue = overdueSummary(obligations, '2026-10-13');
     expect(overdue.count).toBe(1);
     expect(overdue.totalMinor).toBe(10000n);
+  });
+});
+
+describe('computeIncomeStatement', () => {
+  const resultLines: ResultLine[] = [
+    makeResultLine('rl-ing', '4.1', 'Ingresos servicios', 'INGRESO', 1, '4.1'),
+    makeResultLine('rl-gas', '5.6', 'Insumos', 'GASTO', 2, '5.6'),
+  ];
+
+  const zero = { amount: '0.00', currency: 'ARS' as const };
+
+  it('suma ingresos por credito y gastos por debito', () => {
+    const entries: JournalEntry[] = [
+      makeEntry([
+        { ledgerAccountId: '4.1', debit: zero, credit: { amount: '100.00', currency: 'ARS' } },
+        { ledgerAccountId: '1.1.1', debit: { amount: '100.00', currency: 'ARS' }, credit: zero },
+      ]),
+      makeEntry([
+        { ledgerAccountId: '5.6', debit: { amount: '30.00', currency: 'ARS' }, credit: zero },
+        { ledgerAccountId: '1.1.1', debit: zero, credit: { amount: '30.00', currency: 'ARS' } },
+      ]),
+    ];
+
+    const statement = computeIncomeStatement(entries, resultLines);
+    expect(statement.totalIncomeMinor).toBe(10000n);
+    expect(statement.totalExpenseMinor).toBe(3000n);
+    expect(statement.netResultMinor).toBe(7000n);
+    expect(statement.lines).toHaveLength(2);
+    expect(statement.lines[0].name).toBe('Ingresos servicios');
+  });
+
+  it('excluye cuentas de balance (NO_RESULTADO)', () => {
+    const lines: ResultLine[] = [
+      makeResultLine('rl-ing', '4.1', 'Ingresos', 'INGRESO', 1, '4.1'),
+      makeResultLine('rl-nr', '1.1.1', 'Efectivo', 'NO_RESULTADO', 3, '1.1.1'),
+    ];
+
+    const entries: JournalEntry[] = [
+      makeEntry([
+        { ledgerAccountId: '4.1', debit: zero, credit: { amount: '100.00', currency: 'ARS' } },
+        { ledgerAccountId: '1.1.1', debit: { amount: '100.00', currency: 'ARS' }, credit: zero },
+      ]),
+    ];
+
+    const statement = computeIncomeStatement(entries, lines);
+    expect(statement.lines).toHaveLength(1);
+    expect(statement.lines[0].resultLineId).toBe('rl-ing');
+  });
+
+  it('linea de resultado sin posteo no aparece', () => {
+    const statement = computeIncomeStatement([], resultLines);
+    expect(statement.lines).toHaveLength(0);
+    expect(statement.netResultMinor).toBe(0n);
   });
 });

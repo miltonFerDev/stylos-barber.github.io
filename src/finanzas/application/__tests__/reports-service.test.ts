@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { ReportsService, type AuditQueryRepository } from '../reports-service';
+import { ReportsService, type AuditQueryRepository, type JournalEntryQueryRepository } from '../reports-service';
 import type { AccountMovement } from '../../domain/account-movements';
 import type { Account } from '../../domain/accounts';
 import type { AuditEvent } from '../../domain/audit';
+import type { ResultLine } from '../../domain/categories';
+import type { JournalEntry } from '../../domain/journal';
 import type { Obligation } from '../../domain/obligations';
 import type { MasterRepository } from '../master-data-service';
 import type { ObligationRepository } from '../obligations-service';
@@ -88,6 +90,72 @@ function createService(options: { authorize?: Authorizer } = {}) {
     'acc-res': [makeMovement('acc-res', '500.00', 'IN')],
   };
 
+  const resultLines: ResultLine[] = [
+    {
+      id: 'rl-ing',
+      entityType: 'RESULT_LINE',
+      code: '4.1',
+      name: 'Ingresos servicios',
+      nature: 'INGRESO',
+      order: 1,
+      ledgerAccountId: '4.1',
+      validFrom: '2026-01-01',
+      validTo: null,
+      createdAt: ctx.now,
+      createdBy: userId,
+    },
+    {
+      id: 'rl-gas',
+      entityType: 'RESULT_LINE',
+      code: '5.6',
+      name: 'Insumos',
+      nature: 'GASTO',
+      order: 2,
+      ledgerAccountId: '5.6',
+      validFrom: '2026-01-01',
+      validTo: null,
+      createdAt: ctx.now,
+      createdBy: userId,
+    },
+  ];
+
+  const journalEntries: JournalEntry[] = [
+    {
+      id: 'entry-1',
+      periodId: 'period-1',
+      entryDate: '2026-10-01',
+      postingDate: '2026-10-01T00:00:00.000Z',
+      status: 'CONFIRMADO',
+      sourceDocumentType: 'income_record',
+      sourceDocumentId: 'inc-1',
+      idempotencyKey: 'entry-1',
+      createdBy: userId,
+      createdAt: '2026-10-01T00:00:00.000Z',
+      description: 'Ingreso diario',
+      lines: [
+        { ledgerAccountId: '1.1.1', debit: { amount: '100.00', currency: 'ARS' }, credit: { amount: '0.00', currency: 'ARS' } },
+        { ledgerAccountId: '4.1', debit: { amount: '0.00', currency: 'ARS' }, credit: { amount: '100.00', currency: 'ARS' } },
+      ],
+    },
+    {
+      id: 'entry-2',
+      periodId: 'period-1',
+      entryDate: '2026-10-02',
+      postingDate: '2026-10-02T00:00:00.000Z',
+      status: 'CONFIRMADO',
+      sourceDocumentType: 'income_record',
+      sourceDocumentId: 'inc-2',
+      idempotencyKey: 'entry-2',
+      createdBy: userId,
+      createdAt: '2026-10-02T00:00:00.000Z',
+      description: 'Egreso',
+      lines: [
+        { ledgerAccountId: '5.6', debit: { amount: '30.00', currency: 'ARS' }, credit: { amount: '0.00', currency: 'ARS' } },
+        { ledgerAccountId: '1.1.1', debit: { amount: '0.00', currency: 'ARS' }, credit: { amount: '30.00', currency: 'ARS' } },
+      ],
+    },
+  ];
+
   const masters: MasterRepository = {
     async findById() {
       return null;
@@ -96,7 +164,9 @@ function createService(options: { authorize?: Authorizer } = {}) {
       return null;
     },
     async findAll(entityType) {
-      return entityType === 'ACCOUNT' ? accounts : [];
+      if (entityType === 'ACCOUNT') return accounts;
+      if (entityType === 'RESULT_LINE') return resultLines;
+      return [];
     },
     async save(master) {
       return master;
@@ -151,9 +221,22 @@ function createService(options: { authorize?: Authorizer } = {}) {
     },
   };
 
+  const journalEntriesRepo: JournalEntryQueryRepository = {
+    async findByPeriod(periodId) {
+      return journalEntries.filter((e) => e.periodId === periodId);
+    },
+  };
+
   const authorize: Authorizer = options.authorize ?? (async () => ({ ok: true, value: undefined }));
 
-  const service = new ReportsService({ masters, movements, obligations: obligationsRepo, auditHistory, authorize });
+  const service = new ReportsService({
+    masters,
+    movements,
+    obligations: obligationsRepo,
+    auditHistory,
+    journalEntries: journalEntriesRepo,
+    authorize,
+  });
 
   return { service };
 }
@@ -218,6 +301,41 @@ describe('ReportsService.auditHistory', () => {
     const { service } = createService({ authorize: denied });
 
     const result = await service.auditHistory(ctx, { entityType: 'obligation', entityId: 'ob-1' });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('PERMISSION_DENIED');
+  });
+});
+
+describe('ReportsService.incomeStatement', () => {
+  it('agrega asientos por linea de resultado', async () => {
+    const { service } = createService();
+
+    const result = await service.incomeStatement(ctx, { periodId: 'period-1' });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.totalIncomeMinor).toBe(10000n);
+    expect(result.value.totalExpenseMinor).toBe(3000n);
+    expect(result.value.netResultMinor).toBe(7000n);
+    expect(result.value.lines).toHaveLength(2);
+  });
+
+  it('rechaza periodId vacio', async () => {
+    const { service } = createService();
+
+    const result = await service.incomeStatement(ctx, { periodId: '   ' });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('MISSING_REQUIRED_FIELD');
+  });
+
+  it('rechaza sin permiso', async () => {
+    const denied: Authorizer = async () => ({
+      ok: false,
+      error: { code: 'PERMISSION_DENIED', message: 'Sin permiso.', recoverable: false },
+    });
+    const { service } = createService({ authorize: denied });
+
+    const result = await service.incomeStatement(ctx, { periodId: 'period-1' });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('PERMISSION_DENIED');
   });

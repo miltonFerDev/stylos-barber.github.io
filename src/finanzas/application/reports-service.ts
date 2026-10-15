@@ -2,13 +2,16 @@ import type { AccountMovementRepository } from '../domain/account-movements';
 import type { AuditEvent } from '../domain/audit';
 import { minorToMoney, movementNet } from '../domain/closings';
 import { domainError } from '../domain/errors';
+import type { JournalEntry } from '../domain/journal';
 import type { AccountKind, AccountOwnership } from '../domain/masters';
 import type { ObligationStatus } from '../domain/obligations';
 import {
+  computeIncomeStatement,
   isOverdue,
   obligationAmount,
   overdueSummary,
   summarizeByStatus,
+  type IncomeStatementTotals,
   type ObligationBucket,
 } from '../domain/reports';
 import type { MasterRepository } from './master-data-service';
@@ -18,6 +21,10 @@ import type { CommandContext, Currency, Money, Result } from '../domain/types';
 
 export type AuditQueryRepository = {
   findByEntity(entityType: string, entityId: string): Promise<AuditEvent[]>;
+};
+
+export type JournalEntryQueryRepository = {
+  findByPeriod(periodId: string): Promise<JournalEntry[]>;
 };
 
 export type AvailabilityLine = {
@@ -63,11 +70,21 @@ export type AuditHistoryCommand = {
   entityId: string;
 };
 
+export type IncomeStatementCommand = {
+  periodId: string;
+};
+
+export type IncomeStatement = IncomeStatementTotals & {
+  periodId: string;
+  currency: Currency;
+};
+
 export type ReportsServiceDependencies = {
   masters: MasterRepository;
   movements: AccountMovementRepository;
   obligations: ObligationRepository;
   auditHistory: AuditQueryRepository;
+  journalEntries: JournalEntryQueryRepository;
   authorize: Authorizer;
 };
 
@@ -156,6 +173,32 @@ export class ReportsService {
     return {
       ok: true,
       value: { entityType: command.entityType, entityId: command.entityId, events },
+    };
+  }
+
+  async incomeStatement(ctx: CommandContext, command: IncomeStatementCommand): Promise<Result<IncomeStatement>> {
+    const authorized = await this.dependencies.authorize(ctx, 'VIEW_BALANCES');
+    if (!authorized.ok) return authorized;
+
+    if (command.periodId.trim().length === 0) {
+      return {
+        ok: false,
+        error: domainError('MISSING_REQUIRED_FIELD', 'El periodo contable es obligatorio.', true, {
+          field: 'periodId',
+        }),
+      };
+    }
+
+    const entries = await this.dependencies.journalEntries.findByPeriod(command.periodId);
+    const resultLines = (await this.dependencies.masters.findAll('RESULT_LINE')).filter(
+      (master) => master.entityType === 'RESULT_LINE'
+    );
+
+    const totals = computeIncomeStatement(entries, resultLines);
+
+    return {
+      ok: true,
+      value: { periodId: command.periodId, currency: 'ARS', ...totals },
     };
   }
 }
