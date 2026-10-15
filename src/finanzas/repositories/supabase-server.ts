@@ -7,7 +7,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
  */
 export function createServerSupabaseClient(): SupabaseClient {
   const url = import.meta.env.PUBLIC_SUPABASE_URL;
-  const key = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Secretos server-only se leen de process.env en runtime (Vercel), no de import.meta.env.
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !key) {
     throw new Error(

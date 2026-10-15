@@ -9,6 +9,7 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro check && astro build",
+    "postbuild": "node scripts/patch-vercel-runtime.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "typecheck": "astro check",
@@ -32,6 +33,7 @@
     "typescript": "^5.5.4"
   },
   "devDependencies": {
+    "@types/node": "^26.6.5",
     "@vitest/ui": "^4.1.5",
     "vitest": "^4.1.5"
   }
