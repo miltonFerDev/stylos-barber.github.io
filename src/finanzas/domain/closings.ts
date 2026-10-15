@@ -31,9 +31,11 @@ export type Reconciliation = {
 };
 
 export function minorToMoney(minor: bigint, currency: Currency): Money {
-  const units = minor / 100n;
-  const cents = minor % 100n;
-  return { amount: `${units}.${cents.toString().padStart(2, '0')}`, currency };
+  const sign = minor < 0n ? '-' : '';
+  const abs = minor < 0n ? -minor : minor;
+  const units = abs / 100n;
+  const cents = abs % 100n;
+  return { amount: `${sign}${units}.${cents.toString().padStart(2, '0')}`, currency };
 }
 
 export function movementNet(movements: AccountMovement[]): bigint {

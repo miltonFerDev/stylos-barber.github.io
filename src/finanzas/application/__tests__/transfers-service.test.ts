@@ -246,8 +246,8 @@ describe('TransfersService.registerTransfer', () => {
     const second = await service.registerTransfer(ctx, command);
 
     expect(first.ok).toBe(true);
-    expect(second.ok).toBe(false);
-    if (!second.ok) expect(second.error.code).toBe('DUPLICATE_IDEMPOTENCY');
+    expect(second.ok).toBe(true);
+    if (first.ok && second.ok) expect(second.value.id).toBe(first.value.id);
   });
 
   it('rechaza sin permiso', async () => {

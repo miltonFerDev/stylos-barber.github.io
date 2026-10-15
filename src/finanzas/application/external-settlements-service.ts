@@ -66,12 +66,7 @@ export class ExternalSettlementsService {
 
     const previous = await this.dependencies.settlements.findByIdempotencyKey(ctx.idempotencyKey);
     if (previous) {
-      return {
-        ok: false,
-        error: domainError('DUPLICATE_IDEMPOTENCY', 'El pago externo ya fue registrado con esta clave.', true, {
-          previousSettlement: previous,
-        }),
-      };
+      return { ok: true, value: previous };
     }
 
     if (!isExternalSettlementNature(command.nature)) {
@@ -188,12 +183,7 @@ export class ExternalSettlementsService {
 
     const previous = await this.dependencies.settlements.findByIdempotencyKey(ctx.idempotencyKey);
     if (previous) {
-      return {
-        ok: false,
-        error: domainError('DUPLICATE_IDEMPOTENCY', 'El reintegro ya fue registrado con esta clave.', true, {
-          previousSettlement: previous,
-        }),
-      };
+      return { ok: true, value: previous };
     }
 
     const settlement = await this.dependencies.settlements.findById(command.settlementId);

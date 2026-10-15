@@ -56,12 +56,7 @@ export class IncomesService {
 
     const previous = await this.dependencies.incomes.findByIdempotencyKey(ctx.idempotencyKey);
     if (previous) {
-      return {
-        ok: false,
-        error: domainError('DUPLICATE_IDEMPOTENCY', 'El ingreso ya fue registrado con esta clave.', true, {
-          previousIncome: previous,
-        }),
-      };
+      return { ok: true, value: previous };
     }
 
     if (command.effectiveDate.trim().length === 0 || command.periodId.trim().length === 0) {

@@ -338,7 +338,7 @@ describe('PaymentsService.registerPayment', () => {
     if (!result.ok) expect(result.error.code).toBe('ACCOUNT_NOT_AVAILABLE');
   });
 
-  it('reintento con misma idempotencyKey devuelve DUPLICATE_IDEMPOTENCY', async () => {
+  it('reintento con misma idempotencyKey devuelve el resultado previo', async () => {
     const { service } = createService();
 
     const command = {
@@ -353,11 +353,8 @@ describe('PaymentsService.registerPayment', () => {
     const second = await service.registerPayment(ctx, command);
 
     expect(first.ok).toBe(true);
-    expect(second.ok).toBe(false);
-    if (!second.ok) {
-      expect(second.error.code).toBe('DUPLICATE_IDEMPOTENCY');
-      expect(second.error.details?.previousPayment).toBeTruthy();
-    }
+    expect(second.ok).toBe(true);
+    if (first.ok && second.ok) expect(second.value.id).toBe(first.value.id);
   });
 
   it('rechaza sin permiso', async () => {

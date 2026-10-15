@@ -348,6 +348,10 @@ export class SupabaseObligationRepository implements ObligationRepository {
 
   async update(obligation: Obligation) {
     await this.supabase.from('obligations').update({
+      concept: obligation.concept,
+      due_date: obligation.dueDate,
+      expected_payment_date: obligation.expectedPaymentDate,
+      priority: obligation.priority,
       final_amount: obligation.finalAmount == null ? null : moneyToDb(obligation.finalAmount),
       is_estimated: obligation.isEstimated,
       estimated_amount_version: obligation.estimatedAmountVersion,

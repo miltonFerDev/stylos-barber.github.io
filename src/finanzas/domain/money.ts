@@ -1,7 +1,7 @@
 import { domainError } from './errors';
 import type { Money, Result } from './types';
 
-const MONEY_AMOUNT_PATTERN = /^\d+(\.\d{1,2})?$/;
+const MONEY_AMOUNT_PATTERN = /^-?\d+(\.\d{1,2})?$/;
 
 export function isValidMoneyAmount(amount: string): boolean {
   return MONEY_AMOUNT_PATTERN.test(amount);

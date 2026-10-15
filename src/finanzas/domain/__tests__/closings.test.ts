@@ -28,6 +28,11 @@ describe('minorToMoney', () => {
   it('convierte unidades menores a Money', () => {
     expect(minorToMoney(120000n, 'ARS')).toEqual({ amount: '1200.00', currency: 'ARS' });
   });
+
+  it('convierte negativos con signo', () => {
+    expect(minorToMoney(-50n, 'ARS')).toEqual({ amount: '-0.50', currency: 'ARS' });
+    expect(minorToMoney(-150n, 'ARS')).toEqual({ amount: '-1.50', currency: 'ARS' });
+  });
 });
 
 describe('computeDifference', () => {

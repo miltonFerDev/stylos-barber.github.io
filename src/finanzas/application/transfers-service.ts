@@ -44,12 +44,7 @@ export class TransfersService {
 
     const previous = await this.dependencies.transfers.findByIdempotencyKey(ctx.idempotencyKey);
     if (previous) {
-      return {
-        ok: false,
-        error: domainError('DUPLICATE_IDEMPOTENCY', 'La transferencia ya fue registrada con esta clave.', true, {
-          previousTransfer: previous,
-        }),
-      };
+      return { ok: true, value: previous };
     }
 
     if (command.fromAccountId === command.toAccountId) {
