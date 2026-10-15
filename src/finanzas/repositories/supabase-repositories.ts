@@ -200,37 +200,31 @@ export class SupabaseJournalEntryRepository implements JournalEntryRepository {
   }
 
   async save(entry: JournalEntry) {
-    const { data, error } = await this.supabase
-      .from('journal_entries')
-      .insert({
-        id: entry.id,
-        entry_date: entry.entryDate,
-        posting_date: entry.postingDate,
-        period_id: entry.periodId,
-        source_document_type: entry.sourceDocumentType,
-        source_document_id: entry.sourceDocumentId,
-        description: entry.description,
-        status: entry.status,
-        reverses_entry_id: entry.reversesEntryId ?? null,
-        idempotency_key: entry.idempotencyKey,
-        created_by: entry.createdBy,
-        created_at: entry.createdAt,
-      })
-      .select()
-      .single();
+    const p_entry = {
+      id: entry.id,
+      entry_date: entry.entryDate,
+      posting_date: entry.postingDate,
+      period_id: entry.periodId,
+      source_document_type: entry.sourceDocumentType,
+      source_document_id: entry.sourceDocumentId,
+      description: entry.description,
+      status: entry.status,
+      reverses_entry_id: entry.reversesEntryId ?? null,
+      idempotency_key: entry.idempotencyKey,
+      created_by: entry.createdBy,
+      created_at: entry.createdAt,
+    };
+    const p_lines = entry.lines.map((line) => ({
+      ledger_account_id: line.ledgerAccountId,
+      debit: moneyToDb(line.debit),
+      credit: moneyToDb(line.credit),
+      currency: line.debit.currency,
+    }));
+
+    const { error } = await this.supabase.rpc('insert_journal_entry', { p_entry, p_lines });
     if (error) throw error;
 
-    for (const line of entry.lines) {
-      await this.supabase.from('journal_lines').insert({
-        entry_id: entry.id,
-        ledger_account_id: line.ledgerAccountId,
-        debit: moneyToDb(line.debit),
-        credit: moneyToDb(line.credit),
-        currency: line.debit.currency,
-      });
-    }
-
-    return this.hydrate(data as DbRow);
+    return this.hydrate(p_entry as DbRow);
   }
 
   async markReversed(entryId: string, reversedAt: string) {
