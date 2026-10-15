@@ -9,6 +9,7 @@ export * from './application/journal-service';
 export * from './application/master-data-service';
 export * from './application/obligations-service';
 export * from './application/payments-service';
+export * from './application/periods-service';
 export * from './application/permission-service';
 export * from './application/reports-service';
 export * from './application/transfers-service';

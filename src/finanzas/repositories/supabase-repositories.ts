@@ -20,6 +20,7 @@ import type { TransferRepository } from '../application/transfers-service';
 import type { ExternalSettlementRepository } from '../application/external-settlements-service';
 import type { InvestmentRepository, InvestmentEvaluationRepository } from '../application/investments-service';
 import type { RoleRepository } from '../application/permission-service';
+import type { PeriodRepository } from '../application/periods-service';
 import type {
   ForecastAccountRepository,
   ForecastIncomeRepository,
@@ -56,6 +57,7 @@ import {
   type DbRow,
 } from './mapping';
 import type { Attachment } from '../domain/attachments';
+import type { AccountingPeriod } from '../domain/periods';
 import type { Currency, Money } from '../domain/types';
 
 const MASTER_TABLES = {
@@ -136,6 +138,36 @@ export class SupabaseAccountingPeriodRepository implements AccountingPeriodRepos
   async findById(periodId: string) {
     const { data } = await this.supabase.from('accounting_periods').select('*').eq('id', periodId).maybeSingle();
     return data ? mapAccountingPeriod(data as DbRow) : null;
+  }
+}
+
+export class SupabasePeriodRepository implements PeriodRepository {
+  constructor(private readonly supabase: SupabaseClient) {}
+
+  async findByCode(code: string) {
+    const { data } = await this.supabase.from('accounting_periods').select('*').eq('code', code).maybeSingle();
+    return data ? mapAccountingPeriod(data as DbRow) : null;
+  }
+
+  async findById(id: string) {
+    const { data } = await this.supabase.from('accounting_periods').select('*').eq('id', id).maybeSingle();
+    return data ? mapAccountingPeriod(data as DbRow) : null;
+  }
+
+  async save(period: AccountingPeriod) {
+    await this.supabase.from('accounting_periods').insert({
+      id: period.id,
+      code: period.code,
+      starts_on: period.startsOn,
+      ends_on: period.endsOn,
+      status: period.status,
+    });
+    return period;
+  }
+
+  async update(period: AccountingPeriod) {
+    await this.supabase.from('accounting_periods').update({ status: period.status }).eq('id', period.id);
+    return period;
   }
 }
 
