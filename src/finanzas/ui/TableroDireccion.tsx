@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
 import type { AvailabilityReport, ObligationsReport } from '../application/reports-service';
-import { finanzasSupabase } from '../presentation/client';
+import { useFinanzasFetch } from './useFinanzasFetch';
 
 type Money = { amount: string; currency: string };
 
@@ -20,49 +19,10 @@ function formatDate(iso: string): string {
   });
 }
 
-type Status = 'loading' | 'unauthenticated' | 'error' | 'ready';
+type DashboardData = { availability: AvailabilityReport; obligations: ObligationsReport };
 
 export function TableroDireccion() {
-  const [status, setStatus] = useState<Status>('loading');
-  const [availability, setAvailability] = useState<AvailabilityReport | null>(null);
-  const [obligations, setObligations] = useState<ObligationsReport | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data } = await finanzasSupabase.auth.getSession();
-      const token = data.session?.access_token ?? null;
-      if (!token) {
-        if (!cancelled) setStatus('unauthenticated');
-        return;
-      }
-
-      const res = await fetch('/api/finanzas/dashboard', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.status === 401) {
-        if (!cancelled) setStatus('unauthenticated');
-        return;
-      }
-      if (!res.ok) {
-        if (!cancelled) setStatus('error');
-        return;
-      }
-
-      const body = await res.json();
-      if (!cancelled) {
-        setAvailability(body.availability);
-        setObligations(body.obligations);
-        setStatus('ready');
-      }
-    })().catch(() => {
-      if (!cancelled) setStatus('error');
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { status, data } = useFinanzasFetch<DashboardData>('/api/finanzas/dashboard');
 
   if (status === 'loading') {
     return <div className="p-8 text-center text-textMuted">Cargando tablero…</div>;
@@ -75,10 +35,11 @@ export function TableroDireccion() {
       </div>
     );
   }
-  if (status === 'error' || !availability || !obligations) {
+  if (status === 'error' || !data) {
     return <div className="p-8 text-center text-cupOrange">No se pudo cargar el tablero.</div>;
   }
 
+  const { availability, obligations } = data;
   const overdueFirst = [...obligations.lines].sort(
     (a, b) => Number(b.isOverdue) - Number(a.isOverdue)
   );

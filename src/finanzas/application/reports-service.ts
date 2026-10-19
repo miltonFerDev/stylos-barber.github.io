@@ -4,7 +4,7 @@ import { minorToMoney, movementNet } from '../domain/closings';
 import { domainError } from '../domain/errors';
 import type { JournalEntry } from '../domain/journal';
 import type { AccountKind, AccountOwnership } from '../domain/masters';
-import type { ObligationStatus } from '../domain/obligations';
+import type { ObligationPriority, ObligationStatus } from '../domain/obligations';
 import {
   computeIncomeStatement,
   isOverdue,
@@ -50,6 +50,8 @@ export type ObligationLine = {
   dueDate: string;
   amount: Money;
   isOverdue: boolean;
+  priority: ObligationPriority;
+  expectedPaymentDate: string | null;
 };
 
 export type ObligationsReport = {
@@ -142,6 +144,8 @@ export class ReportsService {
       dueDate: obligation.dueDate,
       amount: obligationAmount(obligation),
       isOverdue: isOverdue(obligation, ctx.now),
+      priority: obligation.priority,
+      expectedPaymentDate: obligation.expectedPaymentDate,
     }));
 
     return {
