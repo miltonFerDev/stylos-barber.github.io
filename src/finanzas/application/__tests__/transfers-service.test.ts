@@ -127,6 +127,9 @@ function createService(options?: { authorize?: Authorizer; period?: AccountingPe
     async findById() {
       return period;
     },
+    async findAll() {
+      return [];
+    },
   };
 
   const entriesRepo: JournalEntryRepository = {

@@ -33,6 +33,7 @@ export type UpdateJournalEntryCommand = {
 
 export type AccountingPeriodRepository = {
   findById(periodId: string): Promise<AccountingPeriod | null>;
+  findAll(): Promise<AccountingPeriod[]>;
 };
 
 export type JournalEntryRepository = {

@@ -138,6 +138,9 @@ function createService(options?: { authorize?: Authorizer }) {
     async findById() {
       return openPeriod;
     },
+    async findAll() {
+      return [];
+    },
   };
 
   const entriesRepo: JournalEntryRepository = {

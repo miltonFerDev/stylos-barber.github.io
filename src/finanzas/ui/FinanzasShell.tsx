@@ -3,8 +3,9 @@ import { finanzasSupabase } from '../presentation/client';
 import { Login } from './Login';
 import { TableroDireccion } from './TableroDireccion';
 import { AgendaTesorería } from './AgendaTesorería';
+import { AltaObligacion } from './AltaObligacion';
 
-type View = 'tablero' | 'agenda';
+type View = 'tablero' | 'agenda' | 'nueva';
 
 function TabButton({
   active,
@@ -69,6 +70,9 @@ export function FinanzasShell() {
               <TabButton active={view === 'agenda'} onClick={() => setView('agenda')}>
                 Agenda
               </TabButton>
+              <TabButton active={view === 'nueva'} onClick={() => setView('nueva')}>
+                Nueva
+              </TabButton>
             </div>
           </div>
           <button
@@ -80,7 +84,13 @@ export function FinanzasShell() {
           </button>
         </div>
       </nav>
-      {view === 'tablero' ? <TableroDireccion /> : <AgendaTesorería />}
+      {view === 'tablero' ? (
+        <TableroDireccion />
+      ) : view === 'agenda' ? (
+        <AgendaTesorería />
+      ) : (
+        <AltaObligacion />
+      )}
     </div>
   );
 }

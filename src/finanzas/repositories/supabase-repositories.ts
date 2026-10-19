@@ -139,6 +139,11 @@ export class SupabaseAccountingPeriodRepository implements AccountingPeriodRepos
     const { data } = await this.supabase.from('accounting_periods').select('*').eq('id', periodId).maybeSingle();
     return data ? mapAccountingPeriod(data as DbRow) : null;
   }
+
+  async findAll() {
+    const { data } = await this.supabase.from('accounting_periods').select('*').order('starts_on', { ascending: false });
+    return (data ?? []).map((row) => mapAccountingPeriod(row as DbRow));
+  }
 }
 
 export class SupabasePeriodRepository implements PeriodRepository {

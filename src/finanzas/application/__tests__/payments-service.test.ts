@@ -190,6 +190,9 @@ function createService(options?: {
     async findById() {
       return period;
     },
+    async findAll() {
+      return [];
+    },
   };
 
   const journalEntries: JournalEntryRepository = {

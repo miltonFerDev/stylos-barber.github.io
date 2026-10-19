@@ -138,6 +138,9 @@ function createService(options?: {
     async findById() {
       return period;
     },
+    async findAll() {
+      return [];
+    },
   };
 
   const authorize: Authorizer = options?.authorize ?? (async () => ({ ok: true, value: undefined }));

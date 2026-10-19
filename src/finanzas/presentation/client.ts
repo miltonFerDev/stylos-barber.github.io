@@ -15,3 +15,9 @@ export const finanzasSupabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
   },
 });
+
+/** Access token de la sesión actual (para llamar endpoints con Authorization: Bearer). */
+export async function getFinanzasAccessToken(): Promise<string | null> {
+  const { data } = await finanzasSupabase.auth.getSession();
+  return data.session?.access_token ?? null;
+}

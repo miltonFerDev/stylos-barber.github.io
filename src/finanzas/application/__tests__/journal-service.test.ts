@@ -42,6 +42,9 @@ function createService(period: AccountingPeriod | null = openPeriod) {
     async findById() {
       return currentPeriod;
     },
+    async findAll() {
+      return [];
+    },
   };
   const entries: JournalEntryRepository = {
     async findByIdempotencyKey(idempotencyKey) {
