@@ -134,8 +134,8 @@ Fuente: F2 §8. La clasificación definitiva de titularidad es **PENDIENTE (P3)*
 | Mercado Pago **MARI** | Billetera | **EXTERNA** | No | **No** | 6.3 / 2.3 (según P7) | Externa |
 | Efectivo | Efectivo | PROPIA | Sí | Sí | 1.1.1 Efectivo | Activa |
 | Santander DENNYS | Banco | PROPIA | Sí | Sí | 1.1.2 (subcuenta) | Activa |
-| Santander WASHINGTON | Banco | **PENDIENTE** | PENDIENTE | **PENDIENTE** | 1.1.2 (subcuenta) — sujeto a P3 | Por confirmar |
-| BaPro MILTON | Banco / tarjeta a acreditar | **PENDIENTE** | PENDIENTE | **PENDIENTE** | 1.1.4 / 1.1.2 — sujeto a P3 | Por confirmar |
+| Santander WASHINGTON | Banco | **EXTERNA** | No | **No** | 6.3 (puente externo, provisional) | Externa (P3 cerrada 2026-10-19) |
+| BaPro MILTON | Banco | **PROPIA** | Sí | **Sí** | 1.1.2 (subcuenta) | Propia (P3 cerrada 2026-10-19) |
 | Cuentas transitorias | Transitoria | PROPIA | Sí | No (saldo puente) | 1.1.5 / 6.x | Según diseño |
 
 ## 5. Tratamiento de cuentas externas (MARI)
@@ -175,7 +175,7 @@ Regla F2 §8, reflejada en el modelo D1:
 
 | # (P) | Decisión | Efecto en D2 |
 |---|---|---|
-| P3 | Cuentas incluidas/restringidas; titularidad Santander WASHINGTON y BaPro MILTON; rol MARI | Define `ownership`/`is_available` y códigos finales de subcuentas. **Bloqueante de congelamiento.** |
+| P3 | Cuentas incluidas/restringidas; titularidad Santander WASHINGTON y BaPro MILTON; rol MARI | Define `ownership`/`is_available` y códigos finales de subcuentas. **Parcial (2026-10-19):** WASHINGTON=EXTERNA, MILTON=PROPIA. Subcuentas finales y resto pendientes. |
 | P7 | Naturaleza de pagos por terceros (MARI): préstamo/aporte/cuenta corriente; reintegros | Define contrapartida `2.3` vs `3.1`. |
 | P1 | Importe y calendario del sueldo | `5.2` / `2.2` reciben monto; valor no se fija aquí. |
 | P2 | Política de reserva mínima | Parámetro, no cuenta. |
