@@ -1,0 +1,72 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode-go/deepseek-v4-pro",
+  "small_model": "opencode-go/muse-spark-1.3-contributor",
+  "default_agent": "general",
+  "instructions": ["AGENTS.md"],
+  "plugins": ["@dietrichgebert/ponytail"],
+  "permission": {
+    "edit": "ask",
+    "bash": {
+      "git status": "allow",
+      "git diff": "allow",
+      "git log *": "allow",
+      "npm run lint": "allow",
+      "npm run typecheck": "allow",
+      "npm test": "allow",
+      "npx tsc --noEmit": "allow",
+      "astro check": "allow",
+      "astro build": "allow",
+      "*": "ask"
+    }
+  },
+  "agent": {
+    "general": {
+      "model": "opencode-go/deepseek-v4-pro",
+      "mode": "primary",
+      "description": "Default primary agent for implementation work in Stylo's Barber.",
+      "permission": { "edit": "ask", "bash": "ask" }
+    },
+    "audit": {
+      "model": "opencode-go/deepseek-v4-pro",
+      "mode": "subagent",
+      "description": "Audit agent for Stylo's Barber. Read-only inspection that produces a structured diagnostic.",
+      "permission": { "edit": "deny", "bash": "ask" }
+    },
+    "plan": {
+      "model": "opencode-go/glm-5.3",
+      "mode": "subagent",
+      "description": "Plan agent for Stylo's Barber. Produces an actionable plan without editing files.",
+      "permission": { "edit": "deny", "bash": "ask" }
+    },
+    "spec": {
+      "model": "opencode-go/glm-5.3",
+      "mode": "subagent",
+      "description": "Spec agent for Stylo's Barber. Converts an approved plan into docs/specs/*.md.",
+      "permission": { "edit": "ask", "bash": "ask" }
+    },
+    "apply": {
+      "model": "opencode-go/kimi-k2.7-code",
+      "mode": "subagent",
+      "description": "Apply agent for Stylo's Barber. Implements an approved spec with minimal source changes.",
+      "permission": { "edit": "ask", "bash": "ask" }
+    },
+    "verify": {
+      "model": "opencode-go/muse-spark-1.3-contributor",
+      "mode": "subagent",
+      "description": "Verify agent for Stylo's Barber. Runs lint, typecheck, tests, and build; reports PASS/FAIL.",
+      "permission": {
+        "edit": "deny",
+        "bash": {
+          "*": "ask",
+          "npm run lint": "allow",
+          "npm run typecheck": "allow",
+          "npm test": "allow",
+          "npx tsc --noEmit": "allow",
+          "astro check": "allow",
+          "astro build": "allow"
+        }
+      }
+    }
+  }
+}

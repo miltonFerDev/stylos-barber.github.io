@@ -32,10 +32,12 @@ Ningún agente edita código fuente sin una auditoría / plan previo y, para App
 
 ## Modelos
 
-- `audit`, `plan`, `spec`: `opencode-go/glm-5.1`
-- `apply`: `opencode-go/kimi-k2.6`
-- `verify`: `opencode-go/deepseek-v4-pro`
-- `small_model`: `opencode-go/minimax-m2.7`
+- `model` (default) y `general`: `opencode-go/deepseek-v4-pro`
+- `audit`: `opencode-go/deepseek-v4-pro`
+- `plan`, `spec`: `opencode-go/glm-5.3`
+- `apply`: `opencode-go/kimi-k2.7-code`
+- `verify`: `opencode-go/muse-spark-1.3-contributor`
+- `small_model`: `opencode-go/muse-spark-1.3-contributor`
 
 ## Reinicio
 
