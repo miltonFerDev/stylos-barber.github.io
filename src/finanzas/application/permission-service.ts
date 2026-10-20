@@ -17,8 +17,10 @@ export class PermissionService {
   constructor(private readonly dependencies: PermissionServiceDependencies) {}
 
   async authorize(ctx: CommandContext, action: PermissionAction): Promise<Result<void>> {
-    const directRoles = await this.dependencies.roles.findUserRoles(ctx.actorUserId);
-    const delegatedRoles = await this.dependencies.roles.findActiveDelegations(ctx.actorUserId, ctx.now);
+    const [directRoles, delegatedRoles] = await Promise.all([
+      this.dependencies.roles.findUserRoles(ctx.actorUserId),
+      this.dependencies.roles.findActiveDelegations(ctx.actorUserId, ctx.now),
+    ]);
 
     const effectiveRoles = Array.from(new Set([...directRoles, ...delegatedRoles]));
 

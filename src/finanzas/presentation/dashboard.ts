@@ -17,10 +17,12 @@ export async function handleDashboard(container: FinanzasContainer, token: strin
 
     const ctx = commandContext(userId, crypto.randomUUID());
 
-    const availability = await container.reports.availabilityReport(ctx);
-    if (!availability.ok) return json(statusFor(availability.error.code), { error: availability.error.code });
+    const [availability, obligations] = await Promise.all([
+      container.reports.availabilityReport(ctx),
+      container.reports.obligationsReport(ctx),
+    ]);
 
-    const obligations = await container.reports.obligationsReport(ctx);
+    if (!availability.ok) return json(statusFor(availability.error.code), { error: availability.error.code });
     if (!obligations.ok) return json(statusFor(obligations.error.code), { error: obligations.error.code });
 
     return json(200, { availability: availability.value, obligations: obligations.value });
