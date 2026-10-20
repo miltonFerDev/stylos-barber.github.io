@@ -14,8 +14,10 @@ import {
   type IncomeStatementTotals,
   type ObligationBucket,
 } from '../domain/reports';
+import { exigibleOf, moneyToMinor } from '../domain/payments';
 import type { MasterRepository } from './master-data-service';
 import type { ObligationRepository } from './obligations-service';
+import type { PaymentApplicationRepository } from './payments-service';
 import type { Authorizer } from './permission-service';
 import type { CommandContext, Currency, Money, Result } from '../domain/types';
 
@@ -61,6 +63,19 @@ export type ObligationsReport = {
   currency: Currency;
 };
 
+export type PayableObligationLine = {
+  id: string;
+  concept: string;
+  dueDate: string;
+  pendingAmount: Money;
+  status: ObligationStatus;
+};
+
+export type PayableObligationsReport = {
+  lines: PayableObligationLine[];
+  currency: Currency;
+};
+
 export type AuditHistoryReport = {
   entityType: string;
   entityId: string;
@@ -85,6 +100,7 @@ export type ReportsServiceDependencies = {
   masters: MasterRepository;
   movements: AccountMovementRepository;
   obligations: ObligationRepository;
+  applications: PaymentApplicationRepository;
   auditHistory: AuditQueryRepository;
   journalEntries: JournalEntryQueryRepository;
   authorize: Authorizer;
@@ -165,6 +181,37 @@ export class ReportsService {
         currency: 'ARS',
       },
     };
+  }
+
+  async payableObligations(ctx: CommandContext): Promise<Result<PayableObligationsReport>> {
+    const authorized = await this.dependencies.authorize(ctx, 'VIEW_BALANCES');
+    if (!authorized.ok) return authorized;
+
+    const obligations = await this.dependencies.obligations.findAll();
+    const payable = obligations.filter(
+      (o) => o.status === 'PENDIENTE' || o.status === 'PROGRAMADA' || o.status === 'PARCIAL'
+    );
+
+    const applications = await this.dependencies.applications.findAll();
+    const appliedByObligation = new Map<string, bigint>();
+    for (const app of applications) {
+      const current = appliedByObligation.get(app.obligationId) ?? 0n;
+      appliedByObligation.set(app.obligationId, current + moneyToMinor(app.appliedAmount));
+    }
+
+    const lines: PayableObligationLine[] = payable.map((o) => {
+      const exigible = exigibleOf(o);
+      const pendingMinor = moneyToMinor(exigible) - (appliedByObligation.get(o.id) ?? 0n);
+      return {
+        id: o.id,
+        concept: o.concept,
+        dueDate: o.dueDate,
+        pendingAmount: minorToMoney(pendingMinor < 0n ? 0n : pendingMinor, exigible.currency),
+        status: o.status,
+      };
+    });
+
+    return { ok: true, value: { lines, currency: 'ARS' } };
   }
 
   async auditHistory(ctx: CommandContext, command: AuditHistoryCommand): Promise<Result<AuditHistoryReport>> {

@@ -40,6 +40,7 @@ export type PaymentRepository = {
 };
 
 export type PaymentApplicationRepository = {
+  findAll(): Promise<PaymentApplication[]>;
   findByObligation(obligationId: string): Promise<PaymentApplication[]>;
   save(application: PaymentApplication): Promise<PaymentApplication>;
 };

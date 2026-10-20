@@ -150,6 +150,9 @@ function createService(options?: {
   };
 
   const applications: PaymentApplicationRepository = {
+    async findAll() {
+      return savedApplications;
+    },
     async findByObligation(obligationId) {
       return savedApplications.filter(a => a.obligationId === obligationId);
     },

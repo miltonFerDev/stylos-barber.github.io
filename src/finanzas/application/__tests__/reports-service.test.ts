@@ -6,8 +6,10 @@ import type { AuditEvent } from '../../domain/audit';
 import type { ResultLine } from '../../domain/categories';
 import type { JournalEntry } from '../../domain/journal';
 import type { Obligation } from '../../domain/obligations';
+import type { PaymentApplication } from '../../domain/payments';
 import type { MasterRepository } from '../master-data-service';
 import type { ObligationRepository } from '../obligations-service';
+import type { PaymentApplicationRepository } from '../payments-service';
 import type { Authorizer } from '../permission-service';
 import type { CommandContext, UserId } from '../../domain/types';
 
@@ -230,12 +232,34 @@ function createService(options: { authorize?: Authorizer } = {}) {
     },
   };
 
+  const applications: PaymentApplication[] = [
+    {
+      id: 'app-1',
+      paymentId: 'pay-1',
+      obligationId: 'ob-1',
+      appliedAmount: { amount: '30.00', currency: 'ARS' },
+    },
+  ];
+
+  const applicationsRepo: PaymentApplicationRepository = {
+    async findAll() {
+      return applications;
+    },
+    async findByObligation(obligationId) {
+      return applications.filter((a) => a.obligationId === obligationId);
+    },
+    async save(application) {
+      return application;
+    },
+  };
+
   const authorize: Authorizer = options.authorize ?? (async () => ({ ok: true, value: undefined }));
 
   const service = new ReportsService({
     masters,
     movements,
     obligations: obligationsRepo,
+    applications: applicationsRepo,
     auditHistory,
     journalEntries: journalEntriesRepo,
     authorize,
@@ -282,6 +306,33 @@ describe('ReportsService.obligationsReport', () => {
     expect(result.value.byStatus.PAGADA?.count).toBe(1);
     expect(result.value.overdue.count).toBe(1);
     expect(result.value.overdue.totalMinor).toBe(10000n);
+  });
+});
+
+describe('ReportsService.payableObligations', () => {
+  it('lista solo pagables con saldo pendiente', async () => {
+    const { service } = createService();
+    const result = await service.payableObligations(ctx);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.lines).toHaveLength(2);
+    const ob1 = result.value.lines.find((l) => l.id === 'ob-1');
+    expect(ob1?.pendingAmount.amount).toBe('70.00');
+    const ob3 = result.value.lines.find((l) => l.id === 'ob-3');
+    expect(ob3).toBeUndefined();
+  });
+
+  it('rechaza sin permiso', async () => {
+    const denied: Authorizer = async () => ({
+      ok: false,
+      error: { code: 'PERMISSION_DENIED', message: 'Sin permiso.', recoverable: false },
+    });
+    const { service } = createService({ authorize: denied });
+
+    const result = await service.payableObligations(ctx);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('PERMISSION_DENIED');
   });
 });
 

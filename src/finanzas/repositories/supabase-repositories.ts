@@ -473,6 +473,11 @@ export class SupabasePaymentRepository implements PaymentRepository {
 export class SupabasePaymentApplicationRepository implements PaymentApplicationRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
+  async findAll() {
+    const { data } = await this.supabase.from('payment_applications').select('*');
+    return (data ?? []).map((a) => mapPaymentApplication(a as DbRow));
+  }
+
   async findByObligation(obligationId: string) {
     const { data } = await this.supabase.from('payment_applications').select('*').eq('obligation_id', obligationId);
     return (data ?? []).map((a) => mapPaymentApplication(a as DbRow));

@@ -1,7 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AccountingPeriodRepository } from '../application/journal-service';
+import { JournalService } from '../application/journal-service';
 import type { MasterRepository } from '../application/master-data-service';
 import { ObligationsService } from '../application/obligations-service';
+import { PaymentsService } from '../application/payments-service';
 import { PermissionService, type Authorizer, type RoleRepository } from '../application/permission-service';
 import { ReportsService } from '../application/reports-service';
 import { createServerSupabaseClient } from '../repositories/supabase-server';
@@ -11,8 +13,11 @@ import {
   SupabaseAuditQueryRepository,
   SupabaseAuditRecorder,
   SupabaseJournalEntryQueryRepository,
+  SupabaseJournalEntryRepository,
   SupabaseMasterRepository,
   SupabaseObligationRepository,
+  SupabasePaymentApplicationRepository,
+  SupabasePaymentRepository,
   SupabaseRoleRepository,
 } from '../repositories/supabase-repositories';
 
@@ -22,6 +27,7 @@ export type FinanzasContainer = {
   authorize: Authorizer;
   reports: ReportsService;
   obligations: ObligationsService;
+  payments: PaymentsService;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
 };
@@ -41,11 +47,14 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
   const periods = new SupabaseAccountingPeriodRepository(supabase);
   const obligationsRepo = new SupabaseObligationRepository(supabase);
   const audit = new SupabaseAuditRecorder(supabase);
+  const movements = new SupabaseAccountMovementRepository(supabase);
+  const applicationsRepo = new SupabasePaymentApplicationRepository(supabase);
 
   const reports = new ReportsService({
     masters,
-    movements: new SupabaseAccountMovementRepository(supabase),
+    movements,
     obligations: obligationsRepo,
+    applications: applicationsRepo,
     auditHistory: new SupabaseAuditQueryRepository(supabase),
     journalEntries: new SupabaseJournalEntryQueryRepository(supabase),
     authorize,
@@ -60,5 +69,25 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     createId: () => crypto.randomUUID(),
   });
 
-  return { supabase, roles, authorize, reports, obligations, masters, periods };
+  const journal = new JournalService({
+    periods,
+    entries: new SupabaseJournalEntryRepository(supabase),
+    createId: () => crypto.randomUUID(),
+    audit,
+  });
+
+  const payments = new PaymentsService({
+    payments: new SupabasePaymentRepository(supabase),
+    applications: applicationsRepo,
+    movements,
+    obligations: obligationsRepo,
+    masters,
+    periods,
+    journal,
+    authorize,
+    audit,
+    createId: () => crypto.randomUUID(),
+  });
+
+  return { supabase, roles, authorize, reports, obligations, payments, masters, periods };
 }

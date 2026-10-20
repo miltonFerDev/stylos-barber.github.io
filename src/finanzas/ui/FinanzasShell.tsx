@@ -9,8 +9,11 @@ const AgendaTesorería = lazy(() =>
 const AltaObligacion = lazy(() =>
   import('./AltaObligacion').then((m) => ({ default: m.AltaObligacion }))
 );
+const RegistrarPago = lazy(() =>
+  import('./RegistrarPago').then((m) => ({ default: m.RegistrarPago }))
+);
 
-type View = 'tablero' | 'agenda' | 'nueva';
+type View = 'tablero' | 'agenda' | 'nueva' | 'pagar';
 
 function TabButton({
   active,
@@ -81,6 +84,9 @@ export function FinanzasShell() {
               <TabButton active={view === 'nueva'} onClick={() => setView('nueva')}>
                 Nueva
               </TabButton>
+              <TabButton active={view === 'pagar'} onClick={() => setView('pagar')}>
+                Pagar
+              </TabButton>
             </div>
           </div>
           <button
@@ -97,8 +103,10 @@ export function FinanzasShell() {
           <TableroDireccion />
         ) : view === 'agenda' ? (
           <AgendaTesorería />
-        ) : (
+        ) : view === 'nueva' ? (
           <AltaObligacion />
+        ) : (
+          <RegistrarPago />
         )}
       </Suspense>
     </div>
