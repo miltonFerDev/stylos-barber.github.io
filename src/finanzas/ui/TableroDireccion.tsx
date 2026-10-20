@@ -25,18 +25,18 @@ export function TableroDireccion() {
   const { status, data } = useFinanzasFetch<DashboardData>('/api/finanzas/dashboard');
 
   if (status === 'loading') {
-    return <div className="p-8 text-center text-textMuted">Cargando tablero…</div>;
+    return <div className="p-8 text-center text-finMuted">Cargando tablero…</div>;
   }
   if (status === 'unauthenticated') {
     return (
       <div className="p-8 text-center">
-        <p className="text-lg text-textLight mb-2">Finanzas de Stylo's Barber</p>
-        <p className="text-textMuted">Iniciá sesión para ver el tablero.</p>
+        <p className="mb-2 text-lg text-finText">Finanzas de Stylo's Barber</p>
+        <p className="text-finMuted">Iniciá sesión para ver el tablero.</p>
       </div>
     );
   }
   if (status === 'error' || !data) {
-    return <div className="p-8 text-center text-cupOrange">No se pudo cargar el tablero.</div>;
+    return <div className="p-8 text-center text-finDanger">No se pudo cargar el tablero.</div>;
   }
 
   const { availability, obligations } = data;
@@ -45,28 +45,31 @@ export function TableroDireccion() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold text-textLight">Tablero · Dirección</h1>
-        <p className="mt-1 text-sm text-textMuted">Disponibilidad y obligaciones</p>
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold text-finText">Tablero</h1>
+        <p className="mt-1 text-base text-finMuted">Disponibilidad y obligaciones</p>
       </header>
 
       <section className="mb-8">
-        <h2 className="mb-3 text-lg font-semibold text-textLight">Disponibilidad</h2>
-        <div className="rounded-card border border-accentMuted bg-surface p-6">
-          <p className="text-3xl font-bold text-cupGreen">
+        <h2 className="mb-3 text-lg font-semibold text-finText">Disponibilidad</h2>
+        <div className="rounded-xl border border-finBorder bg-finSurface p-5">
+          <p className="text-4xl font-bold text-finPositive">
             {formatMoney(availability.totalAvailable)}
           </p>
-          <p className="mt-1 text-sm text-textMuted">Total disponible</p>
+          <p className="mt-1 text-base text-finMuted">Total disponible</p>
         </div>
-        <ul className="mt-4 space-y-2">
+
+        <ul className="mt-3 space-y-2">
           {availability.lines.map((line) => (
             <li
               key={line.accountId}
-              className="flex items-center justify-between rounded-xl bg-surface px-4 py-3"
+              className="flex min-h-12 flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl border border-finBorder bg-finSurface px-4 py-3"
             >
-              <span className="text-textLight">{line.name}</span>
-              <span className={line.isAvailable ? 'text-textLight' : 'text-textMuted'}>
+              <span className="min-w-0 break-words text-base font-medium text-finText">
+                {line.name}
+              </span>
+              <span className={line.isAvailable ? 'text-finText' : 'text-finMuted'}>
                 {formatMoney(line.balance)}
               </span>
             </li>
@@ -75,21 +78,21 @@ export function TableroDireccion() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold text-textLight">Obligaciones</h2>
+        <h2 className="mb-3 text-lg font-semibold text-finText">Obligaciones</h2>
         {overdueFirst.length === 0 ? (
-          <p className="text-textMuted">Sin obligaciones cargadas.</p>
+          <p className="text-finMuted">Sin obligaciones cargadas.</p>
         ) : (
           <ul className="space-y-2">
             {overdueFirst.map((o) => (
               <li
                 key={o.id}
-                className="flex items-center justify-between rounded-xl bg-surface px-4 py-3"
+                className="flex min-h-12 flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl border border-finBorder bg-finSurface px-4 py-3"
               >
-                <div>
-                  <p className="text-textLight">{o.concept}</p>
-                  <p className="text-xs text-textMuted">{formatDate(o.dueDate)}</p>
+                <div className="min-w-0">
+                  <p className="break-words text-base font-medium text-finText">{o.concept}</p>
+                  <p className="text-base text-finMuted">{formatDate(o.dueDate)}</p>
                 </div>
-                <span className={o.isOverdue ? 'font-semibold text-cupOrange' : 'text-textLight'}>
+                <span className={o.isOverdue ? 'font-semibold text-finDanger' : 'text-finText'}>
                   {formatMoney(o.amount)}
                 </span>
               </li>

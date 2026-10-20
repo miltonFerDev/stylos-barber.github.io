@@ -20,14 +20,14 @@ function labelOf(m: { id: string; displayName?: string; name?: string }): string
 function field(label: string, children: React.ReactNode) {
   return (
     <div>
-      <label className="mb-1 block text-sm text-textMuted">{label}</label>
+      <label className="mb-1 block text-base font-medium text-finText">{label}</label>
       {children}
     </div>
   );
 }
 
 const inputClass =
-  'w-full rounded-lg border border-accentMuted bg-surface px-3 py-2 text-textLight';
+  'w-full rounded-lg border border-finBorder bg-finSurface px-4 py-3 text-base text-finText placeholder:text-finMuted focus:border-finAccent focus:outline-none';
 
 export function AltaObligacion() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -119,21 +119,21 @@ export function AltaObligacion() {
   }
 
   if (status === 'loading') {
-    return <div className="p-8 text-center text-textMuted">Cargando formulario…</div>;
+    return <div className="p-8 text-center text-finMuted">Cargando formulario…</div>;
   }
   if (status === 'error' || !maestros) {
-    return <div className="p-8 text-center text-cupOrange">No se pudo cargar el formulario.</div>;
+    return <div className="p-8 text-center text-finDanger">No se pudo cargar el formulario.</div>;
   }
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-10">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold text-textLight">Nueva obligación</h1>
-        <p className="mt-1 text-sm text-textMuted">Cargá un compromiso de pago</p>
+    <div className="mx-auto max-w-xl px-4 py-8">
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold text-finText">Nueva obligación</h1>
+        <p className="mt-1 text-base text-finMuted">Cargá un compromiso de pago</p>
       </header>
 
       {success && (
-        <p className="mb-4 rounded-lg bg-cupGreen/10 px-4 py-3 text-sm text-cupGreen">
+        <p className="mb-4 rounded-lg bg-finPositive/10 px-4 py-3 text-base text-finPositive">
           Obligación creada. Miralá en la agenda.
         </p>
       )}
@@ -149,7 +149,7 @@ export function AltaObligacion() {
           />
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {field(
             'Monto',
             <input
@@ -174,7 +174,7 @@ export function AltaObligacion() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {field(
             'Pago esperado (opcional)',
             <input
@@ -264,21 +264,26 @@ export function AltaObligacion() {
           </select>
         )}
 
-        <label className="flex items-center gap-2 text-sm text-textMuted">
+        <label className="flex items-center gap-2 text-base text-finText">
           <input
             type="checkbox"
             checked={isEstimated}
             onChange={(e) => setIsEstimated(e.target.checked)}
+            className="h-5 w-5"
           />
           Importe estimado
         </label>
 
-        {error && <p className="text-sm text-cupOrange">{error}</p>}
+        {error && (
+          <p role="alert" className="rounded-lg bg-finDanger/10 px-3 py-2 text-base text-finDanger">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-accent py-2.5 font-semibold text-white transition-colors hover:bg-accentHover disabled:opacity-50"
+          className="min-h-12 w-full rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-finAccentHover disabled:opacity-50"
         >
           {submitting ? 'Guardando…' : 'Guardar obligación'}
         </button>

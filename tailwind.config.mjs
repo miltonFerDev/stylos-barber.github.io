@@ -27,6 +27,16 @@ export default {
 				cupYellow: '#FFD84D',
 				cupPurple: '#7657FF',
 				cupGold: '#D4AF37',
+				// Design system de finanzas (paleta propia, alto contraste)
+				finBg: '#F5F7FA',
+				finSurface: '#FFFFFF',
+				finBorder: '#E2E8F0',
+				finText: '#0F172A',
+				finMuted: '#475569',
+				finAccent: '#0F766E',
+				finAccentHover: '#115E59',
+				finPositive: '#15803D',
+				finDanger: '#B91C1C',
 			},
 			keyframes: {
 				fadeUp: {

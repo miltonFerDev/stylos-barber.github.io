@@ -20,8 +20,11 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
-        active ? 'bg-accent text-white' : 'text-textMuted hover:text-textLight'
+      aria-current={active ? 'page' : undefined}
+      className={`min-h-12 rounded-lg px-4 text-base font-semibold transition-colors ${
+        active
+          ? 'bg-finAccent text-white'
+          : 'text-finMuted hover:bg-finBorder/60 hover:text-finText'
       }`}
     >
       {children}
@@ -51,7 +54,7 @@ export function FinanzasShell() {
   }, []);
 
   if (session === null) {
-    return <div className="p-8 text-center text-textMuted">Cargando…</div>;
+    return <div className="p-8 text-center text-finMuted">Cargando…</div>;
   }
   if (session === false) {
     return <Login />;
@@ -59,11 +62,11 @@ export function FinanzasShell() {
 
   return (
     <div className="min-h-screen">
-      <nav className="border-b border-accentMuted bg-surface">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
-          <div className="flex items-center gap-4">
-            <span className="font-bold text-textLight">Finanzas</span>
-            <div className="flex gap-1">
+      <nav className="border-b border-finBorder bg-finSurface">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-lg font-bold text-finText">Finanzas</span>
+            <div className="flex flex-wrap gap-1">
               <TabButton active={view === 'tablero'} onClick={() => setView('tablero')}>
                 Tablero
               </TabButton>
@@ -78,7 +81,7 @@ export function FinanzasShell() {
           <button
             type="button"
             onClick={() => finanzasSupabase.auth.signOut()}
-            className="text-sm text-textMuted transition-colors hover:text-textLight"
+            className="min-h-12 rounded-lg px-3 text-base font-semibold text-finMuted transition-colors hover:text-finDanger"
           >
             Salir
           </button>
