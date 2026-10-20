@@ -79,6 +79,19 @@ const masters: Master[] = [
     createdAt: ctx.now,
     createdBy: userId,
   },
+  {
+    id: 'rl-ing',
+    entityType: 'RESULT_LINE',
+    code: 'RL-ING',
+    name: 'Ingresos servicios',
+    nature: 'INGRESO',
+    order: 2,
+    ledgerAccountId: '4.1',
+    validFrom: '2026-01-01',
+    validTo: null,
+    createdAt: ctx.now,
+    createdBy: userId,
+  },
 ];
 
 function makeObligation(id: string, finalAmount: string): Obligation {
@@ -420,5 +433,22 @@ describe('PaymentsService.registerPayment', () => {
     expect(savedEntries[0].lines).toHaveLength(2);
     expect(savedEntries[0].lines[0].ledgerAccountId).toBe('5.6');
     expect(savedEntries[0].lines[1].ledgerAccountId).toBe('1.1.1');
+  });
+
+  it('rechaza egreso directo a linea de resultado de ingreso', async () => {
+    const { service } = createService();
+
+    const result = await service.registerPayment(ctx, {
+      accountId: 'acc-1',
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+      amount: { amount: '500.00', currency: 'ARS' },
+      applications: [],
+      concept: 'Cobro indebido',
+      resultLineId: 'rl-ing',
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('VALIDATION_FAILED');
   });
 });

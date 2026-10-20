@@ -211,6 +211,15 @@ export class PaymentsService {
           }),
         };
       }
+      if (resultLine.nature !== 'COSTO' && resultLine.nature !== 'GASTO') {
+        return {
+          ok: false,
+          error: domainError('VALIDATION_FAILED', 'La linea de resultado de un egreso debe ser de costo o gasto.', true, {
+            resultLineId: resultLine.id,
+            nature: resultLine.nature,
+          }),
+        };
+      }
       debitLines.push({
         ledgerAccountId: resultLine.ledgerAccountId,
         debit: command.amount,

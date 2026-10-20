@@ -26,22 +26,32 @@ export async function handlePendientes(container: FinanzasContainer, token: stri
     return json(status, { error: payable.error.code });
   }
 
-  const [accounts, periods] = await Promise.all([
+  const [accounts, resultLines, periods] = await Promise.all([
     container.masters.findAll('ACCOUNT'),
+    container.masters.findAll('RESULT_LINE'),
     container.periods.findAll(),
   ]);
 
   const payableAccounts = accounts.filter(
     (m) => m.entityType === 'ACCOUNT' && m.ownership === 'PROPIA' && m.isAvailable && m.isReconcilable
   );
+  const expenseLines = resultLines.filter(
+    (m) => m.entityType === 'RESULT_LINE' && (m.nature === 'COSTO' || m.nature === 'GASTO')
+  );
 
-  return json(200, { obligations: payable.value, accounts: payableAccounts, periods: periods.filter(isPeriodOpen) });
+  return json(200, {
+    obligations: payable.value,
+    accounts: payableAccounts,
+    periods: periods.filter(isPeriodOpen),
+    resultLines: expenseLines,
+  });
 }
 
 /**
- * Registro de un pago aplicado: parsea el body, delega en PaymentsService y
- * mapea el Result. La validación real (cuenta disponible, período abierto,
- * suma de aplicaciones = monto, no sobrepagar) vive en el servicio.
+ * Registro de un pago: aplicado a obligaciones o egreso directo (concepto +
+ * línea de resultado). Parseo del body, delega en PaymentsService y mapea el
+ * Result. La validación real (cuenta disponible, período abierto, suma de
+ * aplicaciones = monto, no sobrepagar) vive en el servicio.
  */
 export async function handleRegisterPago(
   container: FinanzasContainer,
@@ -60,6 +70,8 @@ export async function handleRegisterPago(
     effectiveDate: String(b.effectiveDate ?? ''),
     periodId: String(b.periodId ?? ''),
     amount: toMoney(b.amount),
+    concept: String(b.concept ?? ''),
+    resultLineId: String(b.resultLineId ?? ''),
     applications: (Array.isArray(b.applications) ? b.applications : []).map((app) => {
       const a = (app ?? {}) as Record<string, unknown>;
       return {
