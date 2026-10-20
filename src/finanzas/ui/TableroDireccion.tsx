@@ -25,6 +25,11 @@ type DashboardData = { availability: AvailabilityReport; obligations: Obligation
 export function TableroDireccion() {
   const { status, data } = useFinanzasFetch<DashboardData>('/api/finanzas/dashboard');
 
+  const overdueFirst = useMemo(() => {
+    if (!data) return [];
+    return [...data.obligations.lines].sort((a, b) => Number(b.isOverdue) - Number(a.isOverdue));
+  }, [data]);
+
   if (status === 'loading') {
     return <div className="p-8 text-center text-finMuted">Cargando tablero…</div>;
   }
@@ -41,10 +46,6 @@ export function TableroDireccion() {
   }
 
   const { availability, obligations } = data;
-  const overdueFirst = useMemo(
-    () => [...obligations.lines].sort((a, b) => Number(b.isOverdue) - Number(a.isOverdue)),
-    [obligations.lines]
-  );
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">

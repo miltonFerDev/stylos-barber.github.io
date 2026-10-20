@@ -58,6 +58,15 @@ type AgendaData = { obligations: ObligationsReport };
 export function AgendaTesorería() {
   const { status, data } = useFinanzasFetch<AgendaData>('/api/finanzas/agenda');
 
+  const { vencidas, proximas } = useMemo(() => {
+    if (!data) return { vencidas: [], proximas: [] };
+    const active = sortAgenda(data.obligations.lines.filter((o) => ACTIVE_STATUSES.has(o.status)));
+    return {
+      vencidas: active.filter((o) => o.isOverdue),
+      proximas: active.filter((o) => !o.isOverdue),
+    };
+  }, [data]);
+
   if (status === 'loading') {
     return <div className="p-8 text-center text-finMuted">Cargando agenda…</div>;
   }
@@ -72,14 +81,6 @@ export function AgendaTesorería() {
   if (status === 'error' || !data) {
     return <div className="p-8 text-center text-finDanger">No se pudo cargar la agenda.</div>;
   }
-
-  const { vencidas, proximas } = useMemo(() => {
-    const active = sortAgenda(data.obligations.lines.filter((o) => ACTIVE_STATUSES.has(o.status)));
-    return {
-      vencidas: active.filter((o) => o.isOverdue),
-      proximas: active.filter((o) => !o.isOverdue),
-    };
-  }, [data]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
