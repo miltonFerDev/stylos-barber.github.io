@@ -25,6 +25,12 @@ const ctx: CommandContext = {
   now: '2026-10-13T12:00:00.000Z',
 };
 
+const reversalCtx: CommandContext = {
+  actorUserId: userId,
+  idempotencyKey: 'rev-1',
+  now: '2026-10-14T12:00:00.000Z',
+};
+
 const openPeriod: AccountingPeriod = {
   id: 'period-1',
   code: '2026-10',
@@ -156,18 +162,34 @@ function createService(options?: {
     async findByIdempotencyKey(key) {
       return savedPayments.find(p => p.idempotencyKey === key) ?? null;
     },
+    async findById(id) {
+      return savedPayments.find(p => p.id === id) ?? null;
+    },
     async save(payment) {
       savedPayments.push(payment);
+      return payment;
+    },
+    async update(payment) {
+      const index = savedPayments.findIndex(p => p.id === payment.id);
+      if (index >= 0) savedPayments[index] = payment;
       return payment;
     },
   };
 
   const applications: PaymentApplicationRepository = {
     async findAll() {
-      return savedApplications;
+      return savedApplications.filter(a => !a.reversedAt);
     },
     async findByObligation(obligationId) {
-      return savedApplications.filter(a => a.obligationId === obligationId);
+      return savedApplications.filter(a => a.obligationId === obligationId && !a.reversedAt);
+    },
+    async findByPayment(paymentId) {
+      return savedApplications.filter(a => a.paymentId === paymentId);
+    },
+    async markReversedByPayment(paymentId, reversedAt) {
+      for (const app of savedApplications) {
+        if (app.paymentId === paymentId) app.reversedAt = reversedAt;
+      }
     },
     async save(application) {
       savedApplications.push(application);
@@ -224,6 +246,11 @@ function createService(options?: {
     async findReversalForEntry(id) {
       return savedEntries.find(e => e.reversesEntryId === id) ?? null;
     },
+    async findBySourceDocument(sourceDocumentType, sourceDocumentId) {
+      return savedEntries.find(
+        e => e.sourceDocumentType === sourceDocumentType && e.sourceDocumentId === sourceDocumentId && !e.reversesEntryId
+      ) ?? null;
+    },
     async save(entry) {
       savedEntries.push(entry);
       return entry;
@@ -254,6 +281,7 @@ function createService(options?: {
       masters: masterRepository,
       periods,
       journal,
+      journalEntries,
       authorize,
       audit,
       createId,
@@ -450,5 +478,167 @@ describe('PaymentsService.registerPayment', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('VALIDATION_FAILED');
+  });
+});
+
+describe('PaymentsService.reversePayment', () => {
+  it('revierte un pago aplicado total y devuelve la obligacion a PENDIENTE', async () => {
+    const { service, savedObligations, savedPayments, savedMovements, savedEntries } = createService();
+
+    const reg = await service.registerPayment(ctx, {
+      accountId: 'acc-1',
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+      amount: { amount: '1000.00', currency: 'ARS' },
+      applications: [{ obligationId: 'obl-1', appliedAmount: { amount: '1000.00', currency: 'ARS' } }],
+    });
+    expect(reg.ok).toBe(true);
+    if (!reg.ok) return;
+    expect(savedObligations[0].status).toBe('PAGADA');
+
+    const result = await service.reversePayment(reversalCtx, {
+      paymentId: reg.value.id,
+      reason: 'Error de importe',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.status).toBe('REVERTIDO');
+    expect(savedPayments[0].status).toBe('REVERTIDO');
+    expect(savedObligations[0].status).toBe('PENDIENTE');
+
+    expect(savedMovements).toHaveLength(2);
+    expect(savedMovements[1].direction).toBe('IN');
+    expect(savedMovements[1].sourceDocumentType).toBe('payment_reversal');
+
+    expect(savedEntries).toHaveLength(2);
+    expect(savedEntries[1].reversesEntryId).toBe(savedEntries[0].id);
+  });
+
+  it('revierte un pago y deja la obligacion PARCIAL si quedan aplicaciones', async () => {
+    const { service, savedObligations } = createService();
+
+    await service.registerPayment(ctx, {
+      accountId: 'acc-1',
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+      amount: { amount: '400.00', currency: 'ARS' },
+      applications: [{ obligationId: 'obl-1', appliedAmount: { amount: '400.00', currency: 'ARS' } }],
+    });
+
+    const secondCtx: CommandContext = { actorUserId: userId, idempotencyKey: 'pay-2', now: '2026-10-13T13:00:00.000Z' };
+    const reg2 = await service.registerPayment(secondCtx, {
+      accountId: 'acc-1',
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+      amount: { amount: '600.00', currency: 'ARS' },
+      applications: [{ obligationId: 'obl-1', appliedAmount: { amount: '600.00', currency: 'ARS' } }],
+    });
+    expect(reg2.ok).toBe(true);
+    if (!reg2.ok) return;
+    expect(savedObligations[0].status).toBe('PAGADA');
+
+    const result = await service.reversePayment(reversalCtx, {
+      paymentId: reg2.value.id,
+      reason: 'x',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(savedObligations[0].status).toBe('PARCIAL');
+  });
+
+  it('revierte un egreso directo sin obligaciones', async () => {
+    const { service, savedMovements, savedEntries } = createService();
+
+    const reg = await service.registerPayment(ctx, {
+      accountId: 'acc-1',
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+      amount: { amount: '500.00', currency: 'ARS' },
+      applications: [],
+      concept: 'Compra de insumos',
+      resultLineId: 'rl-1',
+    });
+    expect(reg.ok).toBe(true);
+    if (!reg.ok) return;
+
+    const result = await service.reversePayment(reversalCtx, {
+      paymentId: reg.value.id,
+      reason: 'x',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.status).toBe('REVERTIDO');
+    expect(savedMovements).toHaveLength(2);
+    expect(savedMovements[1].direction).toBe('IN');
+    expect(savedEntries).toHaveLength(2);
+  });
+
+  it('rechaza una segunda reversión con REVERSAL_ALREADY_EXISTS', async () => {
+    const { service } = createService();
+
+    const reg = await service.registerPayment(ctx, {
+      accountId: 'acc-1',
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+      amount: { amount: '1000.00', currency: 'ARS' },
+      applications: [{ obligationId: 'obl-1', appliedAmount: { amount: '1000.00', currency: 'ARS' } }],
+    });
+    expect(reg.ok).toBe(true);
+    if (!reg.ok) return;
+
+    const command = { paymentId: reg.value.id, reason: 'x', reversalDate: '2026-10-14', periodId: 'period-1' };
+    const first = await service.reversePayment(reversalCtx, command);
+    expect(first.ok).toBe(true);
+
+    const second = await service.reversePayment(reversalCtx, command);
+    expect(second.ok).toBe(false);
+    if (!second.ok) expect(second.error.code).toBe('REVERSAL_ALREADY_EXISTS');
+  });
+
+  it('devuelve PAYMENT_NOT_FOUND si el pago no existe', async () => {
+    const { service } = createService();
+    const result = await service.reversePayment(ctx, {
+      paymentId: 'missing',
+      reason: 'x',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('PAYMENT_NOT_FOUND');
+  });
+
+  it('devuelve MISSING_REASON sin motivo', async () => {
+    const { service } = createService();
+    const result = await service.reversePayment(ctx, {
+      paymentId: 'any',
+      reason: '   ',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('MISSING_REASON');
+  });
+
+  it('rechaza sin permiso', async () => {
+    const denied: Authorizer = async () => ({
+      ok: false,
+      error: { code: 'PERMISSION_DENIED', message: 'x', recoverable: false },
+    });
+    const { service } = createService({ authorize: denied });
+    const result = await service.reversePayment(ctx, {
+      paymentId: 'any',
+      reason: 'x',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('PERMISSION_DENIED');
   });
 });

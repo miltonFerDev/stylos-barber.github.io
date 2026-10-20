@@ -9,11 +9,12 @@ import {
   exigibleOf,
   moneyToMinor,
   nextObligationStatus,
+  statusAfterApplied,
   sumAppliedMinor,
   type Payment,
   type PaymentApplication,
 } from '../domain/payments';
-import type { AccountingPeriodRepository, JournalService } from './journal-service';
+import type { AccountingPeriodRepository, JournalEntryRepository, JournalService } from './journal-service';
 import type { MasterRepository } from './master-data-service';
 import type { ObligationRepository } from './obligations-service';
 import type { Authorizer } from './permission-service';
@@ -34,15 +35,26 @@ export type RegisterPaymentCommand = {
   resultLineId?: string;
 };
 
+export type ReversePaymentCommand = {
+  paymentId: string;
+  reason: string;
+  reversalDate: string;
+  periodId: string;
+};
+
 export type PaymentRepository = {
   findByIdempotencyKey(key: string): Promise<Payment | null>;
+  findById(id: string): Promise<Payment | null>;
   save(payment: Payment): Promise<Payment>;
+  update(payment: Payment): Promise<Payment>;
 };
 
 export type PaymentApplicationRepository = {
   findAll(): Promise<PaymentApplication[]>;
   findByObligation(obligationId: string): Promise<PaymentApplication[]>;
+  findByPayment(paymentId: string): Promise<PaymentApplication[]>;
   save(application: PaymentApplication): Promise<PaymentApplication>;
+  markReversedByPayment(paymentId: string, reversedAt: string): Promise<void>;
 };
 
 export type { AccountMovementRepository };
@@ -54,7 +66,8 @@ export type PaymentsServiceDependencies = {
   obligations: ObligationRepository;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
-  journal: Pick<JournalService, 'postEntry'>;
+  journal: Pick<JournalService, 'postEntry' | 'reverseEntry'>;
+  journalEntries: Pick<JournalEntryRepository, 'findBySourceDocument'>;
   authorize: Authorizer;
   audit: AuditRecorder;
   createId: () => string;
@@ -304,5 +317,94 @@ export class PaymentsService {
     });
 
     return { ok: true, value: payment };
+  }
+
+  async reversePayment(ctx: CommandContext, command: ReversePaymentCommand): Promise<Result<Payment>> {
+    const authorized = await this.dependencies.authorize(ctx, 'REVERSE_PAYMENT');
+    if (!authorized.ok) return authorized;
+
+    if (command.reason.trim().length === 0) {
+      return {
+        ok: false,
+        error: domainError('MISSING_REASON', 'La reversión requiere un motivo.', true),
+      };
+    }
+
+    const payment = await this.dependencies.payments.findById(command.paymentId);
+    if (!payment) {
+      return {
+        ok: false,
+        error: domainError('PAYMENT_NOT_FOUND', 'El pago no existe.', true, { paymentId: command.paymentId }),
+      };
+    }
+
+    if (payment.status !== 'CONFIRMADO') {
+      const code = payment.status === 'REVERTIDO' ? 'REVERSAL_ALREADY_EXISTS' : 'INVALID_PAYMENT_STATE';
+      return {
+        ok: false,
+        error: domainError(code, 'El pago no se puede revertir en su estado actual.', true, {
+          paymentId: payment.id,
+          status: payment.status,
+        }),
+      };
+    }
+
+    const entry = await this.dependencies.journalEntries.findBySourceDocument('payment', payment.id);
+    if (!entry) {
+      return {
+        ok: false,
+        error: domainError('ENTRY_NOT_FOUND', 'El asiento del pago no existe.', true, { paymentId: payment.id }),
+      };
+    }
+
+    const reversalEntry = await this.dependencies.journal.reverseEntry(ctx, {
+      originalEntryId: entry.id,
+      periodId: command.periodId,
+      entryDate: command.reversalDate,
+      reason: command.reason.trim(),
+    });
+    if (!reversalEntry.ok) return reversalEntry;
+
+    await this.dependencies.movements.save({
+      id: this.dependencies.createId(),
+      accountId: payment.accountId,
+      effectiveDate: command.reversalDate,
+      amount: payment.amount,
+      direction: 'IN',
+      sourceDocumentType: 'payment_reversal',
+      sourceDocumentId: payment.id,
+      journalEntryId: reversalEntry.value.id,
+      idempotencyKey: ctx.idempotencyKey,
+      createdAt: ctx.now,
+    });
+
+    const applications = await this.dependencies.applications.findByPayment(payment.id);
+    await this.dependencies.applications.markReversedByPayment(payment.id, ctx.now);
+
+    for (const app of applications) {
+      const obligation = await this.dependencies.obligations.findById(app.obligationId);
+      if (!obligation) continue;
+
+      const activeApps = await this.dependencies.applications.findByObligation(obligation.id);
+      const totalMinor = sumAppliedMinor(activeApps.map(e => e.appliedAmount));
+      const exigibleMinor = moneyToMinor(exigibleOf(obligation));
+
+      const updated: Obligation = { ...obligation, status: statusAfterApplied(totalMinor, exigibleMinor) };
+      await this.dependencies.obligations.update(updated);
+    }
+
+    const updatedPayment: Payment = { ...payment, status: 'REVERTIDO' };
+    await this.dependencies.payments.update(updatedPayment);
+
+    await this.dependencies.audit.record({
+      entityType: 'payment',
+      entityId: payment.id,
+      action: 'PAYMENT_REVERSED',
+      actorUserId: ctx.actorUserId,
+      occurredAt: ctx.now,
+      reason: command.reason.trim(),
+    });
+
+    return { ok: true, value: updatedPayment };
   }
 }

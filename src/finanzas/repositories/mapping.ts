@@ -272,6 +272,7 @@ export function mapPaymentApplication(row: DbRow): PaymentApplication {
     paymentId: String(row.payment_id),
     obligationId: String(row.obligation_id),
     appliedAmount: dbToMoney(row.applied_amount, row.currency as Currency),
+    reversedAt: row.reversed_at == null ? null : String(row.reversed_at),
   };
 }
 

@@ -204,6 +204,17 @@ export class SupabaseJournalEntryRepository implements JournalEntryRepository {
     return data ? this.hydrate(data as DbRow) : null;
   }
 
+  async findBySourceDocument(sourceDocumentType: string, sourceDocumentId: string) {
+    const { data } = await this.supabase
+      .from('journal_entries')
+      .select('*')
+      .eq('source_document_type', sourceDocumentType)
+      .eq('source_document_id', sourceDocumentId)
+      .is('reverses_entry_id', null)
+      .maybeSingle();
+    return data ? this.hydrate(data as DbRow) : null;
+  }
+
   async save(entry: JournalEntry) {
     const p_entry = {
       id: entry.id,
@@ -452,6 +463,11 @@ export class SupabasePaymentRepository implements PaymentRepository {
     return data ? mapPayment(data as DbRow) : null;
   }
 
+  async findById(id: string) {
+    const { data } = await this.supabase.from('payments').select('*').eq('id', id).maybeSingle();
+    return data ? mapPayment(data as DbRow) : null;
+  }
+
   async save(payment: Payment) {
     await this.supabase.from('payments').insert({
       id: payment.id,
@@ -468,19 +484,37 @@ export class SupabasePaymentRepository implements PaymentRepository {
     });
     return payment;
   }
+
+  async update(payment: Payment) {
+    await this.supabase.from('payments').update({ status: payment.status }).eq('id', payment.id);
+    return payment;
+  }
 }
 
 export class SupabasePaymentApplicationRepository implements PaymentApplicationRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
   async findAll() {
-    const { data } = await this.supabase.from('payment_applications').select('*');
+    const { data } = await this.supabase.from('payment_applications').select('*').is('reversed_at', null);
     return (data ?? []).map((a) => mapPaymentApplication(a as DbRow));
   }
 
   async findByObligation(obligationId: string) {
-    const { data } = await this.supabase.from('payment_applications').select('*').eq('obligation_id', obligationId);
+    const { data } = await this.supabase
+      .from('payment_applications')
+      .select('*')
+      .eq('obligation_id', obligationId)
+      .is('reversed_at', null);
     return (data ?? []).map((a) => mapPaymentApplication(a as DbRow));
+  }
+
+  async findByPayment(paymentId: string) {
+    const { data } = await this.supabase.from('payment_applications').select('*').eq('payment_id', paymentId);
+    return (data ?? []).map((a) => mapPaymentApplication(a as DbRow));
+  }
+
+  async markReversedByPayment(paymentId: string, reversedAt: string) {
+    await this.supabase.from('payment_applications').update({ reversed_at: reversedAt }).eq('payment_id', paymentId);
   }
 
   async save(application: PaymentApplication) {

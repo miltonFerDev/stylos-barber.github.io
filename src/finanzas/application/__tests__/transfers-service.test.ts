@@ -145,6 +145,9 @@ function createService(options?: { authorize?: Authorizer; period?: AccountingPe
     async findReversalForEntry(id) {
       return savedEntries.find(e => e.reversesEntryId === id) ?? null;
     },
+    async findBySourceDocument(sourceDocumentType, sourceDocumentId) {
+      return savedEntries.find(e => e.sourceDocumentType === sourceDocumentType && e.sourceDocumentId === sourceDocumentId && !e.reversesEntryId) ?? null;
+    },
     async save(entry) {
       savedEntries.push(entry);
       return entry;

@@ -248,6 +248,10 @@ function createService(options: { authorize?: Authorizer } = {}) {
     async findByObligation(obligationId) {
       return applications.filter((a) => a.obligationId === obligationId);
     },
+    async findByPayment(paymentId) {
+      return applications.filter((a) => a.paymentId === paymentId);
+    },
+    async markReversedByPayment() {},
     async save(application) {
       return application;
     },

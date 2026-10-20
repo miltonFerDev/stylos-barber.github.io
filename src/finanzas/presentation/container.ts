@@ -69,9 +69,11 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     createId: () => crypto.randomUUID(),
   });
 
+  const journalEntriesRepo = new SupabaseJournalEntryRepository(supabase);
+
   const journal = new JournalService({
     periods,
-    entries: new SupabaseJournalEntryRepository(supabase),
+    entries: journalEntriesRepo,
     createId: () => crypto.randomUUID(),
     audit,
   });
@@ -84,6 +86,7 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     masters,
     periods,
     journal,
+    journalEntries: journalEntriesRepo,
     authorize,
     audit,
     createId: () => crypto.randomUUID(),

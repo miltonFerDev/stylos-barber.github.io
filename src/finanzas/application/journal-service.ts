@@ -40,6 +40,7 @@ export type JournalEntryRepository = {
   findByIdempotencyKey(idempotencyKey: string): Promise<JournalEntry | null>;
   findById(entryId: string): Promise<JournalEntry | null>;
   findReversalForEntry(entryId: string): Promise<JournalEntry | null>;
+  findBySourceDocument(sourceDocumentType: string, sourceDocumentId: string): Promise<JournalEntry | null>;
   save(entry: JournalEntry): Promise<JournalEntry>;
   markReversed(entryId: string, reversedAt: string): Promise<void>;
 };

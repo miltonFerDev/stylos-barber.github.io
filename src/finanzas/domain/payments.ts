@@ -1,5 +1,5 @@
 import { moneyToMinorUnits } from './money';
-import type { Obligation } from './obligations';
+import type { Obligation, ObligationStatus } from './obligations';
 import type { Money, UserId } from './types';
 
 export type PaymentStatus = 'BORRADOR' | 'CONFIRMADO' | 'CONCILIADO' | 'ANULADO' | 'REVERTIDO';
@@ -22,6 +22,7 @@ export type PaymentApplication = {
   paymentId: string;
   obligationId: string;
   appliedAmount: Money;
+  reversedAt?: string | null;
 };
 
 export function exigibleOf(obligation: Obligation): Money {
@@ -39,4 +40,9 @@ export function sumAppliedMinor(amounts: Money[]): bigint {
 
 export function nextObligationStatus(totalAppliedMinor: bigint, exigibleMinor: bigint): 'PARCIAL' | 'PAGADA' {
   return totalAppliedMinor >= exigibleMinor ? 'PAGADA' : 'PARCIAL';
+}
+
+export function statusAfterApplied(totalAppliedMinor: bigint, exigibleMinor: bigint): ObligationStatus {
+  if (totalAppliedMinor <= 0n) return 'PENDIENTE';
+  return nextObligationStatus(totalAppliedMinor, exigibleMinor);
 }

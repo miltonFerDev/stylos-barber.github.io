@@ -56,6 +56,9 @@ function createService(period: AccountingPeriod | null = openPeriod) {
     async findReversalForEntry(entryId) {
       return savedEntries.find(entry => entry.reversesEntryId === entryId) ?? null;
     },
+    async findBySourceDocument(sourceDocumentType, sourceDocumentId) {
+      return savedEntries.find(entry => entry.sourceDocumentType === sourceDocumentType && entry.sourceDocumentId === sourceDocumentId && !entry.reversesEntryId) ?? null;
+    },
     async save(entry) {
       savedEntries.push(entry);
       return entry;
