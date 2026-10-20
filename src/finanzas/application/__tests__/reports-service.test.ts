@@ -177,6 +177,9 @@ function createService(options: { authorize?: Authorizer } = {}) {
     async findByAccount(accountId: string) {
       return movementsByAccount[accountId] ?? [];
     },
+    async findByAccountIds(accountIds: string[]) {
+      return accountIds.flatMap((id) => movementsByAccount[id] ?? []);
+    },
     async save(movement: AccountMovement) {
       return movement;
     },

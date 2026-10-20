@@ -17,5 +17,6 @@ export type AccountMovement = {
 
 export type AccountMovementRepository = {
   findByAccount(accountId: string): Promise<AccountMovement[]>;
+  findByAccountIds(accountIds: string[]): Promise<AccountMovement[]>;
   save(movement: AccountMovement): Promise<AccountMovement>;
 };

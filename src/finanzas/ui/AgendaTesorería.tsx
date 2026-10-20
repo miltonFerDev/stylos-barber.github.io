@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { ObligationLine, ObligationsReport } from '../application/reports-service';
 import { useFinanzasFetch } from './useFinanzasFetch';
 
@@ -72,9 +73,13 @@ export function AgendaTesorería() {
     return <div className="p-8 text-center text-finDanger">No se pudo cargar la agenda.</div>;
   }
 
-  const active = sortAgenda(data.obligations.lines.filter((o) => ACTIVE_STATUSES.has(o.status)));
-  const vencidas = active.filter((o) => o.isOverdue);
-  const proximas = active.filter((o) => !o.isOverdue);
+  const { vencidas, proximas } = useMemo(() => {
+    const active = sortAgenda(data.obligations.lines.filter((o) => ACTIVE_STATUSES.has(o.status)));
+    return {
+      vencidas: active.filter((o) => o.isOverdue),
+      proximas: active.filter((o) => !o.isOverdue),
+    };
+  }, [data]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { AvailabilityReport, ObligationsReport } from '../application/reports-service';
 import { useFinanzasFetch } from './useFinanzasFetch';
 
@@ -40,8 +41,9 @@ export function TableroDireccion() {
   }
 
   const { availability, obligations } = data;
-  const overdueFirst = [...obligations.lines].sort(
-    (a, b) => Number(b.isOverdue) - Number(a.isOverdue)
+  const overdueFirst = useMemo(
+    () => [...obligations.lines].sort((a, b) => Number(b.isOverdue) - Number(a.isOverdue)),
+    [obligations.lines]
   );
 
   return (

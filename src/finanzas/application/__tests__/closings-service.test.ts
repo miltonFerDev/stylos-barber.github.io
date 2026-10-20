@@ -119,6 +119,9 @@ function createService(options?: { movementsSeed?: AccountMovement[]; authorize?
     async findByAccount(accountId) {
       return savedMovements.filter(m => m.accountId === accountId);
     },
+    async findByAccountIds(accountIds) {
+      return savedMovements.filter(m => accountIds.includes(m.accountId));
+    },
     async save(movement) {
       savedMovements.push(movement);
       return movement;

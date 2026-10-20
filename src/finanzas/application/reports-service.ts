@@ -1,4 +1,4 @@
-import type { AccountMovementRepository } from '../domain/account-movements';
+import type { AccountMovement, AccountMovementRepository } from '../domain/account-movements';
 import type { AuditEvent } from '../domain/audit';
 import { minorToMoney, movementNet } from '../domain/closings';
 import { domainError } from '../domain/errors';
@@ -98,6 +98,15 @@ export class ReportsService {
     if (!authorized.ok) return authorized;
 
     const accounts = await this.dependencies.masters.findAll('ACCOUNT');
+    const accountIds = accounts.filter((m) => m.entityType === 'ACCOUNT').map((m) => m.id);
+    const allMovements = accountIds.length > 0 ? await this.dependencies.movements.findByAccountIds(accountIds) : [];
+
+    const movementsByAccount = new Map<string, AccountMovement[]>();
+    for (const movement of allMovements) {
+      const list = movementsByAccount.get(movement.accountId) ?? [];
+      list.push(movement);
+      movementsByAccount.set(movement.accountId, list);
+    }
 
     const lines: AvailabilityLine[] = [];
     let totalMinor = 0n;
@@ -106,8 +115,7 @@ export class ReportsService {
     for (const master of accounts) {
       if (master.entityType !== 'ACCOUNT') continue;
 
-      const movements = await this.dependencies.movements.findByAccount(master.id);
-      const netMinor = movementNet(movements);
+      const netMinor = movementNet(movementsByAccount.get(master.id) ?? []);
 
       currency = master.currency;
       lines.push({

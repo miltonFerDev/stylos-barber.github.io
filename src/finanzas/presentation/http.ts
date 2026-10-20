@@ -5,6 +5,6 @@
 export function json(status: number, body: unknown): Response {
   return new Response(
     JSON.stringify(body, (_key, value) => (typeof value === 'bigint' ? value.toString() : value)),
-    { status, headers: { 'content-type': 'application/json' } }
+    { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } }
   );
 }

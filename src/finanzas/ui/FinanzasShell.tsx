@@ -1,9 +1,14 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { finanzasSupabase } from '../presentation/client';
 import { Login } from './Login';
 import { TableroDireccion } from './TableroDireccion';
-import { AgendaTesorería } from './AgendaTesorería';
-import { AltaObligacion } from './AltaObligacion';
+
+const AgendaTesorería = lazy(() =>
+  import('./AgendaTesorería').then((m) => ({ default: m.AgendaTesorería }))
+);
+const AltaObligacion = lazy(() =>
+  import('./AltaObligacion').then((m) => ({ default: m.AltaObligacion }))
+);
 
 type View = 'tablero' | 'agenda' | 'nueva';
 
@@ -87,13 +92,15 @@ export function FinanzasShell() {
           </button>
         </div>
       </nav>
-      {view === 'tablero' ? (
-        <TableroDireccion />
-      ) : view === 'agenda' ? (
-        <AgendaTesorería />
-      ) : (
-        <AltaObligacion />
-      )}
+      <Suspense fallback={<div className="p-8 text-center text-finMuted">Cargando…</div>}>
+        {view === 'tablero' ? (
+          <TableroDireccion />
+        ) : view === 'agenda' ? (
+          <AgendaTesorería />
+        ) : (
+          <AltaObligacion />
+        )}
+      </Suspense>
     </div>
   );
 }

@@ -252,6 +252,16 @@ export class SupabaseAccountMovementRepository implements AccountMovementReposit
     return (data ?? []).map((m) => mapAccountMovement(m as DbRow));
   }
 
+  async findByAccountIds(accountIds: string[]) {
+    if (accountIds.length === 0) return [];
+    const { data } = await this.supabase
+      .from('account_movements')
+      .select('*')
+      .in('account_id', accountIds)
+      .order('effective_date', { ascending: true });
+    return (data ?? []).map((m) => mapAccountMovement(m as DbRow));
+  }
+
   async save(movement: ReturnType<typeof mapAccountMovement>) {
     await this.supabase.from('account_movements').insert({
       id: movement.id,
@@ -663,12 +673,25 @@ export class SupabaseJournalEntryQueryRepository implements JournalEntryQueryRep
 
   async findByPeriod(periodId: string) {
     const { data } = await this.supabase.from('journal_entries').select('*').eq('period_id', periodId);
-    const entries: JournalEntry[] = [];
-    for (const row of data ?? []) {
-      const { data: lines } = await this.supabase.from('journal_lines').select('*').eq('entry_id', row.id);
-      entries.push(mapJournalEntry(row as DbRow, (lines ?? []).map((l) => mapJournalLine(l as DbRow))));
+    const rows = data ?? [];
+    const entryIds = rows.map((row) => row.id);
+
+    const linesByEntry = new Map<string, JournalLineDraft[]>();
+    if (entryIds.length > 0) {
+      const { data: allLines } = await this.supabase
+        .from('journal_lines')
+        .select('*')
+        .in('entry_id', entryIds)
+        .order('id', { ascending: true });
+      for (const line of allLines ?? []) {
+        const entryId = String(line.entry_id);
+        const list = linesByEntry.get(entryId) ?? [];
+        list.push(mapJournalLine(line as DbRow));
+        linesByEntry.set(entryId, list);
+      }
     }
-    return entries;
+
+    return rows.map((row) => mapJournalEntry(row as DbRow, linesByEntry.get(String(row.id)) ?? []));
   }
 }
 
