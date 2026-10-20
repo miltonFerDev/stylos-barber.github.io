@@ -2,13 +2,7 @@ import type { CreateObligationCommand } from '../application/obligations-service
 import type { ObligationPriority } from '../domain/obligations';
 import { commandContext, resolveActor } from './auth';
 import type { FinanzasContainer } from './container';
-
-function json(status: number, body: unknown): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'content-type': 'application/json' },
-  });
-}
+import { json } from './http';
 
 const PRIORITIES: readonly ObligationPriority[] = ['P1', 'P2', 'P3', 'P4'];
 

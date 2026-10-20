@@ -1,13 +1,7 @@
 import { isPeriodOpen } from '../domain/periods';
 import { commandContext, resolveActor } from './auth';
 import type { FinanzasContainer } from './container';
-
-function json(status: number, body: unknown): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'content-type': 'application/json' },
-  });
-}
+import { json } from './http';
 
 /**
  * Datos para los selectores del alta de obligación.
