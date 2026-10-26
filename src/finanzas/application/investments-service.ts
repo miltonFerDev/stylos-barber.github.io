@@ -30,6 +30,7 @@ export type DecideCommand = {
   investmentId: string;
   decision: InvestmentDecision;
   reason: string;
+  confirmExceedsCapacity?: boolean;
 };
 
 export type InvestmentRepository = {
@@ -197,7 +198,8 @@ export class InvestmentsService {
         toMinor(capacity.value.minProjectedBalance) -
         toMinor(capacity.value.reserve) -
         toMinor(capacity.value.protectedFunds);
-      if (raw < 0n) {
+      // P6: avisa (recuperable), no bloquea. Solo se exige confirmación explícita.
+      if (raw < 0n && command.confirmExceedsCapacity !== true) {
         return {
           ok: false,
           error: domainError('INVESTMENT_EXCEEDS_CAPACITY', 'La inversion supera la capacidad en el escenario conservador.', true, {

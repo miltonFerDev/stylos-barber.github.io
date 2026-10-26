@@ -162,6 +162,21 @@ describe('InvestmentsService.decide', () => {
     if (!result.ok) expect(result.error.code).toBe('INVESTMENT_EXCEEDS_CAPACITY');
   });
 
+  it('aprueba si excede la capacidad con confirmExceedsCapacity', async () => {
+    const { service, savedInvestments } = createService({ capacityResult: capacityResult('150.00') });
+    const id = await createAndEvaluate(service);
+
+    const result = await service.decide(ctx, {
+      investmentId: id,
+      decision: 'APROBADA',
+      reason: 'ok',
+      confirmExceedsCapacity: true,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(savedInvestments[0].status).toBe('APROBADA');
+  });
+
   it('exige motivo para postergar o rechazar', async () => {
     const { service } = createService();
     const id = await createAndEvaluate(service);
