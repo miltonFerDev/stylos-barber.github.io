@@ -45,6 +45,7 @@ export type ReversePaymentCommand = {
 export type PaymentRepository = {
   findByIdempotencyKey(key: string): Promise<Payment | null>;
   findById(id: string): Promise<Payment | null>;
+  findAll(): Promise<Payment[]>;
   save(payment: Payment): Promise<Payment>;
   update(payment: Payment): Promise<Payment>;
 };

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getFinanzasAccessToken } from '../presentation/client';
 
 type Account = { id: string; name: string; currency: string };
@@ -18,6 +18,18 @@ type PendientesPayload = {
 
 type Mode = 'aplicado' | 'egreso';
 
+type HistorialPago = {
+  id: string;
+  effectiveDate: string;
+  amount: { amount: string; currency: string };
+  status: string;
+  accountName: string;
+};
+type HistorialPayload = {
+  payments: HistorialPago[];
+  periods: { id: string; code: string }[];
+};
+
 const inputClass =
   'w-full rounded-lg border border-finBorder bg-finSurface px-4 py-3 text-base text-finText placeholder:text-finMuted focus:border-finAccent focus:outline-none';
 
@@ -28,6 +40,22 @@ function toNumber(value: string): number {
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function formatMoney(amount: { amount: string; currency: string }): string {
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: amount.currency,
+    minimumFractionDigits: 2,
+  }).format(Number(amount.amount));
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('es-AR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 export function RegistrarPago() {
@@ -45,6 +73,14 @@ export function RegistrarPago() {
   const [concept, setConcept] = useState('');
   const [resultLineId, setResultLineId] = useState('');
   const [directAmount, setDirectAmount] = useState('');
+
+  const [historial, setHistorial] = useState<HistorialPayload | null>(null);
+  const [revertFor, setRevertFor] = useState<string | null>(null);
+  const [revertReason, setRevertReason] = useState('');
+  const [revertDate, setRevertDate] = useState(today());
+  const [revertPeriodId, setRevertPeriodId] = useState('');
+  const [revertSubmitting, setRevertSubmitting] = useState(false);
+  const [revertError, setRevertError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,6 +110,29 @@ export function RegistrarPago() {
       cancelled = true;
     };
   }, []);
+
+  const loadHistorial = useCallback(async () => {
+    const token = await getFinanzasAccessToken();
+    if (!token) {
+      setHistorial(null);
+      return;
+    }
+    const res = await fetch('/api/finanzas/pagos/historial', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      // Sin REVERSE_PAYMENT (403) o error: no se muestra el listado.
+      setHistorial(null);
+      return;
+    }
+    const data: HistorialPayload = await res.json();
+    setHistorial(data);
+    setRevertPeriodId((prev) => prev || (data.periods?.[0]?.id ?? ''));
+  }, []);
+
+  useEffect(() => {
+    loadHistorial().catch(() => setHistorial(null));
+  }, [loadHistorial]);
 
   const lines = payload?.obligations.lines ?? [];
 
@@ -137,6 +196,30 @@ export function RegistrarPago() {
     } else {
       const err = await res.json().catch(() => null);
       setError(err?.message || 'No se pudo registrar el pago.');
+    }
+  }
+
+  async function onRevert(paymentId: string) {
+    setRevertError(null);
+    setRevertSubmitting(true);
+    const token = await getFinanzasAccessToken();
+    const res = await fetch(`/api/finanzas/pagos/${paymentId}/revertir`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        reason: revertReason.trim(),
+        periodId: revertPeriodId,
+        reversalDate: revertDate,
+      }),
+    });
+    setRevertSubmitting(false);
+    if (res.ok) {
+      setRevertFor(null);
+      setRevertReason('');
+      loadHistorial().catch(() => setHistorial(null));
+    } else {
+      const err = await res.json().catch(() => null);
+      setRevertError(err?.message || 'No se pudo revertir el pago.');
     }
   }
 
@@ -300,6 +383,107 @@ export function RegistrarPago() {
           {submitting ? 'Guardando…' : 'Registrar pago'}
         </button>
       </form>
+
+      {historial && historial.payments.length > 0 && (
+        <section className="mt-10">
+          <h2 className="mb-3 text-lg font-semibold text-finText">Pagos recientes</h2>
+          <ul className="space-y-2">
+            {historial.payments.map((p) => (
+              <li key={p.id} className="rounded-xl border border-finBorder bg-finSurface px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-base font-medium text-finText">
+                      {formatDate(p.effectiveDate)} · {p.accountName}
+                    </p>
+                    <p className="text-sm text-finMuted">{formatMoney(p.amount)}</p>
+                  </div>
+                  {revertFor === p.id ? (
+                    <span className="text-sm font-semibold text-finMuted">Reversión…</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRevertFor(p.id);
+                        setRevertReason('');
+                        setRevertDate(today());
+                        setRevertError(null);
+                      }}
+                      className="min-h-12 rounded-lg border border-finBorder px-3 text-base font-semibold text-finDanger hover:bg-finDanger/10"
+                    >
+                      Revertir
+                    </button>
+                  )}
+                </div>
+
+                {revertFor === p.id && (
+                  <form
+                    className="mt-3 space-y-3 border-t border-finBorder pt-3"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      onRevert(p.id);
+                    }}
+                  >
+                    {field('Motivo', (
+                      <input
+                        className={inputClass}
+                        value={revertReason}
+                        onChange={(e) => setRevertReason(e.target.value)}
+                        placeholder="¿Por qué se revierte?"
+                        required
+                      />
+                    ))}
+                    {field('Fecha de reversión', (
+                      <input
+                        className={inputClass}
+                        type="date"
+                        value={revertDate}
+                        onChange={(e) => setRevertDate(e.target.value)}
+                        required
+                      />
+                    ))}
+                    {field('Período', (
+                      <select
+                        className={inputClass}
+                        value={revertPeriodId}
+                        onChange={(e) => setRevertPeriodId(e.target.value)}
+                        required
+                      >
+                        <option value="">Elegí…</option>
+                        {historial.periods.map((per) => (
+                          <option key={per.id} value={per.id}>
+                            {per.code}
+                          </option>
+                        ))}
+                      </select>
+                    ))}
+                    {revertError && (
+                      <p role="alert" className="rounded-lg bg-finDanger/10 px-3 py-2 text-base text-finDanger">
+                        {revertError}
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        disabled={revertSubmitting || !revertReason.trim() || !revertPeriodId}
+                        className="min-h-12 flex-1 rounded-lg bg-finDanger px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-finDanger/90 disabled:opacity-50"
+                      >
+                        {revertSubmitting ? 'Revirtiendo…' : 'Confirmar reversión'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRevertFor(null)}
+                        className="min-h-12 rounded-lg border border-finBorder px-4 py-3 text-base font-semibold text-finMuted hover:text-finText"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

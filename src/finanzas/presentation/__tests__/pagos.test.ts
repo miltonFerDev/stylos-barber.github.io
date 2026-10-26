@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { handlePendientes, handleRegisterPago } from '../pagos';
+import { handleHistorialPagos, handlePendientes, handleRegisterPago, handleReversarPago } from '../pagos';
 import type { FinanzasContainer } from '../container';
 
 function fakeSupabase(userId: string | null): SupabaseClient {
@@ -32,6 +32,7 @@ const okResultLines = [
 function fakeContainer(userId: string | null, overrides: any = {}): FinanzasContainer {
   return {
     supabase: fakeSupabase(userId),
+    authorize: async () => ({ ok: true }),
     reports: {
       payableObligations: async () => ({ ok: true, value: okPayable }),
     },
@@ -47,6 +48,10 @@ function fakeContainer(userId: string | null, overrides: any = {}): FinanzasCont
     },
     payments: {
       registerPayment: async () => ({ ok: true, value: { id: 'pay-1' } }),
+      reversePayment: async () => ({ ok: true, value: { id: 'pay-1', status: 'REVERTIDO' } }),
+    },
+    paymentsRepo: {
+      findAll: async () => [],
     },
     ...overrides,
   } as unknown as FinanzasContainer;
@@ -168,5 +173,106 @@ describe('handleRegisterPago', () => {
       validBody
     );
     expect(res.status).toBe(400);
+  });
+});
+
+describe('handleHistorialPagos', () => {
+  it('devuelve 401 sin token', async () => {
+    const res = await handleHistorialPagos(fakeContainer('u1'), null);
+    expect(res.status).toBe(401);
+  });
+
+  it('devuelve 403 sin permiso REVERSE_PAYMENT', async () => {
+    const container = fakeContainer('u1', {
+      authorize: async () => ({
+        ok: false,
+        error: { code: 'PERMISSION_DENIED', message: 'x', recoverable: false },
+      }),
+    });
+    const res = await handleHistorialPagos(container, 'valid-token');
+    expect(res.status).toBe(403);
+  });
+
+  it('lista solo pagos CONFIRMADO con nombre de cuenta', async () => {
+    const container = fakeContainer('u1', {
+      paymentsRepo: {
+        findAll: async () => [
+          { id: 'p1', effectiveDate: '2026-10-20', accountId: 'acc-1', amount: { amount: '50.00', currency: 'ARS' }, status: 'CONFIRMADO', attachmentRequired: false, idempotencyKey: 'k1', source: 'REAL', createdBy: 'u1', createdAt: '2026-10-20T00:00:00Z' },
+          { id: 'p2', effectiveDate: '2026-10-19', accountId: 'acc-1', amount: { amount: '30.00', currency: 'ARS' }, status: 'REVERTIDO', attachmentRequired: false, idempotencyKey: 'k2', source: 'REAL', createdBy: 'u1', createdAt: '2026-10-19T00:00:00Z' },
+        ],
+      },
+    });
+    const res = await handleHistorialPagos(container, 'valid-token');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.payments).toHaveLength(1);
+    expect(body.payments[0].id).toBe('p1');
+    expect(body.payments[0].accountName).toBe('Efectivo');
+    expect(body.periods).toHaveLength(1);
+  });
+});
+
+describe('handleReversarPago', () => {
+  it('devuelve 401 sin token', async () => {
+    const res = await handleReversarPago(fakeContainer('u1'), null, 'p1', {});
+    expect(res.status).toBe(401);
+  });
+
+  it('construye el comando con paymentId del path y devuelve 200', async () => {
+    let captured: any = null;
+    const container = fakeContainer('u1', {
+      payments: {
+        reversePayment: async (_ctx: unknown, cmd: unknown) => {
+          captured = cmd;
+          return { ok: true, value: { id: 'p1', status: 'REVERTIDO' } };
+        },
+      },
+    });
+    const res = await handleReversarPago(container, 'valid-token', 'p1', {
+      reason: 'Error de carga',
+      periodId: 'period-1',
+      reversalDate: '2026-10-21',
+    });
+    expect(res.status).toBe(200);
+    expect(captured.paymentId).toBe('p1');
+    expect(captured.reason).toBe('Error de carga');
+    expect(captured.periodId).toBe('period-1');
+    expect(captured.reversalDate).toBe('2026-10-21');
+  });
+
+  it('mapea error del servicio a 400 con message', async () => {
+    const container = fakeContainer('u1', {
+      payments: {
+        reversePayment: async () => ({
+          ok: false,
+          error: { code: 'REVERSAL_ALREADY_EXISTS', message: 'Ya revertido', recoverable: false },
+        }),
+      },
+    });
+    const res = await handleReversarPago(container, 'valid-token', 'p1', {
+      reason: 'x',
+      periodId: 'period-1',
+      reversalDate: '2026-10-21',
+    });
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('REVERSAL_ALREADY_EXISTS');
+  });
+
+  it('mapea PERMISSION_DENIED a 403', async () => {
+    const container = fakeContainer('u1', {
+      payments: {
+        reversePayment: async () => ({
+          ok: false,
+          error: { code: 'PERMISSION_DENIED', message: 'x', recoverable: false },
+        }),
+      },
+    });
+    const res = await handleReversarPago(container, 'valid-token', 'p1', {
+      reason: 'x',
+      periodId: 'period-1',
+      reversalDate: '2026-10-21',
+    });
+    expect(res.status).toBe(403);
   });
 });

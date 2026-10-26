@@ -165,6 +165,9 @@ function createService(options?: {
     async findById(id) {
       return savedPayments.find(p => p.id === id) ?? null;
     },
+    async findAll() {
+      return savedPayments;
+    },
     async save(payment) {
       savedPayments.push(payment);
       return payment;

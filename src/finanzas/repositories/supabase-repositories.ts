@@ -468,6 +468,11 @@ export class SupabasePaymentRepository implements PaymentRepository {
     return data ? mapPayment(data as DbRow) : null;
   }
 
+  async findAll() {
+    const { data } = await this.supabase.from('payments').select('*').order('created_at', { ascending: false });
+    return (data ?? []).map((p) => mapPayment(p as DbRow));
+  }
+
   async save(payment: Payment) {
     await this.supabase.from('payments').insert({
       id: payment.id,

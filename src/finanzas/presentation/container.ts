@@ -3,7 +3,7 @@ import type { AccountingPeriodRepository } from '../application/journal-service'
 import { JournalService } from '../application/journal-service';
 import type { MasterRepository } from '../application/master-data-service';
 import { ObligationsService } from '../application/obligations-service';
-import { PaymentsService } from '../application/payments-service';
+import { PaymentsService, type PaymentRepository } from '../application/payments-service';
 import { PermissionService, type Authorizer, type RoleRepository } from '../application/permission-service';
 import { ReportsService } from '../application/reports-service';
 import { createServerSupabaseClient } from '../repositories/supabase-server';
@@ -28,6 +28,7 @@ export type FinanzasContainer = {
   reports: ReportsService;
   obligations: ObligationsService;
   payments: PaymentsService;
+  paymentsRepo: PaymentRepository;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
 };
@@ -78,8 +79,10 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     audit,
   });
 
+  const paymentsRepo = new SupabasePaymentRepository(supabase);
+
   const payments = new PaymentsService({
-    payments: new SupabasePaymentRepository(supabase),
+    payments: paymentsRepo,
     applications: applicationsRepo,
     movements,
     obligations: obligationsRepo,
@@ -92,5 +95,5 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     createId: () => crypto.randomUUID(),
   });
 
-  return { supabase, roles, authorize, reports, obligations, payments, masters, periods };
+  return { supabase, roles, authorize, reports, obligations, payments, paymentsRepo, masters, periods };
 }
