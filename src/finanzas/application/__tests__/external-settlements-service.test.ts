@@ -326,3 +326,57 @@ describe('ExternalSettlementsService.registerReimbursement', () => {
     if (!result.ok) expect(result.error.code).toBe('PERMISSION_DENIED');
   });
 });
+
+describe('ExternalSettlementsService.registerCurrentAccountWithdrawal', () => {
+  it('retira con asiento Db 2.3 / Hr 1.1.1 y movimiento OUT', async () => {
+    const { service, savedSettlements, savedMovements, savedEntries, auditEvents } = createService();
+
+    const result = await service.registerCurrentAccountWithdrawal(ctx, {
+      sourcePersonId: 'person-1',
+      accountId: 'acc-1',
+      concept: 'Retiro de excedente de caja',
+      amount: { amount: '200.00', currency: 'ARS' },
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.resultLineId).toBeNull();
+    expect(result.value.nature).toBe('CUENTA_CORRIENTE');
+    expect(result.value.status).toBe('CONFIRMADO');
+
+    const entry = savedEntries.find((e) => e.sourceDocumentType === 'current_account_withdrawal');
+    expect(entry?.lines[0].ledgerAccountId).toBe('2.3');
+    expect(entry?.lines[0].debit.amount).toBe('200.00');
+    expect(entry?.lines[1].ledgerAccountId).toBe('1.1.1');
+
+    expect(savedMovements).toHaveLength(1);
+    expect(savedMovements[0].direction).toBe('OUT');
+    expect(savedMovements[0].accountId).toBe('acc-1');
+
+    expect(savedSettlements).toHaveLength(1);
+    expect(auditEvents[0].action).toBe('EXTERNAL_SETTLEMENT_WITHDRAWN');
+  });
+
+  it('rechaza sin permiso', async () => {
+    const denied: Authorizer = async () => ({
+      ok: false,
+      error: { code: 'PERMISSION_DENIED', message: 'No tenes permiso.', recoverable: false },
+    });
+    const { service } = createService({ authorize: denied });
+
+    const result = await service.registerCurrentAccountWithdrawal(ctx, {
+      sourcePersonId: 'person-1',
+      accountId: 'acc-1',
+      concept: 'Retiro',
+      amount: { amount: '200.00', currency: 'ARS' },
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('PERMISSION_DENIED');
+  });
+});

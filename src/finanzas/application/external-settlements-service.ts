@@ -35,6 +35,16 @@ export type RegisterReimbursementCommand = {
   amount: Money;
 };
 
+export type RegisterCurrentAccountWithdrawalCommand = {
+  sourcePersonId: string;
+  accountId: string;
+  amount: Money;
+  effectiveDate: string;
+  periodId: string;
+  concept: string;
+  note?: string;
+};
+
 export type ExternalSettlementRepository = {
   findByIdempotencyKey(key: string): Promise<ExternalSettlement | null>;
   findById(id: string): Promise<ExternalSettlement | null>;
@@ -290,5 +300,124 @@ export class ExternalSettlementsService {
     });
 
     return { ok: true, value: saved };
+  }
+
+  async registerCurrentAccountWithdrawal(
+    ctx: CommandContext,
+    command: RegisterCurrentAccountWithdrawalCommand
+  ): Promise<Result<ExternalSettlement>> {
+    const authorized = await this.dependencies.authorize(ctx, 'REGISTER_EXTERNAL_SETTLEMENT');
+    if (!authorized.ok) return authorized;
+
+    const previous = await this.dependencies.settlements.findByIdempotencyKey(ctx.idempotencyKey);
+    if (previous) {
+      return { ok: true, value: previous };
+    }
+
+    if (
+      command.sourcePersonId.trim().length === 0 ||
+      command.accountId.trim().length === 0 ||
+      command.concept.trim().length === 0 ||
+      command.effectiveDate.trim().length === 0 ||
+      command.periodId.trim().length === 0
+    ) {
+      return {
+        ok: false,
+        error: domainError('MISSING_REQUIRED_FIELD', 'Faltan campos obligatorios.', true),
+      };
+    }
+
+    const amount = validatePositiveAmount(command.amount);
+    if (!amount.ok) return amount;
+
+    const account = await this.dependencies.masters.findById('ACCOUNT', command.accountId);
+    if (!account || account.entityType !== 'ACCOUNT') {
+      return {
+        ok: false,
+        error: domainError('MASTER_NOT_FOUND', 'La cuenta no existe.', true, { id: command.accountId }),
+      };
+    }
+    if (account.ownership !== 'PROPIA' || !account.isAvailable || !isCurrentAt(account, ctx.now)) {
+      return {
+        ok: false,
+        error: domainError('ACCOUNT_NOT_AVAILABLE', 'La cuenta no esta disponible.', true, { accountId: account.id }),
+      };
+    }
+
+    const period = await this.dependencies.periods.findById(command.periodId);
+    if (!period) {
+      return {
+        ok: false,
+        error: domainError('PERIOD_NOT_FOUND', 'El periodo contable no existe.', true, { periodId: command.periodId }),
+      };
+    }
+    if (!isPeriodOpen(period)) {
+      return {
+        ok: false,
+        error: domainError('PERIOD_CLOSED', 'No se puede retirar en un periodo cerrado o en revision.', true, {
+          periodId: period.id,
+          status: period.status,
+        }),
+      };
+    }
+
+    const zero: Money = { amount: '0.00', currency: command.amount.currency };
+    const settlementId = this.dependencies.createId();
+
+    const entryResult = await this.dependencies.journal.postEntry(ctx, {
+      periodId: period.id,
+      entryDate: command.effectiveDate,
+      sourceDocumentType: 'current_account_withdrawal',
+      sourceDocumentId: settlementId,
+      description: command.concept.trim(),
+      lines: [
+        { ledgerAccountId: this.dependencies.settlementLedgerAccounts.CUENTA_CORRIENTE, debit: command.amount, credit: zero },
+        { ledgerAccountId: account.ledgerAccountId, debit: zero, credit: command.amount },
+      ] as JournalLineDraft[],
+    });
+
+    if (!entryResult.ok) return entryResult;
+
+    await this.dependencies.movements.save({
+      id: this.dependencies.createId(),
+      accountId: account.id,
+      effectiveDate: command.effectiveDate,
+      amount: command.amount,
+      direction: 'OUT',
+      sourceDocumentType: 'current_account_withdrawal',
+      sourceDocumentId: settlementId,
+      journalEntryId: entryResult.value.id,
+      idempotencyKey: ctx.idempotencyKey,
+      createdAt: ctx.now,
+    });
+
+    const settlement: ExternalSettlement = {
+      id: settlementId,
+      sourcePersonId: command.sourcePersonId,
+      externalAccountId: null,
+      resultLineId: null,
+      concept: command.concept.trim(),
+      amount: command.amount,
+      nature: 'CUENTA_CORRIENTE',
+      effectiveDate: command.effectiveDate,
+      status: 'CONFIRMADO',
+      note: command.note ?? null,
+      idempotencyKey: ctx.idempotencyKey,
+      source: 'REAL',
+      createdBy: ctx.actorUserId,
+      createdAt: ctx.now,
+    };
+
+    await this.dependencies.settlements.save(settlement);
+    await this.dependencies.audit.record({
+      entityType: 'external_settlement',
+      entityId: settlement.id,
+      action: 'EXTERNAL_SETTLEMENT_WITHDRAWN',
+      actorUserId: ctx.actorUserId,
+      occurredAt: ctx.now,
+      reason: null,
+    });
+
+    return { ok: true, value: settlement };
   }
 }

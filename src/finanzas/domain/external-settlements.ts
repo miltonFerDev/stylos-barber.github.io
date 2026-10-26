@@ -7,7 +7,7 @@ export type ExternalSettlement = {
   id: string;
   sourcePersonId: string;
   externalAccountId: string | null;
-  resultLineId: string;
+  resultLineId: string | null;
   concept: string;
   amount: Money;
   nature: ExternalSettlementNature;

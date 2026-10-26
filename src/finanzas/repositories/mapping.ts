@@ -322,7 +322,7 @@ export function mapExternalSettlement(row: DbRow): ExternalSettlement {
     id: String(row.id),
     sourcePersonId: String(row.source_person_id),
     externalAccountId: nullOrString(row.external_account_id),
-    resultLineId: String(row.result_line_id),
+    resultLineId: nullOrString(row.result_line_id),
     concept: String(row.concept),
     amount: dbToMoney(row.amount, row.currency as Currency),
     nature: row.nature as ExternalSettlement['nature'],
