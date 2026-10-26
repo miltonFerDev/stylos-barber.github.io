@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AccountingPeriodRepository } from '../application/journal-service';
 import { JournalService } from '../application/journal-service';
+import { ClosingsService, type ReconciliationRepository } from '../application/closings-service';
 import type { MasterRepository } from '../application/master-data-service';
 import { ObligationsService } from '../application/obligations-service';
 import { PaymentsService, type PaymentRepository } from '../application/payments-service';
@@ -12,12 +13,14 @@ import {
   SupabaseAccountingPeriodRepository,
   SupabaseAuditQueryRepository,
   SupabaseAuditRecorder,
+  SupabaseDailyClosingRepository,
   SupabaseJournalEntryQueryRepository,
   SupabaseJournalEntryRepository,
   SupabaseMasterRepository,
   SupabaseObligationRepository,
   SupabasePaymentApplicationRepository,
   SupabasePaymentRepository,
+  SupabaseReconciliationRepository,
   SupabaseRoleRepository,
 } from '../repositories/supabase-repositories';
 
@@ -29,6 +32,8 @@ export type FinanzasContainer = {
   obligations: ObligationsService;
   payments: PaymentsService;
   paymentsRepo: PaymentRepository;
+  closings: ClosingsService;
+  reconciliationsRepo: ReconciliationRepository;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
 };
@@ -95,5 +100,33 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     createId: () => crypto.randomUUID(),
   });
 
-  return { supabase, roles, authorize, reports, obligations, payments, paymentsRepo, masters, periods };
+  const closingsRepo = new SupabaseDailyClosingRepository(supabase);
+  const reconciliationsRepo = new SupabaseReconciliationRepository(supabase);
+
+  const closings = new ClosingsService({
+    closings: closingsRepo,
+    reconciliations: reconciliationsRepo,
+    movements,
+    masters,
+    periods,
+    journal,
+    authorize,
+    audit,
+    createId: () => crypto.randomUUID(),
+    adjustmentLedgerAccounts: { shortfall: '5.10', surplus: '4.3' },
+  });
+
+  return {
+    supabase,
+    roles,
+    authorize,
+    reports,
+    obligations,
+    payments,
+    paymentsRepo,
+    closings,
+    reconciliationsRepo,
+    masters,
+    periods,
+  };
 }

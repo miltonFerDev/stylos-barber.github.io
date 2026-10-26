@@ -327,6 +327,11 @@ export class SupabaseReconciliationRepository implements ReconciliationRepositor
     return data ? mapReconciliation(data as DbRow) : null;
   }
 
+  async findAll() {
+    const { data } = await this.supabase.from('reconciliations').select('*').order('as_of', { ascending: false });
+    return (data ?? []).map((r) => mapReconciliation(r as DbRow));
+  }
+
   async save(reconciliation: Reconciliation) {
     await this.supabase.from('reconciliations').insert({
       id: reconciliation.id,

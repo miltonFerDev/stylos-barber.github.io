@@ -12,8 +12,11 @@ const AltaObligacion = lazy(() =>
 const RegistrarPago = lazy(() =>
   import('./RegistrarPago').then((m) => ({ default: m.RegistrarPago }))
 );
+const Cierre = lazy(() =>
+  import('./Cierre').then((m) => ({ default: m.Cierre }))
+);
 
-type View = 'tablero' | 'agenda' | 'nueva' | 'pagar';
+type View = 'tablero' | 'agenda' | 'nueva' | 'pagar' | 'cierre';
 
 function TabButton({
   active,
@@ -87,6 +90,9 @@ export function FinanzasShell() {
               <TabButton active={view === 'pagar'} onClick={() => setView('pagar')}>
                 Pagar
               </TabButton>
+              <TabButton active={view === 'cierre'} onClick={() => setView('cierre')}>
+                Cierre
+              </TabButton>
             </div>
           </div>
           <button
@@ -105,8 +111,10 @@ export function FinanzasShell() {
           <AgendaTesorería />
         ) : view === 'nueva' ? (
           <AltaObligacion />
-        ) : (
+        ) : view === 'pagar' ? (
           <RegistrarPago />
+        ) : (
+          <Cierre />
         )}
       </Suspense>
     </div>

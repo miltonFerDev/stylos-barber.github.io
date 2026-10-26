@@ -38,6 +38,7 @@ export type DailyClosingRepository = {
 
 export type ReconciliationRepository = {
   findById(id: string): Promise<Reconciliation | null>;
+  findAll(): Promise<Reconciliation[]>;
   save(reconciliation: Reconciliation): Promise<Reconciliation>;
   update(reconciliation: Reconciliation): Promise<Reconciliation>;
 };

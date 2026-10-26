@@ -104,6 +104,9 @@ function createService(options?: { movementsSeed?: AccountMovement[]; authorize?
     async findById(id) {
       return savedReconciliations.find(r => r.id === id) ?? null;
     },
+    async findAll() {
+      return savedReconciliations;
+    },
     async save(reconciliation) {
       savedReconciliations.push(reconciliation);
       return reconciliation;
