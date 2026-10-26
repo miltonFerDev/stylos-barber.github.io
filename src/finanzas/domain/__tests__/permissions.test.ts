@@ -39,6 +39,12 @@ describe('hasPermission', () => {
   it('Admin tecnico no ve saldos', () => {
     expect(hasPermission(['ADMIN_TECNICO'], 'VIEW_BALANCES')).toBe(false);
   });
+
+  it('DEV ve y puede todo', () => {
+    expect(hasPermission(['DEV'], 'RECONCILE_ACCOUNT')).toBe(true);
+    expect(hasPermission(['DEV'], 'APPROVE_INVESTMENT')).toBe(true);
+    expect(hasPermission(['DEV'], 'VIEW_BALANCES')).toBe(true);
+  });
 });
 
 describe('isDelegationActive', () => {

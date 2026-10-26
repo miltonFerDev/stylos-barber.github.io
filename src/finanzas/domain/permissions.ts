@@ -52,6 +52,9 @@ export const RBAC_MATRIX: Record<PermissionAction, readonly RoleCode[]> = {
 };
 
 export function hasPermission(roleCodes: readonly RoleCode[], action: PermissionAction): boolean {
+  // shortcut: DEV (inspección de desarrollo) ve y puede todo.
+  if (roleCodes.includes('DEV')) return true;
+
   const allowed = RBAC_MATRIX[action];
   return roleCodes.some(code => allowed.includes(code));
 }

@@ -8,7 +8,7 @@ export type Money = {
 export type Timestamp = string;
 export type UserId = string & { readonly __brand: 'UserId' };
 
-export type RoleCode = 'DIRECCION' | 'TESORERIA' | 'CONTADOR' | 'ADMIN_TECNICO';
+export type RoleCode = 'DIRECCION' | 'TESORERIA' | 'CONTADOR' | 'ADMIN_TECNICO' | 'DEV';
 
 export type CommandContext = {
   actorUserId: UserId;
