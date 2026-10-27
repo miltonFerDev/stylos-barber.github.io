@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { finanzasSupabase } from '../presentation/client';
+import { FinanzasNav, type FinanzasView } from './FinanzasNav';
 import { Login } from './Login';
 import { TableroDireccion } from './TableroDireccion';
 
@@ -22,35 +23,8 @@ const Inversiones = lazy(() =>
   import('./Inversiones').then((m) => ({ default: m.Inversiones }))
 );
 
-type View = 'tablero' | 'agenda' | 'nueva' | 'pagar' | 'cierre' | 'fondos' | 'inversiones';
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-current={active ? 'page' : undefined}
-      className={`min-h-12 rounded-lg px-4 text-base font-semibold transition-colors ${
-        active
-          ? 'bg-finAccent text-white'
-          : 'text-finMuted hover:bg-finBorder/60 hover:text-finText'
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
 export function FinanzasShell() {
-  const [view, setView] = useState<View>('tablero');
+  const [view, setView] = useState<FinanzasView>('tablero');
   // null = verificando sesión; boolean = autenticado o no
   const [session, setSession] = useState<boolean | null>(null);
 
@@ -78,69 +52,27 @@ export function FinanzasShell() {
   }
 
   return (
-    <div className="min-h-screen">
-      <nav className="border-b border-finBorder bg-finSurface">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 px-4 py-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-lg font-bold text-finText">Finanzas</span>
-            <div className="flex flex-wrap gap-1">
-              <TabButton active={view === 'tablero'} onClick={() => setView('tablero')}>
-                Tablero
-              </TabButton>
-              <TabButton active={view === 'agenda'} onClick={() => setView('agenda')}>
-                Agenda
-              </TabButton>
-              <TabButton active={view === 'nueva'} onClick={() => setView('nueva')}>
-                Nueva
-              </TabButton>
-              <TabButton active={view === 'pagar'} onClick={() => setView('pagar')}>
-                Pagar
-              </TabButton>
-              <TabButton active={view === 'cierre'} onClick={() => setView('cierre')}>
-                Cierre
-              </TabButton>
-              <TabButton active={view === 'fondos'} onClick={() => setView('fondos')}>
-                Fondos
-              </TabButton>
-              <TabButton active={view === 'inversiones'} onClick={() => setView('inversiones')}>
-                Inversiones
-              </TabButton>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <a
-              href="/finanzas/ayuda"
-              className="min-h-12 rounded-lg px-3 text-base font-semibold text-finMuted transition-colors hover:text-finText"
-            >
-              Ayuda
-            </a>
-            <button
-              type="button"
-              onClick={() => finanzasSupabase.auth.signOut()}
-              className="min-h-12 rounded-lg px-3 text-base font-semibold text-finMuted transition-colors hover:text-finDanger"
-            >
-              Salir
-            </button>
-          </div>
-        </div>
-      </nav>
-      <Suspense fallback={<div className="p-8 text-center text-finMuted">Cargando…</div>}>
-        {view === 'tablero' ? (
-          <TableroDireccion />
-        ) : view === 'agenda' ? (
-          <AgendaTesorería />
-        ) : view === 'nueva' ? (
-          <AltaObligacion />
-        ) : view === 'pagar' ? (
-          <RegistrarPago />
-        ) : view === 'cierre' ? (
-          <Cierre />
-        ) : view === 'fondos' ? (
-          <Fondos />
-        ) : (
-          <Inversiones />
-        )}
-      </Suspense>
+    <div className="flex min-h-screen">
+      <FinanzasNav view={view} onChange={setView} />
+      <main className="min-w-0 flex-1">
+        <Suspense fallback={<div className="p-8 text-center text-finMuted">Cargando…</div>}>
+          {view === 'tablero' ? (
+            <TableroDireccion />
+          ) : view === 'agenda' ? (
+            <AgendaTesorería />
+          ) : view === 'nueva' ? (
+            <AltaObligacion />
+          ) : view === 'pagar' ? (
+            <RegistrarPago />
+          ) : view === 'cierre' ? (
+            <Cierre />
+          ) : view === 'fondos' ? (
+            <Fondos />
+          ) : (
+            <Inversiones />
+          )}
+        </Suspense>
+      </main>
     </div>
   );
 }
