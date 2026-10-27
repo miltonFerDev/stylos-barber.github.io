@@ -18,7 +18,8 @@ export type AuditAction =
   | 'EXTERNAL_SETTLEMENT_WITHDRAWN'
   | 'ATTACHMENT_LINKED'
   | 'INVESTMENT_CANDIDATE_CREATED'
-  | 'INVESTMENT_DECIDED';
+  | 'INVESTMENT_DECIDED'
+  | 'INVESTMENT_PAID';
 
 export type AuditEvent = {
   id: string;

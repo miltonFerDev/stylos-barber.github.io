@@ -3,7 +3,7 @@ import type { Money, UserId } from './types';
 
 export const INVESTMENT_DECISIONS = ['APROBADA', 'POSTERGADA', 'RECHAZADA'] as const;
 export type InvestmentDecision = (typeof INVESTMENT_DECISIONS)[number];
-export type InvestmentStatus = 'BORRADOR' | 'EVALUADA' | InvestmentDecision;
+export type InvestmentStatus = 'BORRADOR' | 'EVALUADA' | InvestmentDecision | 'PAGADA';
 
 export type Investment = {
   id: string;
@@ -14,6 +14,9 @@ export type Investment = {
   decisionNote: string | null;
   createdBy: UserId;
   createdAt: string;
+  paidAt: string | null;
+  capitalized: boolean | null; // null = no pagado
+  usefulLifeMonths: number | null; // solo si capitaliza
 };
 
 export type InvestmentEvaluation = {

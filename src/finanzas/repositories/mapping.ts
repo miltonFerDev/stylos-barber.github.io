@@ -361,6 +361,9 @@ export function mapInvestment(row: DbRow): Investment {
     decisionNote: nullOrString(row.decision_note),
     createdBy: asUserId(row.created_by),
     createdAt: String(row.created_at),
+    paidAt: nullOrString(row.paid_at),
+    capitalized: row.capitalized == null ? null : Boolean(row.capitalized),
+    usefulLifeMonths: row.useful_life_months == null ? null : Number(row.useful_life_months),
   };
 }
 

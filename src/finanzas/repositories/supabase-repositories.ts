@@ -627,6 +627,9 @@ export class SupabaseInvestmentRepository implements InvestmentRepository {
       decision_note: investment.decisionNote,
       created_by: investment.createdBy,
       created_at: investment.createdAt,
+      paid_at: investment.paidAt,
+      capitalized: investment.capitalized,
+      useful_life_months: investment.usefulLifeMonths,
     });
     return investment;
   }
@@ -635,6 +638,9 @@ export class SupabaseInvestmentRepository implements InvestmentRepository {
     await this.supabase.from('investments').update({
       status: investment.status,
       decision_note: investment.decisionNote,
+      paid_at: investment.paidAt,
+      capitalized: investment.capitalized,
+      useful_life_months: investment.usefulLifeMonths,
     }).eq('id', investment.id);
     return investment;
   }
