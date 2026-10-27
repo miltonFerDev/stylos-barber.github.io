@@ -3,6 +3,7 @@ import type { AccountingPeriodRepository } from '../application/journal-service'
 import { JournalService } from '../application/journal-service';
 import { ClosingsService, type ReconciliationRepository } from '../application/closings-service';
 import { DepreciationService } from '../application/depreciation-service';
+import { ExternalSettlementsService, type ExternalSettlementRepository } from '../application/external-settlements-service';
 import type { CapexConfig } from '../domain/depreciation';
 import type { MasterRepository } from '../application/master-data-service';
 import { ObligationsService } from '../application/obligations-service';
@@ -24,6 +25,7 @@ import {
   SupabasePaymentRepository,
   SupabaseReconciliationRepository,
   SupabaseInvestmentRepository,
+  SupabaseExternalSettlementRepository,
   SupabaseRoleRepository,
 } from '../repositories/supabase-repositories';
 
@@ -38,6 +40,7 @@ export type FinanzasContainer = {
   closings: ClosingsService;
   reconciliationsRepo: ReconciliationRepository;
   depreciation: DepreciationService;
+  settlements: ExternalSettlementsService;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
 };
@@ -140,6 +143,18 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     createId: () => crypto.randomUUID(),
   });
 
+  const settlements = new ExternalSettlementsService({
+    settlements: new SupabaseExternalSettlementRepository(supabase),
+    movements,
+    masters,
+    periods,
+    journal,
+    authorize,
+    audit,
+    createId: () => crypto.randomUUID(),
+    settlementLedgerAccounts: { PRESTAMO: '2.3', CUENTA_CORRIENTE: '2.3', APORTE: '3.1' },
+  });
+
   return {
     supabase,
     roles,
@@ -151,6 +166,7 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     closings,
     reconciliationsRepo,
     depreciation,
+    settlements,
     masters,
     periods,
   };
