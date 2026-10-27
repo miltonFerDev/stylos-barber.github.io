@@ -95,13 +95,21 @@ export function FinanzasShell() {
               </TabButton>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => finanzasSupabase.auth.signOut()}
-            className="min-h-12 rounded-lg px-3 text-base font-semibold text-finMuted transition-colors hover:text-finDanger"
-          >
-            Salir
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href="/finanzas/ayuda"
+              className="min-h-12 rounded-lg px-3 text-base font-semibold text-finMuted transition-colors hover:text-finText"
+            >
+              Ayuda
+            </a>
+            <button
+              type="button"
+              onClick={() => finanzasSupabase.auth.signOut()}
+              className="min-h-12 rounded-lg px-3 text-base font-semibold text-finMuted transition-colors hover:text-finDanger"
+            >
+              Salir
+            </button>
+          </div>
         </div>
       </nav>
       <Suspense fallback={<div className="p-8 text-center text-finMuted">Cargando…</div>}>

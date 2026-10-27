@@ -1,0 +1,101 @@
+---
+import { getCollection } from 'astro:content';
+
+interface Props {
+  title: string;
+  activeSlug?: string;
+}
+const { title, activeSlug } = Astro.props;
+
+const all = await getCollection('ayuda');
+const conceptos = all.filter((e) => e.data.section === 'conceptos').sort((a, b) => a.data.order - b.data.order);
+const recetas = all.filter((e) => e.data.section === 'recetas').sort((a, b) => a.data.order - b.data.order);
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/png" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} · Ayuda Finanzas</title>
+  </head>
+  <body class="min-h-screen bg-finBg font-gothic text-finText">
+    <div id="ayuda-login" hidden>
+      <div class="mx-auto max-w-xl px-4 py-24 text-center">
+        <p class="text-lg font-semibold text-finText">Ayuda de finanzas</p>
+        <p class="mt-1 text-finMuted">Iniciá sesión para ver la guía.</p>
+        <a href="/finanzas" class="mt-4 inline-block rounded-lg bg-finAccent px-6 py-3 font-semibold text-white">Entrar</a>
+      </div>
+    </div>
+
+    <div id="ayuda-contenido" hidden>
+      <div class="mx-auto flex max-w-5xl gap-8 px-4 py-8">
+        <aside class="hidden w-64 shrink-0 md:block">
+          <a href="/finanzas" class="mb-4 inline-block text-sm font-semibold text-finMuted hover:text-finText">← Volver a Finanzas</a>
+          <nav class="space-y-6">
+            <div>
+              <h2 class="mb-2 text-xs font-bold uppercase tracking-wide text-finMuted">Conceptos</h2>
+              <ul class="space-y-1">
+                {
+                  conceptos.map((e) => (
+                    <li>
+                      <a
+                        href={`/finanzas/ayuda/${e.slug}`}
+                        class={`block rounded-lg px-3 py-2 text-base ${e.slug === activeSlug ? 'bg-finAccent/10 font-semibold text-finAccent' : 'text-finMuted hover:text-finText'}`}
+                      >
+                        {e.data.title}
+                      </a>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+            <div>
+              <h2 class="mb-2 text-xs font-bold uppercase tracking-wide text-finMuted">Recetas</h2>
+              <ul class="space-y-1">
+                {
+                  recetas.map((e) => (
+                    <li>
+                      <a
+                        href={`/finanzas/ayuda/${e.slug}`}
+                        class={`block rounded-lg px-3 py-2 text-base ${e.slug === activeSlug ? 'bg-finAccent/10 font-semibold text-finAccent' : 'text-finMuted hover:text-finText'}`}
+                      >
+                        {e.data.title}
+                      </a>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+          </nav>
+        </aside>
+        <main class="min-w-0 flex-1">
+          <slot />
+        </main>
+      </div>
+    </div>
+
+    <script>
+      import { finanzasSupabase } from '../finanzas/presentation/client';
+      finanzasSupabase.auth.getSession().then(({ data }) => {
+        document.getElementById(data.session ? 'ayuda-contenido' : 'ayuda-login')?.removeAttribute('hidden');
+      });
+    </script>
+
+    <style is:global>
+      .ayuda-prose h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
+      .ayuda-prose h2 { font-size: 1.25rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+      .ayuda-prose h3 { font-size: 1.05rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+      .ayuda-prose p { margin-bottom: 0.75rem; line-height: 1.65; }
+      .ayuda-prose ul, .ayuda-prose ol { margin: 0.5rem 0 1rem 1.5rem; }
+      .ayuda-prose li { margin-bottom: 0.35rem; }
+      .ayuda-prose code { background: #e2e8f0; padding: 0.1rem 0.35rem; border-radius: 0.25rem; font-size: 0.9em; }
+      .ayuda-prose strong { font-weight: 600; }
+      .ayuda-prose blockquote { border-left: 3px solid #f59e0b; padding-left: 1rem; margin: 1rem 0; color: #475569; }
+      .ayuda-prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95em; }
+      .ayuda-prose th, .ayuda-prose td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; }
+      .ayuda-prose th { background: #f1f5f9; }
+    </style>
+  </body>
+</html>

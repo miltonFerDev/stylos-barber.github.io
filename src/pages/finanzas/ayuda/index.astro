@@ -1,0 +1,39 @@
+---
+import { getCollection } from 'astro:content';
+import AyudaLayout from '../../../components/AyudaLayout.astro';
+
+const all = await getCollection('ayuda');
+const conceptos = all.filter((e) => e.data.section === 'conceptos').sort((a, b) => a.data.order - b.data.order);
+const recetas = all.filter((e) => e.data.section === 'recetas').sort((a, b) => a.data.order - b.data.order);
+---
+
+<AyudaLayout title="Ayuda">
+  <article class="ayuda-prose">
+    <h1>Ayuda de finanzas</h1>
+    <p>Guía para operar el sistema de tesorería sin errores de registro.</p>
+
+    <h2>Conceptos</h2>
+    <ul>
+      {
+        conceptos.map((e) => (
+          <li>
+            <a href={`/finanzas/ayuda/${e.slug}`}>{e.data.title}</a>
+            {e.data.description && <> — {e.data.description}</>}
+          </li>
+        ))
+      }
+    </ul>
+
+    <h2>Recetas</h2>
+    <ul>
+      {
+        recetas.map((e) => (
+          <li>
+            <a href={`/finanzas/ayuda/${e.slug}`}>{e.data.title}</a>
+            {e.data.description && <> — {e.data.description}</>}
+          </li>
+        ))
+      }
+    </ul>
+  </article>
+</AyudaLayout>

@@ -1,0 +1,20 @@
+---
+import { getCollection, render } from 'astro:content';
+import AyudaLayout from '../../../components/AyudaLayout.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('ayuda');
+  return entries.map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<AyudaLayout title={entry.data.title} activeSlug={entry.slug}>
+  <article class="ayuda-prose">
+    <h1>{entry.data.title}</h1>
+    {entry.data.description && <p class="text-finMuted">{entry.data.description}</p>}
+    <Content />
+  </article>
+</AyudaLayout>

@@ -31,4 +31,13 @@ const cortes = defineCollection({
     }),
 });
 
-export const collections = { cortes };
+const ayuda = defineCollection({
+  schema: z.object({
+    title: z.string(),
+    section: z.enum(['conceptos', 'recetas']),
+    order: z.number().default(0),
+    description: z.string().optional(),
+  }),
+});
+
+export const collections = { cortes, ayuda };
