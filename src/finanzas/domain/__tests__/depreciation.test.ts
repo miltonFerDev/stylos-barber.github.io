@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { accumulatedDepreciation, depreciationMonths, monthlyDepreciation } from '../depreciation';
+import { accumulatedDepreciation, depreciationMonths, depreciatesInMonth, monthlyDepreciation } from '../depreciation';
 
 const cost = { amount: '1200.00', currency: 'ARS' as const };
 const residual = { amount: '0.00', currency: 'ARS' as const };
@@ -36,5 +36,17 @@ describe('accumulatedDepreciation', () => {
 
   it('no excede el valor depreciable al completar la vida util', () => {
     expect(accumulatedDepreciation('2026-01-15', cost, 60, residual, '2031-06-01').amount).toBe('1200.00');
+  });
+});
+
+describe('depreciatesInMonth', () => {
+  it('no deprecia en el mes de pago', () => {
+    expect(depreciatesInMonth('2026-01-15', 60, '2026-01')).toBe(false);
+  });
+
+  it('deprecia desde el mes siguiente y hasta la vida util', () => {
+    expect(depreciatesInMonth('2026-01-15', 60, '2026-02')).toBe(true);
+    expect(depreciatesInMonth('2026-01-15', 60, '2031-01')).toBe(true); // mes 60
+    expect(depreciatesInMonth('2026-01-15', 60, '2031-02')).toBe(false); // pasó la vida útil
   });
 });

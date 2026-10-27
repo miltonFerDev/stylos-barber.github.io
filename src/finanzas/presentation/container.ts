@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AccountingPeriodRepository } from '../application/journal-service';
 import { JournalService } from '../application/journal-service';
 import { ClosingsService, type ReconciliationRepository } from '../application/closings-service';
+import { DepreciationService } from '../application/depreciation-service';
+import type { CapexConfig } from '../domain/depreciation';
 import type { MasterRepository } from '../application/master-data-service';
 import { ObligationsService } from '../application/obligations-service';
 import { PaymentsService, type PaymentRepository } from '../application/payments-service';
@@ -21,6 +23,7 @@ import {
   SupabasePaymentApplicationRepository,
   SupabasePaymentRepository,
   SupabaseReconciliationRepository,
+  SupabaseInvestmentRepository,
   SupabaseRoleRepository,
 } from '../repositories/supabase-repositories';
 
@@ -34,6 +37,7 @@ export type FinanzasContainer = {
   paymentsRepo: PaymentRepository;
   closings: ClosingsService;
   reconciliationsRepo: ReconciliationRepository;
+  depreciation: DepreciationService;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
 };
@@ -116,6 +120,26 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     adjustmentLedgerAccounts: { shortfall: '5.10', surplus: '4.3' },
   });
 
+  const capex: CapexConfig = {
+    threshold: { amount: '1000.00', currency: 'ARS' }, // placeholder: configurar el umbral real
+    usefulLifeMonths: 60,
+    residual: { amount: '0.00', currency: 'ARS' },
+    capitalizeLedgerAccountId: '1.3',
+    expenseLedgerAccountId: '5.11',
+    accumulatedDepreciationLedgerAccountId: '1.3.9',
+    depreciationExpenseLedgerAccountId: '5.9',
+  };
+
+  const depreciation = new DepreciationService({
+    investments: new SupabaseInvestmentRepository(supabase),
+    periods,
+    journal,
+    entries: journalEntriesRepo,
+    capex,
+    audit,
+    createId: () => crypto.randomUUID(),
+  });
+
   return {
     supabase,
     roles,
@@ -126,6 +150,7 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     paymentsRepo,
     closings,
     reconciliationsRepo,
+    depreciation,
     masters,
     periods,
   };

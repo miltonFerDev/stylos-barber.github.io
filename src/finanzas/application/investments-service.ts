@@ -49,6 +49,7 @@ export type RegisterInvestmentPaymentCommand = {
 
 export type InvestmentRepository = {
   findById(id: string): Promise<Investment | null>;
+  findAllCapitalized(): Promise<Investment[]>;
   save(investment: Investment): Promise<Investment>;
   update(investment: Investment): Promise<Investment>;
 };

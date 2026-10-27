@@ -616,6 +616,15 @@ export class SupabaseInvestmentRepository implements InvestmentRepository {
     return data ? mapInvestment(data as DbRow) : null;
   }
 
+  async findAllCapitalized() {
+    const { data } = await this.supabase
+      .from('investments')
+      .select('*')
+      .eq('status', 'PAGADA')
+      .eq('capitalized', true);
+    return (data ?? []).map((i) => mapInvestment(i as DbRow));
+  }
+
   async save(investment: Investment) {
     await this.supabase.from('investments').insert({
       id: investment.id,

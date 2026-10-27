@@ -19,7 +19,8 @@ export type AuditAction =
   | 'ATTACHMENT_LINKED'
   | 'INVESTMENT_CANDIDATE_CREATED'
   | 'INVESTMENT_DECIDED'
-  | 'INVESTMENT_PAID';
+  | 'INVESTMENT_PAID'
+  | 'DEPRECIATION_POSTED';
 
 export type AuditEvent = {
   id: string;

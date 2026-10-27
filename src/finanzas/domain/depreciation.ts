@@ -64,3 +64,16 @@ export function accumulatedDepreciation(
   const monthly = toMinor(monthlyDepreciation(cost, usefulLifeMonths, residual));
   return minorToMoney(monthly * BigInt(months), cost.currency);
 }
+
+/**
+ * ¿Este activo deprecia en el mes `month` (YYYY-MM)? Deprecia desde el mes
+ * siguiente al pago (índice 1) hasta completar la vida útil.
+ */
+export function depreciatesInMonth(paidAt: string, usefulLifeMonths: number, month: string): boolean {
+  const p = paidAt.slice(0, 7).split('-').map(Number);
+  const m = month.slice(0, 7).split('-').map(Number);
+  const paidTotal = p[0] * 12 + p[1];
+  const monthTotal = m[0] * 12 + m[1];
+  const idx = monthTotal - paidTotal; // 0 = mes de pago
+  return idx >= 1 && idx <= usefulLifeMonths;
+}
