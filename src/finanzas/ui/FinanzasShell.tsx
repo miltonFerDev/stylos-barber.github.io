@@ -52,7 +52,7 @@ export function FinanzasShell() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col md:flex-row">
       <FinanzasNav view={view} onChange={setView} />
       <main className="min-w-0 flex-1">
         <Suspense fallback={<div className="p-8 text-center text-finMuted">Cargando…</div>}>

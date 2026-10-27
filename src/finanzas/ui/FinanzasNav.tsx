@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { finanzasSupabase } from '../presentation/client';
 
 export type FinanzasView = 'tablero' | 'agenda' | 'nueva' | 'pagar' | 'cierre' | 'fondos' | 'inversiones';
@@ -126,29 +127,31 @@ export function FinanzasNav({ view, onChange }: { view: FinanzasView; onChange: 
         <span className="w-12" aria-hidden="true" />
       </div>
 
-      {/* Drawer mobile */}
-      {open && (
-        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Menú">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} aria-hidden="true" />
-          <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-finSurface shadow-xl">
-            <div className="flex items-center justify-between px-4 py-3">
-              <span className="text-lg font-bold text-finText">Finanzas</span>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label="Cerrar menú"
-                className="flex min-h-12 items-center justify-center rounded-lg px-3 text-finMuted transition-colors hover:text-finText cursor-pointer"
-              >
-                <CloseIcon />
-              </button>
+      {/* Drawer mobile (portal a body para full-viewport) */}
+      {open &&
+        createPortal(
+          <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Menú">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} aria-hidden="true" />
+            <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-finSurface shadow-xl">
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-lg font-bold text-finText">Finanzas</span>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  aria-label="Cerrar menú"
+                  className="flex min-h-12 items-center justify-center rounded-lg px-3 text-finMuted transition-colors hover:text-finText cursor-pointer"
+                >
+                  <CloseIcon />
+                </button>
+              </div>
+              <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2" aria-label="Principal">
+                {items}
+              </nav>
+              <div className="space-y-1 border-t border-finBorder px-3 py-3">{footer}</div>
             </div>
-            <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2" aria-label="Principal">
-              {items}
-            </nav>
-            <div className="space-y-1 border-t border-finBorder px-3 py-3">{footer}</div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 }
