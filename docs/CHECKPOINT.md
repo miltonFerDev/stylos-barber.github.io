@@ -18,7 +18,7 @@
 - **Dominio/aplicación:** E0–E7 implementados. Tesorería operativa completa (pagos, reversión, transferencias, ingresos, cierres/conciliaciones, fondos externos con retiro, inversiones con capitalización).
 - **UI (E5):** Tablero, Agenda, Alta obligación, Pagar (con reversión), Cierre. **Falta:** Fondos externos (inyección/retiro), Inversiones, Transferencias, Ingresos.
 - **Decisiones de negocio:** cerradas (P-REC, P6, P7, P-CAP, P9, P10, P12, P13). Umbral P-CAP con placeholder `$1.000`.
-- **Depreciación automática:** dominio + servicio idempotente (`postDepreciation`) + endpoint catch-up + job pg_cron (migración 026, requiere configurar URL + service key).
+- **Depreciación automática:** dominio + servicio idempotente (`postDepreciation`) + endpoint catch-up `POST /api/finanzas/depreciacion` + **Vercel Cron** (`vercel.json`) con `CRON_SECRET`.
 - **Tests:** 373 unit tests verdes. `typecheck`, `lint` y `build` pasan.
 
 ## ⚠️ Migraciones pendientes de aplicar en Supabase
@@ -27,7 +27,8 @@
 - `023` rol `DEV` + `has_role()` con short-circuit.
 - `024` `external_settlements.result_line_id` nullable (retiro contra cuenta corriente).
 - `025` columnas `investments` (paid_at, capitalized, useful_life_months).
-- `026` job pg_cron de depreciación (requiere configurar `pg_cron`/`pg_net` + URL + service key).
+
+> Nota: la migración `026` (pg_cron) fue descartada; la depreciación automática ahora usa **Vercel Cron** (no requiere migración en Supabase).
 
 ## Próximos pasos
 
@@ -36,7 +37,7 @@
 3. E6 previsión 13 semanas (requiere P1 sueldo y P2 reserva).
 4. E9 migración desde AppSheet/Google Sheets (requiere P8/P15).
 5. E10 UAT + salida productiva.
-6. Configurar el job de depreciación (migración 026) con URL real + service key.
+6. Configurar `CRON_SECRET` en Vercel (variable de entorno) para que el cron de depreciación funcione.
 
 ## Datos que faltan del dueño (no bloquean)
 

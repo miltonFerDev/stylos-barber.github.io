@@ -1,5 +1,11 @@
 {
   "rewrites": [
     { "source": "/prode/:match*", "destination": "/prode/index.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/finanzas/depreciacion",
+      "schedule": "0 0 1 * *"
+    }
   ]
 }
