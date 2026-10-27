@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>http://www.stylosbarber.com.ar/</loc>
+        <loc>https://stylosbarber.com.ar/</loc>
         <priority>1.0</priority>
     </url>
     <url>
@@ -13,6 +13,11 @@
         <loc>https://stylosbarber.com.ar/escuela</loc>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://stylosbarber.com.ar/prode</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
     </url>
 
 </urlset>
