@@ -128,10 +128,10 @@ export function FinanzasNav({ view, onChange }: { view: FinanzasView; onChange: 
 
       {/* Drawer mobile */}
       {open && (
-        <div className="fixed inset-0 z-20 md:hidden" role="dialog" aria-modal="true" aria-label="Menú">
+        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Menú">
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} aria-hidden="true" />
-          <div className="absolute left-0 top-0 flex h-full w-64 flex-col border-r border-finBorder bg-finSurface p-3">
-            <div className="flex items-center justify-between px-1 py-2">
+          <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-finSurface shadow-xl">
+            <div className="flex items-center justify-between px-4 py-3">
               <span className="text-lg font-bold text-finText">Finanzas</span>
               <button
                 type="button"
@@ -142,10 +142,10 @@ export function FinanzasNav({ view, onChange }: { view: FinanzasView; onChange: 
                 <CloseIcon />
               </button>
             </div>
-            <nav className="flex-1 space-y-1 overflow-y-auto py-2" aria-label="Principal">
+            <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2" aria-label="Principal">
               {items}
             </nav>
-            <div className="space-y-1 border-t border-finBorder py-3">{footer}</div>
+            <div className="space-y-1 border-t border-finBorder px-3 py-3">{footer}</div>
           </div>
         </div>
       )}
