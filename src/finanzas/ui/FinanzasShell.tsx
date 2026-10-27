@@ -22,6 +22,12 @@ const Fondos = lazy(() =>
 const Inversiones = lazy(() =>
   import('./Inversiones').then((m) => ({ default: m.Inversiones }))
 );
+const Transferencias = lazy(() =>
+  import('./Transferencias').then((m) => ({ default: m.Transferencias }))
+);
+const Ingresos = lazy(() =>
+  import('./Ingresos').then((m) => ({ default: m.Ingresos }))
+);
 
 export function FinanzasShell() {
   const [view, setView] = useState<FinanzasView>('tablero');
@@ -68,8 +74,12 @@ export function FinanzasShell() {
             <Cierre />
           ) : view === 'fondos' ? (
             <Fondos />
-          ) : (
+          ) : view === 'inversiones' ? (
             <Inversiones />
+          ) : view === 'transferencias' ? (
+            <Transferencias />
+          ) : (
+            <Ingresos />
           )}
         </Suspense>
       </main>

@@ -2,13 +2,24 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { finanzasSupabase } from '../presentation/client';
 
-export type FinanzasView = 'tablero' | 'agenda' | 'nueva' | 'pagar' | 'cierre' | 'fondos' | 'inversiones';
+export type FinanzasView =
+  | 'tablero'
+  | 'agenda'
+  | 'nueva'
+  | 'pagar'
+  | 'cierre'
+  | 'fondos'
+  | 'inversiones'
+  | 'transferencias'
+  | 'ingresos';
 
 const ITEMS: { view: FinanzasView; label: string }[] = [
   { view: 'tablero', label: 'Tablero' },
   { view: 'agenda', label: 'Agenda' },
   { view: 'nueva', label: 'Nueva obligación' },
   { view: 'pagar', label: 'Pagar' },
+  { view: 'ingresos', label: 'Ingresos' },
+  { view: 'transferencias', label: 'Transferencias' },
   { view: 'cierre', label: 'Cierre' },
   { view: 'fondos', label: 'Fondos' },
   { view: 'inversiones', label: 'Inversiones' },
