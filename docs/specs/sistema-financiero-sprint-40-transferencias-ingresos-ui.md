@@ -24,7 +24,6 @@
 ## 4. Alcance excluido
 
 - Listado/historial de transferencias o ingresos (los repos no tienen `findAll`; pantalla solo de registro, como Fondos).
-- Distribución de ingreso en **múltiples** cuentas: la UI reparte el total en **una** cuenta receptora. `shortcut:` multi-cuenta se agrega si el negocio lo pide.
 - Reversión de transferencias/ingresos.
 
 ## 5. Decisiones
@@ -34,7 +33,7 @@
 | 1 | Permiso | `REGISTER_TRANSFER` y `REGISTER_DAILY_INCOME` (ya en la matriz RBAC). El GET autoriza `VIEW_BALANCES`. |
 | 2 | Cuentas | Solo `PROPIA` + `isAvailable` (origen y destino). |
 | 3 | Cuentas contables de ingreso | `incomeLedgerAccounts = { servicios: '4.1', productos: '4.2' }` (plan de cuentas D2). |
-| 4 | Distribución de ingreso | Una cuenta receptora = total servicios + productos (shortcut multi-cuenta). |
+| 4 | Distribución de ingreso | Reparte el total (servicios + productos) entre una o varias cuentas PROPIAS; la suma debe igualar el total. |
 
 ## 6. Contratos
 
@@ -75,8 +74,7 @@ Errores reutilizados: `TRANSFER_SAME_ACCOUNT`, `ACCOUNT_NOT_AVAILABLE`, `PERIOD_
 
 | Riesgo | Tratamiento |
 |---|---|
-| Suma de distribuciones (float) | La UI calcula el total con `.toFixed(2)`; el dominio valida en unidades menores (`bigint`). |
-| Multi-cuenta en ingreso | Shortcut documentado; no bloquea. |
+| Suma de distribuciones (float) | La UI calcula total y "restante" con redondeo a 2 decimales; el dominio valida en unidades menores (`bigint`). |
 
 ## 10. Rollback
 

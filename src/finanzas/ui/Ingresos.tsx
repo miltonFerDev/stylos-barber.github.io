@@ -12,6 +12,16 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function toNum(s: string): number {
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
+// Redondea a 2 decimales (ARS) para comparar total vs distribuido sin ruido de float.
+function round2(n: number): number {
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
 export function Ingresos() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [payload, setPayload] = useState<IngresosPayload | null>(null);
@@ -21,7 +31,7 @@ export function Ingresos() {
 
   const [serviceAmount, setServiceAmount] = useState('');
   const [productAmount, setProductAmount] = useState('');
-  const [accountId, setAccountId] = useState('');
+  const [distributions, setDistributions] = useState<Record<string, string>>({});
   const [periodId, setPeriodId] = useState('');
   const [effectiveDate, setEffectiveDate] = useState(today());
   const [note, setNote] = useState('');
@@ -53,23 +63,28 @@ export function Ingresos() {
     };
   }, []);
 
+  function setDist(accountId: string, value: string) {
+    setDistributions((prev) => ({ ...prev, [accountId]: value }));
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setSuccess(null);
     setSubmitting(true);
 
-    // shortcut: reparte el total en una sola cuenta receptora. Multi-cuenta se agrega si el negocio lo pide.
-    const total = (Number(serviceAmount || '0') + Number(productAmount || '0')).toFixed(2);
-
     const token = await getFinanzasAccessToken();
+    const dists = payload!.accounts
+      .map((a) => ({ accountId: a.id, amount: distributions[a.id] || '' }))
+      .filter((d) => toNum(d.amount) > 0);
+
     const res = await fetch('/api/finanzas/ingresos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         serviceAmount,
         productAmount,
-        distributions: [{ accountId, amount: total }],
+        distributions: dists,
         currency: 'ARS',
         effectiveDate,
         periodId,
@@ -82,6 +97,7 @@ export function Ingresos() {
       setSuccess('Ingreso registrado.');
       setServiceAmount('');
       setProductAmount('');
+      setDistributions({});
       setNote('');
     } else {
       const err = await res.json().catch(() => null);
@@ -96,14 +112,18 @@ export function Ingresos() {
     return <div className="p-8 text-center text-finDanger">No se pudo cargar la pantalla de ingresos.</div>;
   }
 
-  const total = (Number(serviceAmount || '0') + Number(productAmount || '0')).toFixed(2);
-  const canSubmit = Boolean(accountId) && Number(total) > 0;
+  const total = round2(toNum(serviceAmount) + toNum(productAmount));
+  const distributed = round2(payload.accounts.reduce((sum, a) => sum + toNum(distributions[a.id] || ''), 0));
+  const remaining = round2(total - distributed);
+  const canSubmit = total > 0 && remaining === 0;
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-finText">Ingresos</h1>
-        <p className="mt-1 text-base text-finMuted">Registro diario de servicios y productos.</p>
+        <p className="mt-1 text-base text-finMuted">
+          Cuánto entró (en pesos) por servicios y productos, y en qué cuentas.
+        </p>
       </header>
 
       {success && (
@@ -112,23 +132,25 @@ export function Ingresos() {
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          {field('Servicios', (
+          {field('Servicios (ARS)', (
             <input
               className={inputClass}
               type="number"
               min="0"
               step="0.01"
+              inputMode="decimal"
               value={serviceAmount}
               onChange={(e) => setServiceAmount(e.target.value)}
               placeholder="0.00"
             />
           ))}
-          {field('Productos', (
+          {field('Productos (ARS)', (
             <input
               className={inputClass}
               type="number"
               min="0"
               step="0.01"
+              inputMode="decimal"
               value={productAmount}
               onChange={(e) => setProductAmount(e.target.value)}
               placeholder="0.00"
@@ -137,17 +159,33 @@ export function Ingresos() {
         </div>
 
         <p className="text-base text-finMuted">
-          Total: <span className="font-semibold text-finText">{total}</span>
+          Total ingresado: <span className="font-semibold text-finText">${total.toFixed(2)}</span>
         </p>
 
-        {field('Cuenta receptora', (
-          <select className={inputClass} value={accountId} onChange={(e) => setAccountId(e.target.value)} required>
-            <option value="">Elegí…</option>
+        <section className="rounded-xl border border-finBorder bg-finSurface p-4">
+          <p className="mb-1 text-base font-semibold text-finText">Distribución por cuenta</p>
+          <p className="mb-3 text-sm text-finMuted">Repartí el total entre las cuentas donde entró la plata.</p>
+          <div className="space-y-3">
             {payload.accounts.map((a) => (
-              <option key={a.id} value={a.id}>{a.name}</option>
+              <div key={a.id}>
+                <label className="mb-1 block text-sm font-medium text-finText">{a.name} (ARS)</label>
+                <input
+                  className={inputClass}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  value={distributions[a.id] || ''}
+                  onChange={(e) => setDist(a.id, e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
             ))}
-          </select>
-        ))}
+          </div>
+          <p className={`mt-3 text-base ${remaining === 0 ? 'text-finPositive' : 'text-finDanger'}`}>
+            {remaining === 0 ? 'Distribución completa.' : `Restante por distribuir: $${remaining.toFixed(2)}`}
+          </p>
+        </section>
 
         {field('Fecha', (
           <input className={inputClass} type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} required />
