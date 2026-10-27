@@ -625,6 +625,11 @@ export class SupabaseInvestmentRepository implements InvestmentRepository {
     return (data ?? []).map((i) => mapInvestment(i as DbRow));
   }
 
+  async findAll() {
+    const { data } = await this.supabase.from('investments').select('*').order('created_at', { ascending: false });
+    return (data ?? []).map((i) => mapInvestment(i as DbRow));
+  }
+
   async save(investment: Investment) {
     await this.supabase.from('investments').insert({
       id: investment.id,

@@ -87,6 +87,9 @@ function createService(options: {
     async findById(id) {
       return savedInvestments.find((i) => i.id === id) ?? null;
     },
+    async findAll() {
+      return savedInvestments;
+    },
     async findAllCapitalized() {
       return savedInvestments.filter((i) => i.status === 'PAGADA' && i.capitalized === true);
     },

@@ -4,6 +4,8 @@ import { JournalService } from '../application/journal-service';
 import { ClosingsService, type ReconciliationRepository } from '../application/closings-service';
 import { DepreciationService } from '../application/depreciation-service';
 import { ExternalSettlementsService, type ExternalSettlementRepository } from '../application/external-settlements-service';
+import { ForecastService } from '../application/forecast-service';
+import { InvestmentsService, type InvestmentRepository } from '../application/investments-service';
 import type { CapexConfig } from '../domain/depreciation';
 import type { MasterRepository } from '../application/master-data-service';
 import { ObligationsService } from '../application/obligations-service';
@@ -26,6 +28,12 @@ import {
   SupabaseReconciliationRepository,
   SupabaseInvestmentRepository,
   SupabaseExternalSettlementRepository,
+  SupabaseForecastAccountRepository,
+  SupabaseForecastIncomeRepository,
+  SupabaseForecastObligationRepository,
+  SupabaseForecastReconciliationRepository,
+  SupabaseForecastSettingsRepository,
+  SupabaseInvestmentEvaluationRepository,
   SupabaseRoleRepository,
 } from '../repositories/supabase-repositories';
 
@@ -41,6 +49,9 @@ export type FinanzasContainer = {
   reconciliationsRepo: ReconciliationRepository;
   depreciation: DepreciationService;
   settlements: ExternalSettlementsService;
+  forecast: ForecastService;
+  investments: InvestmentsService;
+  investmentsRepo: InvestmentRepository;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
 };
@@ -133,12 +144,38 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     depreciationExpenseLedgerAccountId: '5.9',
   };
 
+  const investmentsRepo = new SupabaseInvestmentRepository(supabase);
+
   const depreciation = new DepreciationService({
-    investments: new SupabaseInvestmentRepository(supabase),
+    investments: investmentsRepo,
     periods,
     journal,
     entries: journalEntriesRepo,
     capex,
+    audit,
+    createId: () => crypto.randomUUID(),
+  });
+
+  const forecast = new ForecastService({
+    accounts: new SupabaseForecastAccountRepository(supabase),
+    reconciliations: new SupabaseForecastReconciliationRepository(supabase),
+    incomes: new SupabaseForecastIncomeRepository(supabase),
+    obligations: new SupabaseForecastObligationRepository(supabase),
+    settings: new SupabaseForecastSettingsRepository(supabase),
+    authorize,
+    maxReconciliationAgeDays: 30,
+  });
+
+  const investments = new InvestmentsService({
+    investments: investmentsRepo,
+    evaluations: new SupabaseInvestmentEvaluationRepository(supabase),
+    forecast,
+    movements,
+    masters,
+    periods,
+    journal,
+    capex,
+    authorize,
     audit,
     createId: () => crypto.randomUUID(),
   });
@@ -167,6 +204,9 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     reconciliationsRepo,
     depreciation,
     settlements,
+    forecast,
+    investments,
+    investmentsRepo,
     masters,
     periods,
   };

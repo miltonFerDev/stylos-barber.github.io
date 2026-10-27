@@ -18,8 +18,11 @@ const Cierre = lazy(() =>
 const Fondos = lazy(() =>
   import('./Fondos').then((m) => ({ default: m.Fondos }))
 );
+const Inversiones = lazy(() =>
+  import('./Inversiones').then((m) => ({ default: m.Inversiones }))
+);
 
-type View = 'tablero' | 'agenda' | 'nueva' | 'pagar' | 'cierre' | 'fondos';
+type View = 'tablero' | 'agenda' | 'nueva' | 'pagar' | 'cierre' | 'fondos' | 'inversiones';
 
 function TabButton({
   active,
@@ -99,6 +102,9 @@ export function FinanzasShell() {
               <TabButton active={view === 'fondos'} onClick={() => setView('fondos')}>
                 Fondos
               </TabButton>
+              <TabButton active={view === 'inversiones'} onClick={() => setView('inversiones')}>
+                Inversiones
+              </TabButton>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -129,8 +135,10 @@ export function FinanzasShell() {
           <RegistrarPago />
         ) : view === 'cierre' ? (
           <Cierre />
-        ) : (
+        ) : view === 'fondos' ? (
           <Fondos />
+        ) : (
+          <Inversiones />
         )}
       </Suspense>
     </div>
