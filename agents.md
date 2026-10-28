@@ -30,6 +30,21 @@ Ningún agente edita código fuente sin una auditoría / plan previo y, para App
 - Deploy: Vercel — verificar variables de entorno antes de cambios.
 - Comentarios: solo si el usuario los pide.
 
+## Heurísticas de usabilidad (filtro obligatorio para cada pantalla)
+
+Antes de crear (Spec) y de implementar (Apply) cualquier pantalla, el agente debe pasarla por este filtro y, si una heurística no se cumple, corregir el diseño o marcarlo explícitamente como pendiente:
+
+1. **Visibilidad del estado del sistema** — el usuario siempre debe saber qué ocurre (loading, éxito, error, "guardando…").
+2. **Relación entre el sistema y el mundo real** — usar lenguaje y conceptos familiares (pesos, barbero, comisión), no términos técnicos.
+3. **Control y libertad del usuario** — salidas de emergencia ante errores (cancelar, revertir, "deshacer").
+4. **Consistencia y estándares** — seguir las convenciones ya establecidas (mismo patrón de formularios, botones, colores `fin*`).
+5. **Prevención de errores** — diseñar para evitar fallos antes de que sucedan (validar antes de enviar, deshabilitar acciones inválidas, confirmar acciones destructivas).
+6. **Reconocimiento antes que memorizar** — hacer visibles los elementos y opciones (labels, placeholders, estados), no esconder opciones.
+7. **Flexibilidad y eficiencia de uso** — atajos para usuarios avanzados (defaults sensatos, prellenado, atajos de teclado cuando aporten).
+8. **Diseño estético y minimalista** — eliminar información innecesaria; cada elemento debe ganar su lugar.
+9. **Ayudar a reconocer, diagnosticar y solucionar errores** — mensajes de error claros, en lenguaje del usuario, que digan qué pasó y cómo salir.
+10. **Ayuda y documentación** — que sea fácil de buscar cuando sea necesaria (link a `/finanzas/ayuda` o wiki cuando corresponda).
+
 ## Modelos
 
 - `model` (default) y `general`: `opencode-go/deepseek-v4-pro`
