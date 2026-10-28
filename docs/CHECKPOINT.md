@@ -1,6 +1,6 @@
 # Checkpoint — sistema financiero (tesorería)
 
-> Fecha: 2026-10-26 · Rama: `main` · Último commit: `7e88b0d`
+> Fecha: 2026-10-27 · Rama: `main` · Último commit: `b1260c0`
 
 ## Qué se cerró desde el checkpoint anterior (2026-10-20)
 
@@ -12,6 +12,18 @@
 | P6 | Inversión "avisa, no bloquea": `confirmExceedsCapacity` (spec sprint 34). |
 | P7 | Retiro contra cuenta corriente: `registerCurrentAccountWithdrawal` + `result_line_id` nullable (migración 024, spec sprint 35). |
 | P-CAP + EV-15 | Pago de inversión (`registerInvestmentPayment`), capitalizar (`1.3`) vs gastar (`5.11`) por umbral, depreciación lineal + posteo automático (spec sprint 36). |
+
+## Reciente (sprints 37–43)
+
+| Área | Contenido |
+|---|---|
+| Wiki de ayuda | Content Collection `ayuda` (5 conceptos + 4 recetas) en `/finanzas/ayuda` (sprint 37). |
+| Fondos externos (UI) | Inyección + retiro (sprint 38). |
+| Inversiones (UI) | Candidata → evaluar → decidir → pagar (sprint 39). |
+| Transferencias + Ingresos (UI) | Tabs (sprint 40); Ingresos con reparto multi-cuenta. |
+| Comisiones a barberos | Devengo (`Db 5.1 / Hr 2.1.1`) + pago con reparto por cuenta (sprint 41, migración 026). |
+| Reversibilidad (spec) | `docs/specs/sistema-financiero-sprint-42-reversibilidad-ux.md` (pendiente de implementar). |
+| Audit UX | `docs/specs/sistema-financiero-audit-ux-heuristicas.md` (10 heurísticas de Nielsen). |
 
 ## Estado general
 
@@ -33,11 +45,20 @@
 
 ## Próximos pasos
 
-1. E4-10 adjuntos/comprobantes privados (storage Supabase).
-2. E6 previsión 13 semanas (requiere P1 sueldo y P2 reserva).
-3. E9 migración desde AppSheet/Google Sheets (requiere P8/P15).
-4. E10 UAT + salida productiva.
-5. Configurar `CRON_SECRET` en Vercel (variable de entorno) para que el cron de depreciación funcione.
+**Rápidos (UX, del audit):**
+1. Reversibilidad F1 — Transferencias, Ingresos, Comisiones (spec sprint 42).
+2. Confirmación de submits de dinero.
+3. Traducir jerga ("Devengar", "Ajuste/Explicada").
+4. Carga batch de comisiones del día.
+5. Feedback en Inversiones (disabled + "procesando…").
+6. Unificar fetch (`useFinanzasFetch`) + linkear wiki en todas.
+
+**Épicas:**
+7. E4-10 adjuntos/comprobantes privados (storage Supabase).
+8. E6 previsión 13 semanas (requiere P1 sueldo y P2 reserva).
+9. E9 migración desde AppSheet/Google Sheets (requiere P8/P15).
+10. E10 UAT + salida productiva.
+11. Configurar `CRON_SECRET` en Vercel (variable de entorno) para que el cron de depreciación funcione.
 
 ## Datos que faltan del dueño (no bloquean)
 
