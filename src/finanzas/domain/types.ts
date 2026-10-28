@@ -63,7 +63,8 @@ export type DomainErrorCode =
   | 'INCOME_SOURCE_MISSING'
   | 'INVESTMENT_NOT_FOUND'
   | 'INVALID_INVESTMENT_STATE'
-  | 'INVESTMENT_EXCEEDS_CAPACITY';
+  | 'INVESTMENT_EXCEEDS_CAPACITY'
+  | 'COMMISSION_EXCEEDS_PENDING';
 
 export type DomainError = {
   code: DomainErrorCode;

@@ -15,11 +15,11 @@
 
 ## Estado general
 
-- **Dominio/aplicación:** E0–E7 implementados. Tesorería operativa completa (pagos, reversión, transferencias, ingresos, cierres/conciliaciones, fondos externos con retiro, inversiones con capitalización).
-- **UI (E5):** completa — Tablero, Agenda, Alta obligación, Pagar (con reversión), Cierre, Fondos externos (inyección/retiro), Inversiones, Transferencias, Ingresos.
+- **Dominio/aplicación:** E0–E7 implementados. Tesorería operativa completa (pagos, reversión, transferencias, ingresos, comisiones a barberos, cierres/conciliaciones, fondos externos con retiro, inversiones con capitalización).
+- **UI (E5):** completa — Tablero, Agenda, Alta obligación, Pagar (con reversión), Cierre, Fondos externos (inyección/retiro), Inversiones, Transferencias, Ingresos, Comisiones.
 - **Decisiones de negocio:** cerradas (P-REC, P6, P7, P-CAP, P9, P10, P12, P13). Umbral P-CAP con placeholder `$1.000`.
 - **Depreciación automática:** dominio + servicio idempotente (`postDepreciation`) + endpoint catch-up `POST /api/finanzas/depreciacion` + **Vercel Cron** (`vercel.json`) con `CRON_SECRET`.
-- **Tests:** 373 unit tests verdes. `typecheck`, `lint` y `build` pasan.
+- **Tests:** 410 unit tests verdes. `typecheck`, `lint` y `build` pasan.
 
 ## ⚠️ Migraciones pendientes de aplicar en Supabase
 
@@ -27,6 +27,7 @@
 - `023` rol `DEV` + `has_role()` con short-circuit.
 - `024` `external_settlements.result_line_id` nullable (retiro contra cuenta corriente).
 - `025` columnas `investments` (paid_at, capitalized, useful_life_months).
+- `026` comisiones a barberos (tablas + barberos + result line `5.1`).
 
 > Nota: la migración `026` (pg_cron) fue descartada; la depreciación automática ahora usa **Vercel Cron** (no requiere migración en Supabase).
 

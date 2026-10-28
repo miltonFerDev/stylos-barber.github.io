@@ -3,6 +3,7 @@ import type { Account } from '../domain/accounts';
 import type { AuditEvent } from '../domain/audit';
 import type { Category, ResultLine, Subcategory } from '../domain/categories';
 import type { DailyClosing, Reconciliation } from '../domain/closings';
+import type { CommissionPayment, CommissionPaymentDistribution, CommissionRecord } from '../domain/commissions';
 import type { ExternalSettlement } from '../domain/external-settlements';
 import type { IncomeForecast } from '../domain/forecast';
 import type { IncomeDistribution, IncomeRecord } from '../domain/incomes';
@@ -333,6 +334,41 @@ export function mapExternalSettlement(row: DbRow): ExternalSettlement {
     source: 'REAL',
     createdBy: asUserId(row.created_by),
     createdAt: String(row.created_at),
+  };
+}
+
+export function mapCommissionRecord(row: DbRow): CommissionRecord {
+  return {
+    id: String(row.id),
+    barberId: String(row.barber_id),
+    effectiveDate: String(row.effective_date),
+    amount: dbToMoney(row.amount, row.currency as Currency),
+    periodId: String(row.period_id),
+    idempotencyKey: String(row.idempotency_key),
+    createdBy: asUserId(row.created_by),
+    createdAt: String(row.created_at),
+  };
+}
+
+export function mapCommissionPayment(row: DbRow): CommissionPayment {
+  return {
+    id: String(row.id),
+    barberId: String(row.barber_id),
+    effectiveDate: String(row.effective_date),
+    amount: dbToMoney(row.amount, row.currency as Currency),
+    periodId: String(row.period_id),
+    idempotencyKey: String(row.idempotency_key),
+    createdBy: asUserId(row.created_by),
+    createdAt: String(row.created_at),
+  };
+}
+
+export function mapCommissionPaymentDistribution(row: DbRow): CommissionPaymentDistribution {
+  return {
+    id: String(row.id),
+    commissionPaymentId: String(row.commission_payment_id),
+    accountId: String(row.account_id),
+    amount: dbToMoney(row.amount, row.currency as Currency),
   };
 }
 

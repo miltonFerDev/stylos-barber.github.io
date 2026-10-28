@@ -11,7 +11,8 @@ export type FinanzasView =
   | 'fondos'
   | 'inversiones'
   | 'transferencias'
-  | 'ingresos';
+  | 'ingresos'
+  | 'comisiones';
 
 const ITEMS: { view: FinanzasView; label: string }[] = [
   { view: 'tablero', label: 'Tablero' },
@@ -20,6 +21,7 @@ const ITEMS: { view: FinanzasView; label: string }[] = [
   { view: 'pagar', label: 'Pagar' },
   { view: 'ingresos', label: 'Ingresos' },
   { view: 'transferencias', label: 'Transferencias' },
+  { view: 'comisiones', label: 'Comisiones' },
   { view: 'cierre', label: 'Cierre' },
   { view: 'fondos', label: 'Fondos' },
   { view: 'inversiones', label: 'Inversiones' },

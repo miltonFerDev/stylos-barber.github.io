@@ -20,7 +20,9 @@ export type AuditAction =
   | 'INVESTMENT_CANDIDATE_CREATED'
   | 'INVESTMENT_DECIDED'
   | 'INVESTMENT_PAID'
-  | 'DEPRECIATION_POSTED';
+  | 'DEPRECIATION_POSTED'
+  | 'COMMISSION_ACCRUED'
+  | 'COMMISSION_PAID';
 
 export type AuditEvent = {
   id: string;

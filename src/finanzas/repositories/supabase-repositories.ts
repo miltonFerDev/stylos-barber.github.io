@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AccountMovementRepository } from '../domain/account-movements';
 import type { AuditEventInput, AuditRecorder } from '../domain/audit';
 import type { Reconciliation } from '../domain/closings';
+import type { CommissionPayment, CommissionPaymentDistribution, CommissionRecord } from '../domain/commissions';
 import type { ExternalSettlement } from '../domain/external-settlements';
 import type { IncomeForecast } from '../domain/forecast';
 import type { Investment, InvestmentEvaluation } from '../domain/investments';
@@ -18,6 +19,7 @@ import type { DailyClosingRepository, ReconciliationRepository } from '../applic
 import type { PaymentRepository, PaymentApplicationRepository } from '../application/payments-service';
 import type { TransferRepository } from '../application/transfers-service';
 import type { ExternalSettlementRepository } from '../application/external-settlements-service';
+import type { CommissionRepository } from '../application/commissions-service';
 import type { InvestmentRepository, InvestmentEvaluationRepository } from '../application/investments-service';
 import type { RoleRepository } from '../application/permission-service';
 import type { PeriodRepository } from '../application/periods-service';
@@ -36,6 +38,8 @@ import {
   mapAccountingPeriod,
   mapAuditEvent,
   mapCategory,
+  mapCommissionPayment,
+  mapCommissionRecord,
   mapDailyClosing,
   mapExternalSettlement,
   mapIncomeDistribution,
@@ -602,6 +606,71 @@ export class SupabaseExternalSettlementRepository implements ExternalSettlementR
   async update(settlement: ExternalSettlement) {
     await this.supabase.from('external_settlements').update({ status: settlement.status }).eq('id', settlement.id);
     return settlement;
+  }
+}
+
+export class SupabaseCommissionRepository implements CommissionRepository {
+  constructor(private readonly supabase: SupabaseClient) {}
+
+  async findRecordsByBarber(barberId: string) {
+    const { data } = await this.supabase.from('commission_records').select('*').eq('barber_id', barberId);
+    return (data ?? []).map((r) => mapCommissionRecord(r as DbRow));
+  }
+
+  async findPaymentsByBarber(barberId: string) {
+    const { data } = await this.supabase.from('commission_payments').select('*').eq('barber_id', barberId);
+    return (data ?? []).map((p) => mapCommissionPayment(p as DbRow));
+  }
+
+  async findRecordByIdempotencyKey(key: string) {
+    const { data } = await this.supabase.from('commission_records').select('*').eq('idempotency_key', key).maybeSingle();
+    return data ? mapCommissionRecord(data as DbRow) : null;
+  }
+
+  async findPaymentByIdempotencyKey(key: string) {
+    const { data } = await this.supabase.from('commission_payments').select('*').eq('idempotency_key', key).maybeSingle();
+    return data ? mapCommissionPayment(data as DbRow) : null;
+  }
+
+  async saveRecord(record: CommissionRecord) {
+    await this.supabase.from('commission_records').insert({
+      id: record.id,
+      barber_id: record.barberId,
+      effective_date: record.effectiveDate,
+      amount: moneyToDb(record.amount),
+      currency: record.amount.currency,
+      period_id: record.periodId,
+      idempotency_key: record.idempotencyKey,
+      created_by: record.createdBy,
+      created_at: record.createdAt,
+    });
+    return record;
+  }
+
+  async savePayment(payment: CommissionPayment) {
+    await this.supabase.from('commission_payments').insert({
+      id: payment.id,
+      barber_id: payment.barberId,
+      effective_date: payment.effectiveDate,
+      amount: moneyToDb(payment.amount),
+      currency: payment.amount.currency,
+      period_id: payment.periodId,
+      idempotency_key: payment.idempotencyKey,
+      created_by: payment.createdBy,
+      created_at: payment.createdAt,
+    });
+    return payment;
+  }
+
+  async saveDistribution(distribution: CommissionPaymentDistribution) {
+    await this.supabase.from('commission_payment_distributions').insert({
+      id: distribution.id,
+      commission_payment_id: distribution.commissionPaymentId,
+      account_id: distribution.accountId,
+      amount: moneyToDb(distribution.amount),
+      currency: distribution.amount.currency,
+    });
+    return distribution;
   }
 }
 

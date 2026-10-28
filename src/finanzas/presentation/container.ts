@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AccountingPeriodRepository } from '../application/journal-service';
 import { JournalService } from '../application/journal-service';
 import { ClosingsService, type ReconciliationRepository } from '../application/closings-service';
+import { CommissionsService } from '../application/commissions-service';
 import { DepreciationService } from '../application/depreciation-service';
 import { ExternalSettlementsService, type ExternalSettlementRepository } from '../application/external-settlements-service';
 import { ForecastService } from '../application/forecast-service';
@@ -40,6 +41,7 @@ import {
   SupabaseTransferRepository,
   SupabaseIncomeRecordRepository,
   SupabaseIncomeDistributionRepository,
+  SupabaseCommissionRepository,
 } from '../repositories/supabase-repositories';
 
 export type FinanzasContainer = {
@@ -59,6 +61,7 @@ export type FinanzasContainer = {
   investmentsRepo: InvestmentRepository;
   transfers: TransfersService;
   incomes: IncomesService;
+  commissions: CommissionsService;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
 };
@@ -223,6 +226,18 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     incomeLedgerAccounts: { servicios: '4.1', productos: '4.2' },
   });
 
+  const commissions = new CommissionsService({
+    commissions: new SupabaseCommissionRepository(supabase),
+    movements,
+    masters,
+    periods,
+    journal,
+    authorize,
+    audit,
+    createId: () => crypto.randomUUID(),
+    commissionLedgerAccounts: { expense: '5.1', payable: '2.1.1' },
+  });
+
   return {
     supabase,
     roles,
@@ -240,6 +255,7 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     investmentsRepo,
     transfers,
     incomes,
+    commissions,
     masters,
     periods,
   };
