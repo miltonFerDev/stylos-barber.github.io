@@ -293,6 +293,7 @@ describe('CommissionsService.registerCommissionPayment', () => {
     expect(savedPayments).toHaveLength(1);
     expect(savedMovements).toHaveLength(2);
     expect(savedMovements.every((m) => m.direction === 'OUT')).toBe(true);
+    expect(savedMovements[0].idempotencyKey).not.toBe(savedMovements[1].idempotencyKey);
 
     const entry = savedEntries.find((e) => e.sourceDocumentType === 'commission_payment')!;
     expect(entry.lines[0].ledgerAccountId).toBe('2.1.1');

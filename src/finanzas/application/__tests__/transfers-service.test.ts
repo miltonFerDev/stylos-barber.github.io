@@ -214,6 +214,7 @@ describe('TransfersService.registerTransfer', () => {
     expect(savedMovements).toHaveLength(2);
     expect(savedMovements[0].direction).toBe('OUT');
     expect(savedMovements[1].direction).toBe('IN');
+    expect(savedMovements[0].idempotencyKey).not.toBe(savedMovements[1].idempotencyKey);
 
     expect(savedEntries).toHaveLength(1);
     expect(savedEntries[0].lines[0].ledgerAccountId).toBe('1.1.2');

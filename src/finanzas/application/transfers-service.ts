@@ -150,7 +150,6 @@ export class TransfersService {
       sourceDocumentType: 'transfer',
       sourceDocumentId: transferId,
       journalEntryId: entryResult.value.id,
-      idempotencyKey: ctx.idempotencyKey,
       createdAt: ctx.now,
     };
 
@@ -159,6 +158,7 @@ export class TransfersService {
       id: this.dependencies.createId(),
       accountId: from.id,
       direction: 'OUT',
+      idempotencyKey: `${ctx.idempotencyKey}:${from.id}`,
     });
 
     await this.dependencies.movements.save({
@@ -166,6 +166,7 @@ export class TransfersService {
       id: this.dependencies.createId(),
       accountId: to.id,
       direction: 'IN',
+      idempotencyKey: `${ctx.idempotencyKey}:${to.id}`,
     });
 
     const transfer: Transfer = {
@@ -246,7 +247,6 @@ export class TransfersService {
       sourceDocumentType: 'transfer_reversal',
       sourceDocumentId: transfer.id,
       journalEntryId: reversalEntry.value.id,
-      idempotencyKey: ctx.idempotencyKey,
       createdAt: ctx.now,
     };
 
@@ -255,6 +255,7 @@ export class TransfersService {
       id: this.dependencies.createId(),
       accountId: transfer.fromAccountId,
       direction: 'IN',
+      idempotencyKey: `${ctx.idempotencyKey}:${transfer.fromAccountId}`,
     });
 
     await this.dependencies.movements.save({
@@ -262,6 +263,7 @@ export class TransfersService {
       id: this.dependencies.createId(),
       accountId: transfer.toAccountId,
       direction: 'OUT',
+      idempotencyKey: `${ctx.idempotencyKey}:${transfer.toAccountId}`,
     });
 
     const updatedTransfer: Transfer = { ...transfer, status: 'REVERTIDO' };

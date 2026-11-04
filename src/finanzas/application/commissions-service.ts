@@ -312,7 +312,7 @@ export class CommissionsService {
         sourceDocumentType: 'commission_payment',
         sourceDocumentId: paymentId,
         journalEntryId: entryResult.value.id,
-        idempotencyKey: ctx.idempotencyKey,
+        idempotencyKey: `${ctx.idempotencyKey}:${distribution.accountId}`,
         createdAt: ctx.now,
       });
     }
@@ -474,7 +474,7 @@ export class CommissionsService {
         sourceDocumentType: 'commission_payment_reversal',
         sourceDocumentId: payment.id,
         journalEntryId: reversalEntry.value.id,
-        idempotencyKey: ctx.idempotencyKey,
+        idempotencyKey: `${ctx.idempotencyKey}:${distribution.accountId}`,
         createdAt: ctx.now,
       });
     }

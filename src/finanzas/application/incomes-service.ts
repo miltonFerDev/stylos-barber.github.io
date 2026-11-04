@@ -193,7 +193,7 @@ export class IncomesService {
         sourceDocumentType: 'income_record',
         sourceDocumentId: incomeId,
         journalEntryId: entryResult.value.id,
-        idempotencyKey: ctx.idempotencyKey,
+        idempotencyKey: `${ctx.idempotencyKey}:${distribution.accountId}`,
         createdAt: ctx.now,
       });
     }
@@ -292,7 +292,7 @@ export class IncomesService {
         sourceDocumentType: 'income_record_reversal',
         sourceDocumentId: income.id,
         journalEntryId: reversalEntry.value.id,
-        idempotencyKey: ctx.idempotencyKey,
+        idempotencyKey: `${ctx.idempotencyKey}:${distribution.accountId}`,
         createdAt: ctx.now,
       });
     }

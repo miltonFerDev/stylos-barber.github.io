@@ -233,6 +233,7 @@ describe('IncomesService.registerDailyIncome', () => {
     expect(savedIncomes).toHaveLength(1);
     expect(savedMovements).toHaveLength(2);
     expect(savedMovements.every(m => m.direction === 'IN')).toBe(true);
+    expect(savedMovements[0].idempotencyKey).not.toBe(savedMovements[1].idempotencyKey);
 
     expect(savedEntries).toHaveLength(1);
     const entry = savedEntries[0];
