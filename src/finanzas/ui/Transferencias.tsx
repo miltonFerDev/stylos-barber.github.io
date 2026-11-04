@@ -39,6 +39,7 @@ export function Transferencias() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const [fromAccountId, setFromAccountId] = useState('');
   const [toAccountId, setToAccountId] = useState('');
@@ -125,6 +126,12 @@ export function Transferencias() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!confirming) {
+      setError(null);
+      setConfirming(true);
+      return;
+    }
+    setConfirming(false);
     setError(null);
     setSuccess(null);
     setSubmitting(true);
@@ -163,7 +170,7 @@ export function Transferencias() {
     <div className="mx-auto max-w-xl px-4 py-8">
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-finText">Transferencias</h1>
-        <p className="mt-1 text-base text-finMuted">Mové dinero entre cuentas propias.</p>
+        <p className="mt-1 text-base text-finMuted">Mové dinero entre cuentas propias. · <a href="/finanzas/ayuda" className="text-finAccent underline">Ver ayuda</a></p>
       </header>
 
       {success && (
@@ -225,7 +232,7 @@ export function Transferencias() {
           disabled={submitting || !canSubmit}
           className="min-h-12 w-full rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-finAccentHover disabled:opacity-50"
         >
-          {submitting ? 'Guardando…' : 'Registrar transferencia'}
+          {submitting ? 'Guardando…' : confirming ? `¿Confirmás transferir $${Number(amount).toFixed(2)}?` : 'Registrar transferencia'}
         </button>
       </form>
 

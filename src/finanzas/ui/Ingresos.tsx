@@ -44,6 +44,7 @@ export function Ingresos() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const [serviceAmount, setServiceAmount] = useState('');
   const [productAmount, setProductAmount] = useState('');
@@ -135,6 +136,12 @@ export function Ingresos() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!confirming) {
+      setError(null);
+      setConfirming(true);
+      return;
+    }
+    setConfirming(false);
     setError(null);
     setSuccess(null);
     setSubmitting(true);
@@ -188,7 +195,8 @@ export function Ingresos() {
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-finText">Ingresos</h1>
         <p className="mt-1 text-base text-finMuted">
-          Cuánto entró (en pesos) por servicios y productos, y en qué cuentas.
+          Cuánto entró (en pesos) por servicios y productos, y en qué cuentas. ·{' '}
+          <a href="/finanzas/ayuda" className="text-finAccent underline">Ver ayuda</a>
         </p>
       </header>
 
@@ -279,7 +287,7 @@ export function Ingresos() {
           disabled={submitting || !canSubmit}
           className="min-h-12 w-full rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-finAccentHover disabled:opacity-50"
         >
-          {submitting ? 'Guardando…' : 'Registrar ingreso'}
+          {submitting ? 'Guardando…' : confirming ? `¿Confirmás registrar $${total.toFixed(2)}?` : 'Registrar ingreso'}
         </button>
       </form>
 

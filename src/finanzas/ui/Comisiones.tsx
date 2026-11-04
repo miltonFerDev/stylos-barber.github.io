@@ -45,10 +45,11 @@ export function Comisiones() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirmingDev, setConfirmingDev] = useState(false);
+  const [confirmingPay, setConfirmingPay] = useState(false);
 
-  // Devengo
-  const [barberId, setBarberId] = useState('');
-  const [amount, setAmount] = useState('');
+  // Comisión del día (carga batch por barbero)
+  const [devAmounts, setDevAmounts] = useState<Record<string, string>>({});
   const [devDate, setDevDate] = useState(today());
   const [devPeriodId, setDevPeriodId] = useState('');
 
@@ -141,27 +142,54 @@ export function Comisiones() {
 
   async function onDevengar(e: React.FormEvent) {
     e.preventDefault();
+    if (!confirmingDev) {
+      setError(null);
+      setConfirmingDev(true);
+      return;
+    }
+    setConfirmingDev(false);
     setError(null);
     setSuccess(null);
     setSubmitting(true);
+
     const token = await getFinanzasAccessToken();
-    const res = await fetch('/api/finanzas/comisiones/devengar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ barberId, amount, currency: 'ARS', effectiveDate: devDate, periodId: devPeriodId }),
-    });
-    setSubmitting(false);
-    if (res.ok) {
-      setSuccess('Comisión devengada.');
-      setAmount('');
-      load().catch(() => setStatus('error'));
-    } else {
-      const err = await res.json().catch(() => null);
-      setError(err?.message || 'No se pudo devengar.');
+    const entries = payload!.barbers
+      .filter((b) => toNum(devAmounts[b.id] || '') > 0)
+      .map((b) => ({ barberId: b.id, displayName: b.displayName, amount: devAmounts[b.id] }));
+
+    let okCount = 0;
+    const failed: string[] = [];
+    for (const entry of entries) {
+      const res = await fetch('/api/finanzas/comisiones/devengar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ barberId: entry.barberId, amount: entry.amount, currency: 'ARS', effectiveDate: devDate, periodId: devPeriodId }),
+      });
+      if (res.ok) {
+        okCount += 1;
+      } else {
+        const err = await res.json().catch(() => null);
+        failed.push(`${entry.displayName}: ${err?.message || 'error'}`);
+      }
     }
+
+    setSubmitting(false);
+    if (failed.length === 0) {
+      setSuccess(`Se registraron ${okCount} comisión${okCount === 1 ? '' : 'es'}.`);
+      setDevAmounts({});
+    } else {
+      setError(`Se registraron ${okCount} de ${entries.length}. Falló: ${failed.join(' · ')}`);
+    }
+    load().catch(() => setStatus('error'));
   }
 
   async function onPagar(barberId: string) {
+    if (!confirmingPay) {
+      setPayError(null);
+      setConfirmingPay(true);
+      return;
+    }
+    setConfirmingPay(false);
     setPayError(null);
     setSubmitting(true);
     const token = await getFinanzasAccessToken();
@@ -197,29 +225,36 @@ export function Comisiones() {
   const payDistributed = round2(payload.accounts.reduce((s, a) => s + toNum(distributions[a.id] || ''), 0));
   const payRemaining = round2(payPending - payDistributed);
   const canPay = payPending > 0 && payRemaining === 0;
+  const devCount = payload.barbers.filter((b) => toNum(devAmounts[b.id] || '') > 0).length;
+  const devTotal = round2(payload.barbers.reduce((s, b) => s + toNum(devAmounts[b.id] || ''), 0));
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-finText">Comisiones</h1>
-        <p className="mt-1 text-base text-finMuted">Devengá la comisión del día y pagá a cada barbero.</p>
+        <p className="mt-1 text-base text-finMuted">Registrá la comisión del día y pagá a cada barbero. · <a href="/finanzas/ayuda" className="text-finAccent underline">Ver ayuda</a></p>
       </header>
 
       {success && <p className="mb-4 rounded-lg bg-finPositive/10 px-4 py-3 text-base text-finPositive">{success}</p>}
       {error && <p role="alert" className="mb-4 rounded-lg bg-finDanger/10 px-3 py-2 text-base text-finDanger">{error}</p>}
 
       <form onSubmit={onDevengar} className="mb-8 space-y-3 rounded-xl border border-finBorder bg-finSurface p-4">
-        <p className="text-base font-semibold text-finText">Devengar comisión</p>
-        {field('Barbero', (
-          <select className={inputClass} value={barberId} onChange={(e) => setBarberId(e.target.value)} required>
-            <option value="">Elegí…</option>
-            {payload.barbers.map((b) => (
-              <option key={b.id} value={b.id}>{b.displayName}</option>
-            ))}
-          </select>
-        ))}
-        {field('Monto (ARS)', (
-          <input className={inputClass} type="number" min="0" step="0.01" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+        <p className="text-base font-semibold text-finText">Comisión del día</p>
+        <p className="text-sm text-finMuted">Cargá lo que ganó cada barbero hoy. Dejá en 0 (o vacío) a quien no trabajó.</p>
+        {payload.barbers.map((b) => (
+          <div key={b.id}>
+            <label className="mb-1 block text-sm font-medium text-finText">{b.displayName} (ARS)</label>
+            <input
+              className={inputClass}
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={devAmounts[b.id] || ''}
+              onChange={(e) => setDevAmounts((prev) => ({ ...prev, [b.id]: e.target.value }))}
+              placeholder="0.00"
+            />
+          </div>
         ))}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {field('Fecha', <input className={inputClass} type="date" value={devDate} onChange={(e) => setDevDate(e.target.value)} required />)}
@@ -230,8 +265,8 @@ export function Comisiones() {
             </select>
           ))}
         </div>
-        <button type="submit" disabled={submitting || !barberId || !(toNum(amount) > 0)} className="min-h-12 w-full rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white hover:bg-finAccentHover disabled:opacity-50">
-          {submitting ? 'Guardando…' : 'Devengar'}
+        <button type="submit" disabled={submitting || devCount === 0} className="min-h-12 w-full rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white hover:bg-finAccentHover disabled:opacity-50">
+          {submitting ? 'Guardando…' : confirmingDev ? `¿Confirmás registrar ${devCount} comisión${devCount === 1 ? '' : 'es'} por $${devTotal.toFixed(2)}?` : 'Registrar comisiones'}
         </button>
       </form>
 
@@ -251,7 +286,7 @@ export function Comisiones() {
                       <p className="text-sm text-finMuted">Pendiente {formatMoney(pending.toFixed(2), 'ARS')}</p>
                     </div>
                     {payFor !== b.id && (
-                      <button type="button" onClick={() => { setPayFor(b.id); setDistributions({}); setPayError(null); }} className="min-h-12 rounded-lg border border-finBorder px-3 text-base font-semibold text-finAccent hover:bg-finBorder/60">
+                      <button type="button" onClick={() => { setPayFor(b.id); setDistributions({}); setPayError(null); setConfirmingPay(false); }} className="min-h-12 rounded-lg border border-finBorder px-3 text-base font-semibold text-finAccent hover:bg-finBorder/60">
                         Pagar
                       </button>
                     )}
@@ -289,9 +324,9 @@ export function Comisiones() {
                       {payError && <p role="alert" className="rounded-lg bg-finDanger/10 px-3 py-2 text-base text-finDanger">{payError}</p>}
                       <div className="flex gap-2">
                         <button type="button" disabled={submitting || !canPay} onClick={() => onPagar(b.id)} className="min-h-12 flex-1 rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white hover:bg-finAccentHover disabled:opacity-50">
-                          {submitting ? 'Pagando…' : 'Confirmar pago'}
+                          {submitting ? 'Pagando…' : confirmingPay ? `¿Confirmás pagar $${payPending.toFixed(2)}?` : 'Confirmar pago'}
                         </button>
-                        <button type="button" onClick={() => { setPayFor(null); setDistributions({}); }} className="min-h-12 rounded-lg border border-finBorder px-4 py-3 text-base font-semibold text-finMuted hover:text-finText">
+                        <button type="button" onClick={() => { setPayFor(null); setDistributions({}); setConfirmingPay(false); }} className="min-h-12 rounded-lg border border-finBorder px-4 py-3 text-base font-semibold text-finMuted hover:text-finText">
                           Cancelar
                         </button>
                       </div>
@@ -307,7 +342,7 @@ export function Comisiones() {
       {historial && (
         <>
           <RevertList
-            title="Devengos recientes"
+            title="Comisiones registradas"
             kind="record"
             items={historial.records}
             periods={historial.periods}

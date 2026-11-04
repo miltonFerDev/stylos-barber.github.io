@@ -51,7 +51,7 @@ export function TableroDireccion() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-finText">Tablero</h1>
-        <p className="mt-1 text-base text-finMuted">Disponibilidad y obligaciones</p>
+        <p className="mt-1 text-base text-finMuted">Disponibilidad y obligaciones · <a href="/finanzas/ayuda" className="text-finAccent underline">Ver ayuda</a></p>
       </header>
 
       <section className="mb-8">

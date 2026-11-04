@@ -129,7 +129,7 @@ export function AltaObligacion() {
     <div className="mx-auto max-w-xl px-4 py-8">
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-finText">Nueva obligación</h1>
-        <p className="mt-1 text-base text-finMuted">Cargá un compromiso de pago</p>
+        <p className="mt-1 text-base text-finMuted">Cargá un compromiso de pago · <a href="/finanzas/ayuda" className="text-finAccent underline">Ver ayuda</a></p>
       </header>
 
       {success && (

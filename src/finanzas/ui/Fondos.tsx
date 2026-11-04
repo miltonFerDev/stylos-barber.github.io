@@ -30,6 +30,7 @@ export function Fondos() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const [sourcePersonId, setSourcePersonId] = useState('');
   const [periodId, setPeriodId] = useState('');
@@ -70,6 +71,12 @@ export function Fondos() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!confirming) {
+      setError(null);
+      setConfirming(true);
+      return;
+    }
+    setConfirming(false);
     setError(null);
     setSuccess(null);
     setSubmitting(true);
@@ -225,7 +232,7 @@ export function Fondos() {
           disabled={submitting || !canSubmit}
           className="min-h-12 w-full rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-finAccentHover disabled:opacity-50"
         >
-          {submitting ? 'Guardando…' : isInyeccion ? 'Registrar inyección' : 'Registrar retiro'}
+          {submitting ? 'Guardando…' : confirming ? `¿Confirmás ${isInyeccion ? 'inyectar' : 'retirar'} $${Number(amount).toFixed(2)}?` : isInyeccion ? 'Registrar inyección' : 'Registrar retiro'}
         </button>
       </form>
     </div>

@@ -49,11 +49,11 @@
 **Rápidos (UX, del audit):**
 1. ~~Reversibilidad F1 — Transferencias, Ingresos, Comisiones (spec sprint 42).~~ ✅ Hecho.
 2. Reversibilidad F2 — Fondos (inyección/retiro → reintegro) e Inversión (pago).
-3. Confirmación de submits de dinero.
-4. Traducir jerga ("Devengar", "Ajuste/Explicada").
-5. Carga batch de comisiones del día.
-6. Feedback en Inversiones (disabled + "procesando…").
-7. Unificar fetch (`useFinanzasFetch`) + linkear wiki en todas.
+3. ~~Confirmación de submits de dinero.~~ ✅ Hecho (two-step confirm en Transferencias, Ingresos, Comisiones, Pagos, Fondos).
+4. ~~Traducir jerga ("Devengar" → "Registrar comisión", "Ajuste/Explicada" → "Ajustar saldo/Sin ajuste").~~ ✅ Hecho.
+5. ~~Carga batch de comisiones del día.~~ ✅ Hecho (un input por barbero, un solo envío).
+6. ~~Feedback en Inversiones (disabled + "procesando…").~~ ✅ Hecho (estado `busy` por acción).
+7. ~~Unificar fetch (`useFinanzasFetch`) + linkear wiki en todas.~~ ✅ Hecho (token unificado en `getFinanzasAccessToken`; link "Ver ayuda" en todas las pantallas).
 
 **Épicas:**
 8. E4-10 adjuntos/comprobantes privados (storage Supabase).

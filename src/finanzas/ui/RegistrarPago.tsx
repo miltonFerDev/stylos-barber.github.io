@@ -64,6 +64,7 @@ export function RegistrarPago() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const [mode, setMode] = useState<Mode>('aplicado');
   const [accountId, setAccountId] = useState('');
@@ -153,6 +154,12 @@ export function RegistrarPago() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!confirming) {
+      setError(null);
+      setConfirming(true);
+      return;
+    }
+    setConfirming(false);
     setError(null);
     setSuccess(false);
     setSubmitting(true);
@@ -234,7 +241,7 @@ export function RegistrarPago() {
     <div className="mx-auto max-w-xl px-4 py-8">
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-finText">Registrar pago</h1>
-        <p className="mt-1 text-base text-finMuted">Aplicá un pago a obligaciones o cargá un egreso directo</p>
+        <p className="mt-1 text-base text-finMuted">Aplicá un pago a obligaciones o cargá un egreso directo · <a href="/finanzas/ayuda" className="text-finAccent underline">Ver ayuda</a></p>
       </header>
 
       {success && (
@@ -380,7 +387,7 @@ export function RegistrarPago() {
           disabled={submitting || !canSubmit}
           className="min-h-12 w-full rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-finAccentHover disabled:opacity-50"
         >
-          {submitting ? 'Guardando…' : 'Registrar pago'}
+          {submitting ? 'Guardando…' : confirming ? `¿Confirmás el pago de $${(isEgreso ? toNumber(directAmount) : total).toFixed(2)}?` : 'Registrar pago'}
         </button>
       </form>
 

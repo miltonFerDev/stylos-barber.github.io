@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { finanzasSupabase } from '../presentation/client';
+import { getFinanzasAccessToken } from '../presentation/client';
 
 export type FetchStatus = 'loading' | 'unauthenticated' | 'error' | 'ready';
 
@@ -15,8 +15,7 @@ export function useFinanzasFetch<T>(path: string): { status: FetchStatus; data: 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data: sessionData } = await finanzasSupabase.auth.getSession();
-      const token = sessionData.session?.access_token ?? null;
+      const token = await getFinanzasAccessToken();
       if (!token) {
         if (!cancelled) setStatus('unauthenticated');
         return;

@@ -56,6 +56,8 @@ export function Inversiones() {
   const [payPeriodId, setPayPeriodId] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   const [needsConfirm, setNeedsConfirm] = useState(false);
+  // Acción en vuelo: 'create' | `evaluate:${id}` | `decide:${id}` | `pay:${id}` | null.
+  const [busy, setBusy] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const token = await getFinanzasAccessToken();
@@ -82,81 +84,101 @@ export function Inversiones() {
     e.preventDefault();
     setError(null);
     setSuccess(null);
-    const token = await getFinanzasAccessToken();
-    const res = await fetch('/api/finanzas/inversiones', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ concept: concept.trim(), amount, currency: 'ARS', tentativeDate }),
-    });
-    if (res.ok) {
-      setConcept('');
-      setAmount('');
-      setSuccess('Inversión candidata creada.');
-      load();
-    } else {
-      const err = await res.json().catch(() => null);
-      setError(err?.message || 'No se pudo crear.');
+    setBusy('create');
+    try {
+      const token = await getFinanzasAccessToken();
+      const res = await fetch('/api/finanzas/inversiones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ concept: concept.trim(), amount, currency: 'ARS', tentativeDate }),
+      });
+      if (res.ok) {
+        setConcept('');
+        setAmount('');
+        setSuccess('Inversión candidata creada.');
+        load();
+      } else {
+        const err = await res.json().catch(() => null);
+        setError(err?.message || 'No se pudo crear.');
+      }
+    } finally {
+      setBusy(null);
     }
   }
 
   async function onEvaluar(id: string) {
     setActionError(null);
-    const token = await getFinanzasAccessToken();
-    const res = await fetch(`/api/finanzas/inversiones/${id}/evaluar`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ scenario: 'BASE' }),
-    });
-    if (res.ok) {
-      setSuccess('Inversión evaluada.');
-      load();
-    } else {
-      const err = await res.json().catch(() => null);
-      setActionFor(id);
-      setActionError(err?.message || 'No se pudo evaluar.');
+    setBusy(`evaluate:${id}`);
+    try {
+      const token = await getFinanzasAccessToken();
+      const res = await fetch(`/api/finanzas/inversiones/${id}/evaluar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ scenario: 'BASE' }),
+      });
+      if (res.ok) {
+        setSuccess('Inversión evaluada.');
+        load();
+      } else {
+        const err = await res.json().catch(() => null);
+        setActionFor(id);
+        setActionError(err?.message || 'No se pudo evaluar.');
+      }
+    } finally {
+      setBusy(null);
     }
   }
 
   async function onDecidir(id: string, decision: 'APROBADA' | 'RECHAZADA', confirm = false) {
     setActionError(null);
     setNeedsConfirm(false);
-    const token = await getFinanzasAccessToken();
-    const res = await fetch(`/api/finanzas/inversiones/${id}/decidir`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ decision, reason: reason.trim(), confirmExceedsCapacity: confirm }),
-    });
-    if (res.ok) {
-      setActionFor(null);
-      setReason('');
-      setSuccess(decision === 'APROBADA' ? 'Inversión aprobada.' : 'Inversión rechazada.');
-      load();
-    } else {
-      const err = await res.json().catch(() => null);
-      if (err?.error === 'INVESTMENT_EXCEEDS_CAPACITY') {
-        setNeedsConfirm(true);
-        setActionError(err.message);
+    setBusy(`decide:${id}`);
+    try {
+      const token = await getFinanzasAccessToken();
+      const res = await fetch(`/api/finanzas/inversiones/${id}/decidir`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ decision, reason: reason.trim(), confirmExceedsCapacity: confirm }),
+      });
+      if (res.ok) {
+        setActionFor(null);
+        setReason('');
+        setSuccess(decision === 'APROBADA' ? 'Inversión aprobada.' : 'Inversión rechazada.');
+        load();
       } else {
-        setActionError(err?.message || 'No se pudo decidir.');
+        const err = await res.json().catch(() => null);
+        if (err?.error === 'INVESTMENT_EXCEEDS_CAPACITY') {
+          setNeedsConfirm(true);
+          setActionError(err.message);
+        } else {
+          setActionError(err?.message || 'No se pudo decidir.');
+        }
       }
+    } finally {
+      setBusy(null);
     }
   }
 
   async function onPagar(id: string) {
     setActionError(null);
-    const token = await getFinanzasAccessToken();
-    const res = await fetch(`/api/finanzas/inversiones/${id}/pagar`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ accountId: payAccountId, effectiveDate: payDate, periodId: payPeriodId }),
-    });
-    if (res.ok) {
-      setActionFor(null);
-      setSuccess('Inversión pagada.');
-      load();
-    } else {
-      const err = await res.json().catch(() => null);
-      setActionError(err?.message || 'No se pudo pagar.');
+    setBusy(`pay:${id}`);
+    try {
+      const token = await getFinanzasAccessToken();
+      const res = await fetch(`/api/finanzas/inversiones/${id}/pagar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ accountId: payAccountId, effectiveDate: payDate, periodId: payPeriodId }),
+      });
+      if (res.ok) {
+        setActionFor(null);
+        setSuccess('Inversión pagada.');
+        load();
+      } else {
+        const err = await res.json().catch(() => null);
+        setActionError(err?.message || 'No se pudo pagar.');
+      }
+    } finally {
+      setBusy(null);
     }
   }
 
@@ -191,8 +213,8 @@ export function Inversiones() {
         {field('Fecha tentativa', (
           <input className={inputClass} type="date" value={tentativeDate} onChange={(e) => setTentativeDate(e.target.value)} required />
         ))}
-        <button type="submit" className="min-h-12 w-full rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white hover:bg-finAccentHover">
-          Crear candidata
+        <button type="submit" disabled={busy !== null} className="min-h-12 w-full rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white hover:bg-finAccentHover disabled:opacity-50">
+          {busy === 'create' ? 'Creando…' : 'Crear candidata'}
         </button>
       </form>
 
@@ -218,8 +240,8 @@ export function Inversiones() {
 
                 <div className="mt-2 flex flex-wrap gap-2">
                   {(inv.status === 'BORRADOR' || inv.status === 'EVALUADA') && (
-                    <button type="button" onClick={() => onEvaluar(inv.id)} className="rounded-lg border border-finBorder px-3 py-2 text-sm font-semibold text-finAccent hover:bg-finBorder/60">
-                      Evaluar
+                    <button type="button" disabled={busy !== null} onClick={() => onEvaluar(inv.id)} className="rounded-lg border border-finBorder px-3 py-2 text-sm font-semibold text-finAccent hover:bg-finBorder/60 disabled:opacity-50">
+                      {busy === `evaluate:${inv.id}` ? 'Evaluando…' : 'Evaluar'}
                     </button>
                   )}
                   {inv.status === 'EVALUADA' && (
@@ -255,7 +277,9 @@ export function Inversiones() {
                       </select>
                     ))}
                     <div className="flex gap-2">
-                      <button type="submit" disabled={!payAccountId} className="min-h-12 flex-1 rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white hover:bg-finAccentHover disabled:opacity-50">Confirmar pago</button>
+                      <button type="submit" disabled={busy !== null || !payAccountId} className="min-h-12 flex-1 rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white hover:bg-finAccentHover disabled:opacity-50">
+                        {busy === `pay:${inv.id}` ? 'Pagando…' : 'Confirmar pago'}
+                      </button>
                       <button type="button" onClick={() => setActionFor(null)} className="min-h-12 rounded-lg border border-finBorder px-4 py-3 text-base font-semibold text-finMuted hover:text-finText">Cancelar</button>
                     </div>
                   </form>
@@ -267,8 +291,8 @@ export function Inversiones() {
                       <input className={inputClass} value={reason} onChange={(e) => setReason(e.target.value)} required={actionType === 'rechazar'} />
                     ))}
                     <div className="flex gap-2">
-                      <button type="submit" disabled={actionType === 'rechazar' && !reason.trim()} className="min-h-12 flex-1 rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white hover:bg-finAccentHover disabled:opacity-50">
-                        {needsConfirm ? 'Confirmar igual' : actionType === 'aprobar' ? 'Aprobar' : 'Rechazar'}
+                      <button type="submit" disabled={busy !== null || (actionType === 'rechazar' && !reason.trim())} className="min-h-12 flex-1 rounded-lg bg-finAccent px-4 py-3 text-base font-semibold text-white hover:bg-finAccentHover disabled:opacity-50">
+                        {busy === `decide:${inv.id}` ? 'Guardando…' : needsConfirm ? 'Confirmar igual' : actionType === 'aprobar' ? 'Aprobar' : 'Rechazar'}
                       </button>
                       <button type="button" onClick={() => { setActionFor(null); setNeedsConfirm(false); }} className="min-h-12 rounded-lg border border-finBorder px-4 py-3 text-base font-semibold text-finMuted hover:text-finText">Cancelar</button>
                     </div>
