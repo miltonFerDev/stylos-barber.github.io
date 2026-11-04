@@ -35,7 +35,7 @@ export type AuditEvent = {
   entityType: string;
   entityId: string;
   action: AuditAction;
-  actorUserId: UserId;
+  actorUserId: UserId | null;
   occurredAt: string;
   reason: string | null;
 };

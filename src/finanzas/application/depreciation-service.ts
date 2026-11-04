@@ -5,10 +5,12 @@ import type { JournalEntry, JournalLineDraft } from '../domain/journal';
 import { isPeriodOpen } from '../domain/periods';
 import type { AccountingPeriodRepository, JournalEntryRepository, JournalService } from './journal-service';
 import type { InvestmentRepository } from './investments-service';
-import type { CommandContext, Result } from '../domain/types';
+import type { CommandContext, Result, UserId } from '../domain/types';
 
 export type PostDepreciationCommand = {
   periodId: string;
+  // Actor del posteo. undefined = usa ctx.actorUserId; null = acción de sistema (cron).
+  actorUserId?: UserId | null;
 };
 
 export type DepreciationServiceDependencies = {
@@ -73,6 +75,8 @@ export class DepreciationService {
       return { ok: true, value: null };
     }
 
+    const actor = command.actorUserId !== undefined ? command.actorUserId : ctx.actorUserId;
+
     const entryResult = await this.dependencies.journal.postEntry(ctx, {
       periodId: period.id,
       entryDate: period.startsOn,
@@ -80,6 +84,7 @@ export class DepreciationService {
       sourceDocumentId: period.id,
       description: `Depreciación ${period.code}`,
       lines,
+      createdBy: actor,
     });
 
     if (!entryResult.ok) return entryResult;
@@ -88,7 +93,7 @@ export class DepreciationService {
       entityType: 'depreciation',
       entityId: entryResult.value.id,
       action: 'DEPRECIATION_POSTED',
-      actorUserId: ctx.actorUserId,
+      actorUserId: actor,
       occurredAt: ctx.now,
       reason: null,
     });

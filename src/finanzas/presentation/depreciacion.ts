@@ -6,13 +6,15 @@ import type { UserId } from '../domain/types';
 
 const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000000' as UserId;
 
-async function postForAllPeriods(container: FinanzasContainer, actorUserId: UserId): Promise<Response> {
+async function postForAllPeriods(container: FinanzasContainer, actorUserId: UserId | null): Promise<Response> {
   const periods = (await container.periods.findAll()).filter(isPeriodOpen);
   const posted: string[] = [];
 
   for (const period of periods) {
-    const ctx = commandContext(actorUserId, crypto.randomUUID());
-    const result = await container.depreciation.postDepreciation(ctx, { periodId: period.id });
+    // SYSTEM_USER_ID solo satisface el CommandContext (no se escribe); el actor
+    // real del posteo se pasa por command.actorUserId (null = sistema).
+    const ctx = commandContext(actorUserId ?? SYSTEM_USER_ID, crypto.randomUUID());
+    const result = await container.depreciation.postDepreciation(ctx, { periodId: period.id, actorUserId });
     if (!result.ok) {
       return json(400, { error: result.error.code, message: result.error.message });
     }
@@ -31,9 +33,10 @@ async function postForAllPeriods(container: FinanzasContainer, actorUserId: User
  *  - Manual: token de usuario + permiso VIEW_BALANCES.
  */
 export async function handleDepreciacion(container: FinanzasContainer, token: string | null): Promise<Response> {
-  const cronSecret = import.meta.env.CRON_SECRET as string | undefined;
+  // Secreto server-only: se lee de process.env (no import.meta.env, que solo expone PUBLIC_*).
+  const cronSecret = process.env.CRON_SECRET;
   if (cronSecret && token === cronSecret) {
-    return postForAllPeriods(container, SYSTEM_USER_ID);
+    return postForAllPeriods(container, null);
   }
 
   const userId = await resolveActor(container.supabase, token);

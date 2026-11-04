@@ -24,7 +24,7 @@ export type JournalEntry = JournalEntryDraft & {
   sourceDocumentType: string;
   sourceDocumentId: string;
   idempotencyKey: string;
-  createdBy: UserId;
+  createdBy: UserId | null;
   createdAt: Timestamp;
   reversesEntryId?: string;
   reversedAt?: Timestamp;

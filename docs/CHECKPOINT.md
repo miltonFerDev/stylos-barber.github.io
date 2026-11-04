@@ -41,6 +41,7 @@
 - `025` columnas `investments` (paid_at, capitalized, useful_life_months).
 - `026` comisiones a barberos (tablas + barberos + result line `5.1`).
 - `027` reversibilidad F1 (`income_records.status` + `REVERTIDO`; `commission_records/payments.status`).
+- `028` actor de sistema (depreciación automática): `journal_entries.created_by` y `audit_events.actor_user_id` nullable.
 
 > Nota: la migración `026` (pg_cron) fue descartada; la depreciación automática ahora usa **Vercel Cron** (no requiere migración en Supabase).
 
@@ -60,7 +61,7 @@
 9. E6 previsión 13 semanas (requiere P1 sueldo y P2 reserva).
 10. E9 migración desde AppSheet/Google Sheets (requiere P8/P15).
 11. E10 UAT + salida productiva.
-12. Configurar `CRON_SECRET` en Vercel (variable de entorno) para que el cron de depreciación funcione.
+12. ~~Cron de depreciación (código).~~ ✅ Hecho (GET handler + `process.env.CRON_SECRET` + actor de sistema nulo). **Falta:** setear la variable de entorno `CRON_SECRET` en Vercel (acción del dueño) y aplicar la migración `028` en Supabase.
 
 ## Datos que faltan del dueño (no bloquean)
 

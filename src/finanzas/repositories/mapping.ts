@@ -167,7 +167,7 @@ export function mapJournalEntry(row: DbRow, lines: JournalLineDraft[]): JournalE
     sourceDocumentType: String(row.source_document_type),
     sourceDocumentId: String(row.source_document_id),
     idempotencyKey: String(row.idempotency_key),
-    createdBy: asUserId(row.created_by),
+    createdBy: row.created_by == null ? null : asUserId(row.created_by),
     createdAt: String(row.created_at),
     description: String(row.description),
     lines,
@@ -427,7 +427,7 @@ export function mapAuditEvent(row: DbRow): AuditEvent {
     entityType: String(row.entity_type),
     entityId: String(row.entity_id),
     action: row.action as AuditEvent['action'],
-    actorUserId: asUserId(row.actor_user_id),
+    actorUserId: row.actor_user_id == null ? null : asUserId(row.actor_user_id),
     occurredAt: String(row.occurred_at),
     reason: nullOrString(row.reason),
   };

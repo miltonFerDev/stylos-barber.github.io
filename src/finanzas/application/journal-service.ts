@@ -7,7 +7,7 @@ import {
   type JournalLineDraft,
 } from '../domain/journal';
 import { isPeriodOpen, type AccountingPeriod } from '../domain/periods';
-import type { CommandContext, Result } from '../domain/types';
+import type { CommandContext, Result, UserId } from '../domain/types';
 
 export type PostJournalEntryCommand = {
   periodId: string;
@@ -16,6 +16,8 @@ export type PostJournalEntryCommand = {
   sourceDocumentId: string;
   description: string;
   lines: JournalLineDraft[];
+  // Actor del asiento. undefined = usa ctx.actorUserId; null = acción de sistema.
+  createdBy?: UserId | null;
 };
 
 export type ReverseJournalEntryCommand = {
@@ -101,7 +103,7 @@ export class JournalService {
       sourceDocumentType: command.sourceDocumentType,
       sourceDocumentId: command.sourceDocumentId,
       idempotencyKey: ctx.idempotencyKey,
-      createdBy: ctx.actorUserId,
+      createdBy: command.createdBy !== undefined ? command.createdBy : ctx.actorUserId,
       createdAt: ctx.now,
     };
 
