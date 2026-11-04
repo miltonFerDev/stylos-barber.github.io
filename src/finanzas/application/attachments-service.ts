@@ -15,6 +15,8 @@ export type LinkAttachmentCommand = {
 
 export type AttachmentRepository = {
   save(attachment: Attachment): Promise<Attachment>;
+  findById(id: string): Promise<Attachment | null>;
+  findByEntity(entityType: string, entityId: string): Promise<Attachment[]>;
 };
 
 export type AttachmentsServiceDependencies = {

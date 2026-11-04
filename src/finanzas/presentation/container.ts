@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AccountingPeriodRepository } from '../application/journal-service';
 import { JournalService } from '../application/journal-service';
+import { AttachmentsService, type AttachmentRepository } from '../application/attachments-service';
 import { ClosingsService, type ReconciliationRepository } from '../application/closings-service';
 import { CommissionsService, type CommissionRepository } from '../application/commissions-service';
 import { DepreciationService } from '../application/depreciation-service';
@@ -19,6 +20,7 @@ import { createServerSupabaseClient } from '../repositories/supabase-server';
 import {
   SupabaseAccountMovementRepository,
   SupabaseAccountingPeriodRepository,
+  SupabaseAttachmentRepository,
   SupabaseAuditQueryRepository,
   SupabaseAuditRecorder,
   SupabaseDailyClosingRepository,
@@ -52,6 +54,8 @@ export type FinanzasContainer = {
   obligations: ObligationsService;
   payments: PaymentsService;
   paymentsRepo: PaymentRepository;
+  attachments: AttachmentsService;
+  attachmentsRepo: AttachmentRepository;
   closings: ClosingsService;
   reconciliationsRepo: ReconciliationRepository;
   depreciation: DepreciationService;
@@ -114,6 +118,14 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     entries: journalEntriesRepo,
     createId: () => crypto.randomUUID(),
     audit,
+  });
+
+  const attachmentsRepo = new SupabaseAttachmentRepository(supabase);
+  const attachments = new AttachmentsService({
+    attachments: attachmentsRepo,
+    authorize,
+    audit,
+    createId: () => crypto.randomUUID(),
   });
 
   const paymentsRepo = new SupabasePaymentRepository(supabase);
@@ -259,6 +271,8 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     obligations,
     payments,
     paymentsRepo,
+    attachments,
+    attachmentsRepo,
     closings,
     reconciliationsRepo,
     depreciation,

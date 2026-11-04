@@ -36,6 +36,7 @@ import {
   mapAccount,
   mapAccountMovement,
   mapAccountingPeriod,
+  mapAttachment,
   mapAuditEvent,
   mapCategory,
   mapCommissionPayment,
@@ -990,6 +991,21 @@ export class SupabaseForecastSettingsRepository implements ForecastSettingsRepos
 // =====================================================
 export class SupabaseAttachmentRepository implements AttachmentRepository {
   constructor(private readonly supabase: SupabaseClient) {}
+
+  async findById(id: string) {
+    const { data } = await this.supabase.from('attachments').select('*').eq('id', id).maybeSingle();
+    return data ? mapAttachment(data as DbRow) : null;
+  }
+
+  async findByEntity(entityType: string, entityId: string) {
+    const { data } = await this.supabase
+      .from('attachments')
+      .select('*')
+      .eq('entity_type', entityType)
+      .eq('entity_id', entityId)
+      .order('created_at', { ascending: true });
+    return (data ?? []).map((a) => mapAttachment(a as DbRow));
+  }
 
   async save(attachment: Attachment) {
     await this.supabase.from('attachments').insert({

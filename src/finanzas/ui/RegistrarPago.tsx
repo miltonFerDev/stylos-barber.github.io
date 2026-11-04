@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getFinanzasAccessToken } from '../presentation/client';
+import { Adjuntos } from './Adjuntos';
 
 type Account = { id: string; name: string; currency: string };
 type ObligationLine = {
@@ -82,6 +83,7 @@ export function RegistrarPago() {
   const [revertPeriodId, setRevertPeriodId] = useState('');
   const [revertSubmitting, setRevertSubmitting] = useState(false);
   const [revertError, setRevertError] = useState<string | null>(null);
+  const [adjuntosFor, setAdjuntosFor] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -404,22 +406,31 @@ export function RegistrarPago() {
                     </p>
                     <p className="text-sm text-finMuted">{formatMoney(p.amount)}</p>
                   </div>
-                  {revertFor === p.id ? (
-                    <span className="text-sm font-semibold text-finMuted">Reversión…</span>
-                  ) : (
+                  <div className="flex gap-2">
+                    {revertFor === p.id ? (
+                      <span className="text-sm font-semibold text-finMuted">Reversión…</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRevertFor(p.id);
+                          setRevertReason('');
+                          setRevertDate(today());
+                          setRevertError(null);
+                        }}
+                        className="min-h-12 rounded-lg border border-finBorder px-3 text-base font-semibold text-finDanger hover:bg-finDanger/10"
+                      >
+                        Revertir
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => {
-                        setRevertFor(p.id);
-                        setRevertReason('');
-                        setRevertDate(today());
-                        setRevertError(null);
-                      }}
-                      className="min-h-12 rounded-lg border border-finBorder px-3 text-base font-semibold text-finDanger hover:bg-finDanger/10"
+                      onClick={() => setAdjuntosFor(adjuntosFor === p.id ? null : p.id)}
+                      className="min-h-12 rounded-lg border border-finBorder px-3 text-base font-semibold text-finAccent hover:bg-finBorder/60"
                     >
-                      Revertir
+                      {adjuntosFor === p.id ? 'Cerrar' : 'Comprobantes'}
                     </button>
-                  )}
+                  </div>
                 </div>
 
                 {revertFor === p.id && (
@@ -485,6 +496,10 @@ export function RegistrarPago() {
                       </button>
                     </div>
                   </form>
+                )}
+
+                {adjuntosFor === p.id && (
+                  <Adjuntos entityType="payment" entityId={p.id} />
                 )}
               </li>
             ))}

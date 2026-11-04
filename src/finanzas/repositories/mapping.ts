@@ -1,6 +1,7 @@
 import type { AccountMovement } from '../domain/account-movements';
 import type { Account } from '../domain/accounts';
 import type { AuditEvent } from '../domain/audit';
+import type { Attachment } from '../domain/attachments';
 import type { Category, ResultLine, Subcategory } from '../domain/categories';
 import type { DailyClosing, Reconciliation } from '../domain/closings';
 import type { CommissionPayment, CommissionPaymentDistribution, CommissionRecord } from '../domain/commissions';
@@ -430,5 +431,20 @@ export function mapAuditEvent(row: DbRow): AuditEvent {
     actorUserId: row.actor_user_id == null ? null : asUserId(row.actor_user_id),
     occurredAt: String(row.occurred_at),
     reason: nullOrString(row.reason),
+  };
+}
+
+export function mapAttachment(row: DbRow): Attachment {
+  return {
+    id: String(row.id),
+    entityType: String(row.entity_type),
+    entityId: String(row.entity_id),
+    storageKey: String(row.storage_key),
+    checksum: String(row.checksum),
+    mime: String(row.mime),
+    sizeBytes: Number(row.size_bytes),
+    isPrivate: Boolean(row.is_private),
+    uploadedBy: asUserId(row.uploaded_by),
+    createdAt: String(row.created_at),
   };
 }

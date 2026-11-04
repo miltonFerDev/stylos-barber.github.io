@@ -23,3 +23,13 @@ export function isAllowedMime(mime: string): boolean {
 export function isWithinSizeLimit(sizeBytes: number): boolean {
   return sizeBytes > 0 && sizeBytes <= MAX_ATTACHMENT_BYTES;
 }
+
+/** Extensión de archivo para un mime permitido (para el storage key). */
+export function extensionForMime(mime: string): string {
+  switch (mime) {
+    case 'application/pdf': return 'pdf';
+    case 'image/png': return 'png';
+    case 'image/jpeg': return 'jpg';
+    default: return 'bin';
+  }
+}

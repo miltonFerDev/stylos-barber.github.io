@@ -22,6 +22,12 @@ function createService(options?: { authorize?: Authorizer }) {
       saved.push(attachment);
       return attachment;
     },
+    async findById(id) {
+      return saved.find((a) => a.id === id) ?? null;
+    },
+    async findByEntity(entityType, entityId) {
+      return saved.filter((a) => a.entityType === entityType && a.entityId === entityId);
+    },
   };
 
   const authorize: Authorizer = options?.authorize ?? (async () => ({ ok: true, value: undefined }));
