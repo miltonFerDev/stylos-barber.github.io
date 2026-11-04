@@ -1,4 +1,4 @@
-import type { RegisterTransferCommand } from '../application/transfers-service';
+import type { RegisterTransferCommand, ReverseTransferCommand } from '../application/transfers-service';
 import { isPeriodOpen } from '../domain/periods';
 import type { Currency } from '../domain/types';
 import { commandContext, resolveActor } from './auth';
@@ -62,4 +62,72 @@ export async function handleRegistrarTransferencia(
   }
 
   return json(201, { transfer: result.value });
+}
+
+/**
+ * Transferencias reversibles (CONFIRMADO) + períodos abiertos. Gated por REVERSE_RECORD.
+ */
+export async function handleHistorialTransferencias(
+  container: FinanzasContainer,
+  token: string | null
+): Promise<Response> {
+  const userId = await resolveActor(container.supabase, token);
+  if (!userId) return json(401, { error: 'UNAUTHENTICATED' });
+
+  const ctx = commandContext(userId, crypto.randomUUID());
+  const authorized = await container.authorize(ctx, 'REVERSE_RECORD');
+  if (!authorized.ok) return json(403, { error: authorized.error.code });
+
+  const [allTransfers, accounts, allPeriods] = await Promise.all([
+    container.transfersRepo.findAll(),
+    container.masters.findAll('ACCOUNT'),
+    container.periods.findAll(),
+  ]);
+
+  const accountName = new Map(
+    accounts.filter((m) => m.entityType === 'ACCOUNT').map((m) => [m.id, m.name])
+  );
+
+  const transfers = allTransfers
+    .filter((t) => t.status === 'CONFIRMADO')
+    .map((t) => ({
+      id: t.id,
+      effectiveDate: t.effectiveDate,
+      amount: t.amount,
+      fromAccountName: accountName.get(t.fromAccountId) ?? t.fromAccountId,
+      toAccountName: accountName.get(t.toAccountId) ?? t.toAccountId,
+    }));
+
+  return json(200, { transfers, periods: allPeriods.filter(isPeriodOpen) });
+}
+
+/**
+ * Reversión de una transferencia CONFIRMADA.
+ */
+export async function handleReversarTransferencia(
+  container: FinanzasContainer,
+  token: string | null,
+  transferId: string,
+  body: unknown
+): Promise<Response> {
+  const userId = await resolveActor(container.supabase, token);
+  if (!userId) return json(401, { error: 'UNAUTHENTICATED' });
+
+  const b = (body ?? {}) as Record<string, unknown>;
+  const command: ReverseTransferCommand = {
+    transferId,
+    reason: String(b.reason ?? ''),
+    reversalDate: String(b.reversalDate ?? ''),
+    periodId: String(b.periodId ?? ''),
+  };
+
+  const ctx = commandContext(userId, crypto.randomUUID());
+  const result = await container.transfers.reverseTransfer(ctx, command);
+
+  if (!result.ok) {
+    const status = result.error.code === 'PERMISSION_DENIED' ? 403 : 400;
+    return json(status, { error: result.error.code, message: result.error.message });
+  }
+
+  return json(200, { transfer: result.value });
 }

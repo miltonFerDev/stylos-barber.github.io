@@ -90,8 +90,19 @@ function createService(options?: { authorize?: Authorizer; period?: AccountingPe
     async findByIdempotencyKey(key) {
       return savedTransfers.find(t => t.idempotencyKey === key) ?? null;
     },
+    async findById(id) {
+      return savedTransfers.find(t => t.id === id) ?? null;
+    },
+    async findAll() {
+      return savedTransfers;
+    },
     async save(transfer) {
       savedTransfers.push(transfer);
+      return transfer;
+    },
+    async update(transfer) {
+      const index = savedTransfers.findIndex(t => t.id === transfer.id);
+      if (index >= 0) savedTransfers[index] = transfer;
       return transfer;
     },
   };
@@ -171,6 +182,7 @@ function createService(options?: { authorize?: Authorizer; period?: AccountingPe
       masters: masterRepository,
       periods,
       journal,
+      journalEntries: entriesRepo,
       authorize,
       audit,
       createId,
@@ -276,5 +288,92 @@ describe('TransfersService.registerTransfer', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('PERMISSION_DENIED');
+  });
+});
+
+describe('TransfersService.reverseTransfer', () => {
+  const reversalCtx: CommandContext = {
+    actorUserId: userId,
+    idempotencyKey: 'trf-rev-1',
+    now: '2026-10-14T12:00:00.000Z',
+  };
+
+  it('revierte una transferencia con movimientos inversos y asiento reverso', async () => {
+    const { service, savedTransfers, savedMovements, savedEntries, auditEvents } = createService();
+
+    const reg = await service.registerTransfer(ctx, {
+      fromAccountId: 'acc-1',
+      toAccountId: 'acc-2',
+      amount: { amount: '500.00', currency: 'ARS' },
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    });
+    expect(reg.ok).toBe(true);
+    if (!reg.ok) return;
+
+    const result = await service.reverseTransfer(reversalCtx, {
+      transferId: reg.value.id,
+      reason: 'Error de origen',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.status).toBe('REVERTIDO');
+    expect(savedTransfers[0].status).toBe('REVERTIDO');
+    expect(savedMovements).toHaveLength(4);
+    expect(savedMovements[2].direction).toBe('IN');
+    expect(savedMovements[2].accountId).toBe('acc-1');
+    expect(savedMovements[3].direction).toBe('OUT');
+    expect(savedMovements[3].accountId).toBe('acc-2');
+    expect(savedEntries).toHaveLength(2);
+    expect(savedEntries[1].reversesEntryId).toBe(savedEntries[0].id);
+    expect(auditEvents.some(e => e.action === 'TRANSFER_REVERSED')).toBe(true);
+  });
+
+  it('rechaza una segunda reversión con REVERSAL_ALREADY_EXISTS', async () => {
+    const { service } = createService();
+
+    const reg = await service.registerTransfer(ctx, {
+      fromAccountId: 'acc-1',
+      toAccountId: 'acc-2',
+      amount: { amount: '500.00', currency: 'ARS' },
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    });
+    expect(reg.ok).toBe(true);
+    if (!reg.ok) return;
+
+    const command = { transferId: reg.value.id, reason: 'x', reversalDate: '2026-10-14', periodId: 'period-1' };
+    const first = await service.reverseTransfer(reversalCtx, command);
+    expect(first.ok).toBe(true);
+    const second = await service.reverseTransfer(reversalCtx, command);
+    expect(second.ok).toBe(false);
+    if (!second.ok) expect(second.error.code).toBe('REVERSAL_ALREADY_EXISTS');
+  });
+
+  it('devuelve TRANSFER_NOT_FOUND si no existe', async () => {
+    const { service } = createService();
+    const result = await service.reverseTransfer(reversalCtx, {
+      transferId: 'missing',
+      reason: 'x',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('TRANSFER_NOT_FOUND');
+  });
+
+  it('devuelve MISSING_REASON sin motivo', async () => {
+    const { service } = createService();
+    const result = await service.reverseTransfer(reversalCtx, {
+      transferId: 'any',
+      reason: '   ',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('MISSING_REASON');
   });
 });

@@ -1,6 +1,8 @@
 import type {
   RegisterCommissionDevengoCommand,
   RegisterCommissionPaymentCommand,
+  ReverseCommissionPaymentCommand,
+  ReverseCommissionRecordCommand,
 } from '../application/commissions-service';
 import { isPeriodOpen } from '../domain/periods';
 import type { Currency } from '../domain/types';
@@ -110,4 +112,112 @@ export async function handlePagarComision(
   }
 
   return json(201, { payment: result.value });
+}
+
+/**
+ * Devengos y pagos de comisión reversibles (CONFIRMADO) + períodos abiertos.
+ */
+export async function handleHistorialComisiones(
+  container: FinanzasContainer,
+  token: string | null
+): Promise<Response> {
+  const userId = await resolveActor(container.supabase, token);
+  if (!userId) return json(401, { error: 'UNAUTHENTICATED' });
+
+  const ctx = commandContext(userId, crypto.randomUUID());
+  const authorized = await container.authorize(ctx, 'REVERSE_RECORD');
+  if (!authorized.ok) return json(403, { error: authorized.error.code });
+
+  const [allRecords, allPayments, persons, allPeriods] = await Promise.all([
+    container.commissionsRepo.findAllRecords(),
+    container.commissionsRepo.findAllPayments(),
+    container.masters.findAll('PERSON'),
+    container.periods.findAll(),
+  ]);
+
+  const barberName = new Map(
+    persons.filter((m) => m.entityType === 'PERSON').map((m) => [m.id, m.displayName])
+  );
+
+  const records = allRecords
+    .filter((r) => r.status === 'CONFIRMADO')
+    .map((r) => ({
+      id: r.id,
+      effectiveDate: r.effectiveDate,
+      amount: r.amount,
+      barberName: barberName.get(r.barberId) ?? r.barberId,
+    }));
+
+  const payments = allPayments
+    .filter((p) => p.status === 'CONFIRMADO')
+    .map((p) => ({
+      id: p.id,
+      effectiveDate: p.effectiveDate,
+      amount: p.amount,
+      barberName: barberName.get(p.barberId) ?? p.barberId,
+    }));
+
+  return json(200, { records, payments, periods: allPeriods.filter(isPeriodOpen) });
+}
+
+/**
+ * Reversión de un devengo de comisión CONFIRMADO.
+ */
+export async function handleReversarDevengo(
+  container: FinanzasContainer,
+  token: string | null,
+  recordId: string,
+  body: unknown
+): Promise<Response> {
+  const userId = await resolveActor(container.supabase, token);
+  if (!userId) return json(401, { error: 'UNAUTHENTICATED' });
+
+  const b = (body ?? {}) as Record<string, unknown>;
+  const command: ReverseCommissionRecordCommand = {
+    recordId,
+    reason: String(b.reason ?? ''),
+    reversalDate: String(b.reversalDate ?? ''),
+    periodId: String(b.periodId ?? ''),
+  };
+
+  const ctx = commandContext(userId, crypto.randomUUID());
+  const result = await container.commissions.reverseCommissionRecord(ctx, command);
+
+  if (!result.ok) {
+    const status = result.error.code === 'PERMISSION_DENIED' ? 403 : 400;
+    return json(status, { error: result.error.code, message: result.error.message });
+  }
+
+  return json(200, { record: result.value });
+}
+
+/**
+ * Reversión de un pago de comisión CONFIRMADO.
+ */
+export async function handleReversarPagoComision(
+  container: FinanzasContainer,
+  token: string | null,
+  paymentId: string,
+  body: unknown
+): Promise<Response> {
+  const userId = await resolveActor(container.supabase, token);
+  if (!userId) return json(401, { error: 'UNAUTHENTICATED' });
+
+  const b = (body ?? {}) as Record<string, unknown>;
+  const command: ReverseCommissionPaymentCommand = {
+    paymentId,
+    reason: String(b.reason ?? ''),
+    reversalDate: String(b.reversalDate ?? ''),
+    periodId: String(b.periodId ?? ''),
+  };
+
+  const ctx = commandContext(userId, crypto.randomUUID());
+  const result = await container.commissions.reverseCommissionPayment(ctx, command);
+
+  if (!result.ok) {
+    const status = result.error.code === 'PERMISSION_DENIED' ? 403 : 400;
+    return json(status, { error: result.error.code, message: result.error.message });
+  }
+
+  return json(200, { payment: result.value });
 }

@@ -95,8 +95,19 @@ function createService(options?: { authorize?: Authorizer }) {
     async findByIdempotencyKey(key) {
       return savedIncomes.find(i => i.idempotencyKey === key) ?? null;
     },
+    async findById(id) {
+      return savedIncomes.find(i => i.id === id) ?? null;
+    },
+    async findAll() {
+      return savedIncomes;
+    },
     async save(record) {
       savedIncomes.push(record);
+      return record;
+    },
+    async update(record) {
+      const index = savedIncomes.findIndex(i => i.id === record.id);
+      if (index >= 0) savedIncomes[index] = record;
       return record;
     },
   };
@@ -105,6 +116,9 @@ function createService(options?: { authorize?: Authorizer }) {
     async save(distribution) {
       savedDistributions.push(distribution);
       return distribution;
+    },
+    async findByIncomeRecord(incomeRecordId) {
+      return savedDistributions.filter(d => d.incomeRecordId === incomeRecordId);
     },
   };
 
@@ -183,6 +197,7 @@ function createService(options?: { authorize?: Authorizer }) {
       masters: masterRepository,
       periods,
       journal,
+      journalEntries: entriesRepo,
       authorize,
       audit,
       createId,
@@ -298,5 +313,81 @@ describe('IncomesService.registerDailyIncome', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('PERMISSION_DENIED');
+  });
+});
+
+describe('IncomesService.reverseIncome', () => {
+  const reversalCtx: CommandContext = {
+    actorUserId: userId,
+    idempotencyKey: 'inc-rev-1',
+    now: '2026-10-14T12:00:00.000Z',
+  };
+
+  it('revierte un ingreso con movimientos OUT y asiento reverso', async () => {
+    const { service, savedIncomes, savedMovements, savedEntries, auditEvents } = createService();
+
+    const reg = await service.registerDailyIncome(ctx, {
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+      serviceAmount: { amount: '80.00', currency: 'ARS' },
+      productAmount: { amount: '20.00', currency: 'ARS' },
+      distributions: [
+        { accountId: 'acc-1', amount: { amount: '60.00', currency: 'ARS' } },
+        { accountId: 'acc-2', amount: { amount: '40.00', currency: 'ARS' } },
+      ],
+    });
+    expect(reg.ok).toBe(true);
+    if (!reg.ok) return;
+
+    const result = await service.reverseIncome(reversalCtx, {
+      incomeId: reg.value.id,
+      reason: 'Error de carga',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.status).toBe('REVERTIDO');
+    expect(savedIncomes[0].status).toBe('REVERTIDO');
+    expect(savedMovements).toHaveLength(4);
+    expect(savedMovements[2].direction).toBe('OUT');
+    expect(savedMovements[3].direction).toBe('OUT');
+    expect(savedEntries).toHaveLength(2);
+    expect(savedEntries[1].reversesEntryId).toBe(savedEntries[0].id);
+    expect(auditEvents.some(e => e.action === 'INCOME_REVERSED')).toBe(true);
+  });
+
+  it('rechaza una segunda reversión con REVERSAL_ALREADY_EXISTS', async () => {
+    const { service } = createService();
+
+    const reg = await service.registerDailyIncome(ctx, {
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+      serviceAmount: { amount: '100.00', currency: 'ARS' },
+      productAmount: { amount: '0.00', currency: 'ARS' },
+      distributions: [{ accountId: 'acc-1', amount: { amount: '100.00', currency: 'ARS' } }],
+    });
+    expect(reg.ok).toBe(true);
+    if (!reg.ok) return;
+
+    const command = { incomeId: reg.value.id, reason: 'x', reversalDate: '2026-10-14', periodId: 'period-1' };
+    const first = await service.reverseIncome(reversalCtx, command);
+    expect(first.ok).toBe(true);
+    const second = await service.reverseIncome(reversalCtx, command);
+    expect(second.ok).toBe(false);
+    if (!second.ok) expect(second.error.code).toBe('REVERSAL_ALREADY_EXISTS');
+  });
+
+  it('devuelve INCOME_NOT_FOUND si no existe', async () => {
+    const { service } = createService();
+    const result = await service.reverseIncome(reversalCtx, {
+      incomeId: 'missing',
+      reason: 'x',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('INCOME_NOT_FOUND');
   });
 });

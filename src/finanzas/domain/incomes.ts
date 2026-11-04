@@ -1,7 +1,7 @@
 import { toMinor } from './money';
 import type { Money, UserId } from './types';
 
-export type IncomeStatus = 'BORRADOR' | 'CONFIRMADO' | 'ANULADO';
+export type IncomeStatus = 'BORRADOR' | 'CONFIRMADO' | 'ANULADO' | 'REVERTIDO';
 
 export type IncomeRecord = {
   id: string;

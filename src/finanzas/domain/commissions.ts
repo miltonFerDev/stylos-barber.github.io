@@ -1,12 +1,15 @@
 import { toMinor } from './money';
 import type { Money, UserId } from './types';
 
+export type CommissionStatus = 'CONFIRMADO' | 'REVERTIDO';
+
 export type CommissionRecord = {
   id: string;
   barberId: string;
   effectiveDate: string;
   amount: Money;
   periodId: string;
+  status: CommissionStatus;
   idempotencyKey: string;
   createdBy: UserId;
   createdAt: string;
@@ -18,6 +21,7 @@ export type CommissionPayment = {
   effectiveDate: string;
   amount: Money;
   periodId: string;
+  status: CommissionStatus;
   idempotencyKey: string;
   createdBy: UserId;
   createdAt: string;

@@ -1,4 +1,4 @@
-import type { RegisterDailyIncomeCommand } from '../application/incomes-service';
+import type { RegisterDailyIncomeCommand, ReverseIncomeCommand } from '../application/incomes-service';
 import { isPeriodOpen } from '../domain/periods';
 import type { Currency } from '../domain/types';
 import { commandContext, resolveActor } from './auth';
@@ -72,4 +72,66 @@ export async function handleRegistrarIngreso(
   }
 
   return json(201, { income: result.value });
+}
+
+/**
+ * Ingresos reversibles (CONFIRMADO) + períodos abiertos. Gated por REVERSE_RECORD.
+ */
+export async function handleHistorialIngresos(
+  container: FinanzasContainer,
+  token: string | null
+): Promise<Response> {
+  const userId = await resolveActor(container.supabase, token);
+  if (!userId) return json(401, { error: 'UNAUTHENTICATED' });
+
+  const ctx = commandContext(userId, crypto.randomUUID());
+  const authorized = await container.authorize(ctx, 'REVERSE_RECORD');
+  if (!authorized.ok) return json(403, { error: authorized.error.code });
+
+  const [allIncomes, allPeriods] = await Promise.all([
+    container.incomesRepo.findAll(),
+    container.periods.findAll(),
+  ]);
+
+  const incomes = allIncomes
+    .filter((i) => i.status === 'CONFIRMADO')
+    .map((i) => ({
+      id: i.id,
+      effectiveDate: i.effectiveDate,
+      serviceAmount: i.serviceAmount,
+      productAmount: i.productAmount,
+    }));
+
+  return json(200, { incomes, periods: allPeriods.filter(isPeriodOpen) });
+}
+
+/**
+ * Reversión de un ingreso CONFIRMADO.
+ */
+export async function handleReversarIngreso(
+  container: FinanzasContainer,
+  token: string | null,
+  incomeId: string,
+  body: unknown
+): Promise<Response> {
+  const userId = await resolveActor(container.supabase, token);
+  if (!userId) return json(401, { error: 'UNAUTHENTICATED' });
+
+  const b = (body ?? {}) as Record<string, unknown>;
+  const command: ReverseIncomeCommand = {
+    incomeId,
+    reason: String(b.reason ?? ''),
+    reversalDate: String(b.reversalDate ?? ''),
+    periodId: String(b.periodId ?? ''),
+  };
+
+  const ctx = commandContext(userId, crypto.randomUUID());
+  const result = await container.incomes.reverseIncome(ctx, command);
+
+  if (!result.ok) {
+    const status = result.error.code === 'PERMISSION_DENIED' ? 403 : 400;
+    return json(status, { error: result.error.code, message: result.error.message });
+  }
+
+  return json(200, { income: result.value });
 }

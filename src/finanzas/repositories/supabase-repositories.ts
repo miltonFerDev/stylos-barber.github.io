@@ -39,6 +39,7 @@ import {
   mapAuditEvent,
   mapCategory,
   mapCommissionPayment,
+  mapCommissionPaymentDistribution,
   mapCommissionRecord,
   mapDailyClosing,
   mapExternalSettlement,
@@ -430,6 +431,16 @@ export class SupabaseIncomeRecordRepository implements IncomeRecordRepository {
     return data ? mapIncomeRecord(data as DbRow) : null;
   }
 
+  async findById(id: string) {
+    const { data } = await this.supabase.from('income_records').select('*').eq('id', id).maybeSingle();
+    return data ? mapIncomeRecord(data as DbRow) : null;
+  }
+
+  async findAll() {
+    const { data } = await this.supabase.from('income_records').select('*').order('created_at', { ascending: false });
+    return (data ?? []).map((r) => mapIncomeRecord(r as DbRow));
+  }
+
   async save(record: ReturnType<typeof mapIncomeRecord>) {
     await this.supabase.from('income_records').insert({
       id: record.id,
@@ -447,6 +458,11 @@ export class SupabaseIncomeRecordRepository implements IncomeRecordRepository {
     });
     return record;
   }
+
+  async update(record: ReturnType<typeof mapIncomeRecord>) {
+    await this.supabase.from('income_records').update({ status: record.status }).eq('id', record.id);
+    return record;
+  }
 }
 
 export class SupabaseIncomeDistributionRepository implements IncomeDistributionRepository {
@@ -461,6 +477,11 @@ export class SupabaseIncomeDistributionRepository implements IncomeDistributionR
       currency: distribution.amount.currency,
     });
     return distribution;
+  }
+
+  async findByIncomeRecord(incomeRecordId: string) {
+    const { data } = await this.supabase.from('income_distributions').select('*').eq('income_record_id', incomeRecordId);
+    return (data ?? []).map((d) => mapIncomeDistribution(d as DbRow));
   }
 }
 
@@ -551,6 +572,16 @@ export class SupabaseTransferRepository implements TransferRepository {
     return data ? mapTransfer(data as DbRow) : null;
   }
 
+  async findById(id: string) {
+    const { data } = await this.supabase.from('transfers').select('*').eq('id', id).maybeSingle();
+    return data ? mapTransfer(data as DbRow) : null;
+  }
+
+  async findAll() {
+    const { data } = await this.supabase.from('transfers').select('*').order('created_at', { ascending: false });
+    return (data ?? []).map((t) => mapTransfer(t as DbRow));
+  }
+
   async save(transfer: Transfer) {
     await this.supabase.from('transfers').insert({
       id: transfer.id,
@@ -565,6 +596,11 @@ export class SupabaseTransferRepository implements TransferRepository {
       created_by: transfer.createdBy,
       created_at: transfer.createdAt,
     });
+    return transfer;
+  }
+
+  async update(transfer: Transfer) {
+    await this.supabase.from('transfers').update({ status: transfer.status }).eq('id', transfer.id);
     return transfer;
   }
 }
@@ -632,6 +668,31 @@ export class SupabaseCommissionRepository implements CommissionRepository {
     return data ? mapCommissionPayment(data as DbRow) : null;
   }
 
+  async findRecordById(id: string) {
+    const { data } = await this.supabase.from('commission_records').select('*').eq('id', id).maybeSingle();
+    return data ? mapCommissionRecord(data as DbRow) : null;
+  }
+
+  async findPaymentById(id: string) {
+    const { data } = await this.supabase.from('commission_payments').select('*').eq('id', id).maybeSingle();
+    return data ? mapCommissionPayment(data as DbRow) : null;
+  }
+
+  async findAllRecords() {
+    const { data } = await this.supabase.from('commission_records').select('*').order('created_at', { ascending: false });
+    return (data ?? []).map((r) => mapCommissionRecord(r as DbRow));
+  }
+
+  async findAllPayments() {
+    const { data } = await this.supabase.from('commission_payments').select('*').order('created_at', { ascending: false });
+    return (data ?? []).map((p) => mapCommissionPayment(p as DbRow));
+  }
+
+  async findPaymentDistributions(paymentId: string) {
+    const { data } = await this.supabase.from('commission_payment_distributions').select('*').eq('commission_payment_id', paymentId);
+    return (data ?? []).map((d) => mapCommissionPaymentDistribution(d as DbRow));
+  }
+
   async saveRecord(record: CommissionRecord) {
     await this.supabase.from('commission_records').insert({
       id: record.id,
@@ -640,6 +701,7 @@ export class SupabaseCommissionRepository implements CommissionRepository {
       amount: moneyToDb(record.amount),
       currency: record.amount.currency,
       period_id: record.periodId,
+      status: record.status,
       idempotency_key: record.idempotencyKey,
       created_by: record.createdBy,
       created_at: record.createdAt,
@@ -655,6 +717,7 @@ export class SupabaseCommissionRepository implements CommissionRepository {
       amount: moneyToDb(payment.amount),
       currency: payment.amount.currency,
       period_id: payment.periodId,
+      status: payment.status,
       idempotency_key: payment.idempotencyKey,
       created_by: payment.createdBy,
       created_at: payment.createdAt,
@@ -671,6 +734,16 @@ export class SupabaseCommissionRepository implements CommissionRepository {
       currency: distribution.amount.currency,
     });
     return distribution;
+  }
+
+  async updateRecord(record: CommissionRecord) {
+    await this.supabase.from('commission_records').update({ status: record.status }).eq('id', record.id);
+    return record;
+  }
+
+  async updatePayment(payment: CommissionPayment) {
+    await this.supabase.from('commission_payments').update({ status: payment.status }).eq('id', payment.id);
+    return payment;
   }
 }
 

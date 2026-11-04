@@ -7,11 +7,23 @@ type Period = { id: string; code: string };
 type Balance = { barberId: string; pending: { amount: string; currency: string } };
 type ComisionesPayload = { barbers: Barber[]; accounts: Account[]; periods: Period[]; balances: Balance[] };
 
+type HistorialItem = {
+  id: string;
+  effectiveDate: string;
+  amount: { amount: string; currency: string };
+  barberName: string;
+};
+type HistorialPayload = { records: HistorialItem[]; payments: HistorialItem[]; periods: Period[] };
+
 const inputClass =
   'w-full rounded-lg border border-finBorder bg-finSurface px-4 py-3 text-base text-finText placeholder:text-finMuted focus:border-finAccent focus:outline-none';
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function toNum(s: string): number {
@@ -47,6 +59,15 @@ export function Comisiones() {
   const [payPeriodId, setPayPeriodId] = useState('');
   const [payError, setPayError] = useState<string | null>(null);
 
+  // Reversión
+  const [historial, setHistorial] = useState<HistorialPayload | null>(null);
+  const [revertTarget, setRevertTarget] = useState<{ kind: 'record' | 'payment'; id: string } | null>(null);
+  const [revertReason, setRevertReason] = useState('');
+  const [revertDate, setRevertDate] = useState(today());
+  const [revertPeriodId, setRevertPeriodId] = useState('');
+  const [revertSubmitting, setRevertSubmitting] = useState(false);
+  const [revertError, setRevertError] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     const token = await getFinanzasAccessToken();
     if (!token) {
@@ -68,6 +89,50 @@ export function Comisiones() {
   useEffect(() => {
     load().catch(() => setStatus('error'));
   }, [load]);
+
+  const loadHistorial = useCallback(async () => {
+    const token = await getFinanzasAccessToken();
+    if (!token) {
+      setHistorial(null);
+      return;
+    }
+    const res = await fetch('/api/finanzas/comisiones/historial', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      setHistorial(null);
+      return;
+    }
+    const data: HistorialPayload = await res.json();
+    setHistorial(data);
+    setRevertPeriodId((prev) => prev || (data.periods?.[0]?.id ?? ''));
+  }, []);
+
+  useEffect(() => {
+    loadHistorial().catch(() => setHistorial(null));
+  }, [loadHistorial]);
+
+  async function onRevert(kind: 'record' | 'payment', id: string) {
+    setRevertError(null);
+    setRevertSubmitting(true);
+    const token = await getFinanzasAccessToken();
+    const path = kind === 'record' ? 'devengos' : 'pagos';
+    const res = await fetch(`/api/finanzas/comisiones/${path}/${id}/revertir`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ reason: revertReason.trim(), periodId: revertPeriodId, reversalDate: revertDate }),
+    });
+    setRevertSubmitting(false);
+    if (res.ok) {
+      setRevertTarget(null);
+      setRevertReason('');
+      loadHistorial().catch(() => setHistorial(null));
+      load().catch(() => setStatus('error'));
+    } else {
+      const err = await res.json().catch(() => null);
+      setRevertError(err?.message || 'No se pudo revertir.');
+    }
+  }
 
   function pendingOf(barberId: string): number {
     const b = payload?.balances.find((x) => x.barberId === barberId);
@@ -238,7 +303,162 @@ export function Comisiones() {
           </ul>
         )}
       </section>
+
+      {historial && (
+        <>
+          <RevertList
+            title="Devengos recientes"
+            kind="record"
+            items={historial.records}
+            periods={historial.periods}
+            revertTarget={revertTarget}
+            onOpen={(id) => {
+              setRevertTarget({ kind: 'record', id });
+              setRevertReason('');
+              setRevertDate(today());
+              setRevertError(null);
+            }}
+            onCancel={() => setRevertTarget(null)}
+            onSubmit={(id) => onRevert('record', id)}
+            reason={revertReason}
+            setReason={setRevertReason}
+            date={revertDate}
+            setDate={setRevertDate}
+            periodId={revertPeriodId}
+            setPeriodId={setRevertPeriodId}
+            submitting={revertSubmitting}
+            error={revertError}
+          />
+          <RevertList
+            title="Pagos de comisión recientes"
+            kind="payment"
+            items={historial.payments}
+            periods={historial.periods}
+            revertTarget={revertTarget}
+            onOpen={(id) => {
+              setRevertTarget({ kind: 'payment', id });
+              setRevertReason('');
+              setRevertDate(today());
+              setRevertError(null);
+            }}
+            onCancel={() => setRevertTarget(null)}
+            onSubmit={(id) => onRevert('payment', id)}
+            reason={revertReason}
+            setReason={setRevertReason}
+            date={revertDate}
+            setDate={setRevertDate}
+            periodId={revertPeriodId}
+            setPeriodId={setRevertPeriodId}
+            submitting={revertSubmitting}
+            error={revertError}
+          />
+        </>
+      )}
     </div>
+  );
+}
+
+function RevertList(props: {
+  title: string;
+  kind: 'record' | 'payment';
+  items: HistorialItem[];
+  periods: Period[];
+  revertTarget: { kind: 'record' | 'payment'; id: string } | null;
+  onOpen: (id: string) => void;
+  onCancel: () => void;
+  onSubmit: (id: string) => void;
+  reason: string;
+  setReason: (v: string) => void;
+  date: string;
+  setDate: (v: string) => void;
+  periodId: string;
+  setPeriodId: (v: string) => void;
+  submitting: boolean;
+  error: string | null;
+}) {
+  if (props.items.length === 0) return null;
+  return (
+    <section className="mt-10">
+      <h2 className="mb-3 text-lg font-semibold text-finText">{props.title}</h2>
+      <ul className="space-y-2">
+        {props.items.map((item) => {
+          const active = props.revertTarget?.kind === props.kind && props.revertTarget.id === item.id;
+          return (
+            <li key={item.id} className="rounded-xl border border-finBorder bg-finSurface px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-base font-medium text-finText">
+                    {formatDate(item.effectiveDate)} · {item.barberName}
+                  </p>
+                  <p className="text-sm text-finMuted">{formatMoney(item.amount.amount, item.amount.currency)}</p>
+                </div>
+                {active ? (
+                  <span className="text-sm font-semibold text-finMuted">Reversión…</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => props.onOpen(item.id)}
+                    className="min-h-12 rounded-lg border border-finBorder px-3 text-base font-semibold text-finDanger hover:bg-finDanger/10"
+                  >
+                    Revertir
+                  </button>
+                )}
+              </div>
+
+              {active && (
+                <form
+                  className="mt-3 space-y-3 border-t border-finBorder pt-3"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    props.onSubmit(item.id);
+                  }}
+                >
+                  {field('Motivo', (
+                    <input
+                      className={inputClass}
+                      value={props.reason}
+                      onChange={(e) => props.setReason(e.target.value)}
+                      placeholder="¿Por qué se revierte?"
+                      required
+                    />
+                  ))}
+                  {field('Fecha de reversión', (
+                    <input className={inputClass} type="date" value={props.date} onChange={(e) => props.setDate(e.target.value)} required />
+                  ))}
+                  {field('Período', (
+                    <select className={inputClass} value={props.periodId} onChange={(e) => props.setPeriodId(e.target.value)} required>
+                      <option value="">Elegí…</option>
+                      {props.periods.map((p) => (
+                        <option key={p.id} value={p.id}>{p.code}</option>
+                      ))}
+                    </select>
+                  ))}
+                  {props.error && (
+                    <p role="alert" className="rounded-lg bg-finDanger/10 px-3 py-2 text-base text-finDanger">{props.error}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={props.submitting || !props.reason.trim() || !props.periodId}
+                      className="min-h-12 flex-1 rounded-lg bg-finDanger px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-finDanger/90 disabled:opacity-50"
+                    >
+                      {props.submitting ? 'Revirtiendo…' : 'Confirmar reversión'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={props.onCancel}
+                      className="min-h-12 rounded-lg border border-finBorder px-4 py-3 text-base font-semibold text-finMuted hover:text-finText"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

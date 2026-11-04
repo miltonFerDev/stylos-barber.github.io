@@ -2,11 +2,11 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AccountingPeriodRepository } from '../application/journal-service';
 import { JournalService } from '../application/journal-service';
 import { ClosingsService, type ReconciliationRepository } from '../application/closings-service';
-import { CommissionsService } from '../application/commissions-service';
+import { CommissionsService, type CommissionRepository } from '../application/commissions-service';
 import { DepreciationService } from '../application/depreciation-service';
 import { ExternalSettlementsService, type ExternalSettlementRepository } from '../application/external-settlements-service';
 import { ForecastService } from '../application/forecast-service';
-import { IncomesService } from '../application/incomes-service';
+import { IncomesService, type IncomeRecordRepository } from '../application/incomes-service';
 import { InvestmentsService, type InvestmentRepository } from '../application/investments-service';
 import type { CapexConfig } from '../domain/depreciation';
 import type { MasterRepository } from '../application/master-data-service';
@@ -14,7 +14,7 @@ import { ObligationsService } from '../application/obligations-service';
 import { PaymentsService, type PaymentRepository } from '../application/payments-service';
 import { PermissionService, type Authorizer, type RoleRepository } from '../application/permission-service';
 import { ReportsService } from '../application/reports-service';
-import { TransfersService } from '../application/transfers-service';
+import { TransfersService, type TransferRepository } from '../application/transfers-service';
 import { createServerSupabaseClient } from '../repositories/supabase-server';
 import {
   SupabaseAccountMovementRepository,
@@ -60,8 +60,11 @@ export type FinanzasContainer = {
   investments: InvestmentsService;
   investmentsRepo: InvestmentRepository;
   transfers: TransfersService;
+  transfersRepo: TransferRepository;
   incomes: IncomesService;
+  incomesRepo: IncomeRecordRepository;
   commissions: CommissionsService;
+  commissionsRepo: CommissionRepository;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
 };
@@ -202,36 +205,42 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     settlementLedgerAccounts: { PRESTAMO: '2.3', CUENTA_CORRIENTE: '2.3', APORTE: '3.1' },
   });
 
+  const transfersRepo = new SupabaseTransferRepository(supabase);
   const transfers = new TransfersService({
-    transfers: new SupabaseTransferRepository(supabase),
+    transfers: transfersRepo,
     movements,
     masters,
     periods,
     journal,
+    journalEntries: journalEntriesRepo,
     authorize,
     audit,
     createId: () => crypto.randomUUID(),
   });
 
+  const incomesRepo = new SupabaseIncomeRecordRepository(supabase);
   const incomes = new IncomesService({
-    incomes: new SupabaseIncomeRecordRepository(supabase),
+    incomes: incomesRepo,
     distributions: new SupabaseIncomeDistributionRepository(supabase),
     movements,
     masters,
     periods,
     journal,
+    journalEntries: journalEntriesRepo,
     authorize,
     audit,
     createId: () => crypto.randomUUID(),
     incomeLedgerAccounts: { servicios: '4.1', productos: '4.2' },
   });
 
+  const commissionsRepo = new SupabaseCommissionRepository(supabase);
   const commissions = new CommissionsService({
-    commissions: new SupabaseCommissionRepository(supabase),
+    commissions: commissionsRepo,
     movements,
     masters,
     periods,
     journal,
+    journalEntries: journalEntriesRepo,
     authorize,
     audit,
     createId: () => crypto.randomUUID(),
@@ -254,8 +263,11 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     investments,
     investmentsRepo,
     transfers,
+    transfersRepo,
     incomes,
+    incomesRepo,
     commissions,
+    commissionsRepo,
     masters,
     periods,
   };

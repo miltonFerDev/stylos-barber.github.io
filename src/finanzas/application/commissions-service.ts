@@ -13,7 +13,7 @@ import { isCurrentAt } from '../domain/masters';
 import { toMinor } from '../domain/money';
 import { validatePositiveAmount } from '../domain/obligations';
 import { isPeriodOpen } from '../domain/periods';
-import type { AccountingPeriodRepository, JournalService } from './journal-service';
+import type { AccountingPeriodRepository, JournalEntryRepository, JournalService } from './journal-service';
 import type { MasterRepository } from './master-data-service';
 import type { Authorizer } from './permission-service';
 import type { CommandContext, Money, Result } from '../domain/types';
@@ -32,14 +32,35 @@ export type RegisterCommissionPaymentCommand = {
   distributions: Array<{ accountId: string; amount: Money }>;
 };
 
+export type ReverseCommissionRecordCommand = {
+  recordId: string;
+  reason: string;
+  reversalDate: string;
+  periodId: string;
+};
+
+export type ReverseCommissionPaymentCommand = {
+  paymentId: string;
+  reason: string;
+  reversalDate: string;
+  periodId: string;
+};
+
 export type CommissionRepository = {
   findRecordsByBarber(barberId: string): Promise<CommissionRecord[]>;
   findPaymentsByBarber(barberId: string): Promise<CommissionPayment[]>;
   findRecordByIdempotencyKey(key: string): Promise<CommissionRecord | null>;
   findPaymentByIdempotencyKey(key: string): Promise<CommissionPayment | null>;
+  findRecordById(id: string): Promise<CommissionRecord | null>;
+  findPaymentById(id: string): Promise<CommissionPayment | null>;
+  findAllRecords(): Promise<CommissionRecord[]>;
+  findAllPayments(): Promise<CommissionPayment[]>;
+  findPaymentDistributions(paymentId: string): Promise<CommissionPaymentDistribution[]>;
   saveRecord(record: CommissionRecord): Promise<CommissionRecord>;
   savePayment(payment: CommissionPayment): Promise<CommissionPayment>;
   saveDistribution(distribution: CommissionPaymentDistribution): Promise<CommissionPaymentDistribution>;
+  updateRecord(record: CommissionRecord): Promise<CommissionRecord>;
+  updatePayment(payment: CommissionPayment): Promise<CommissionPayment>;
 };
 
 export type CommissionsServiceDependencies = {
@@ -47,7 +68,8 @@ export type CommissionsServiceDependencies = {
   movements: AccountMovementRepository;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
-  journal: Pick<JournalService, 'postEntry'>;
+  journal: Pick<JournalService, 'postEntry' | 'reverseEntry'>;
+  journalEntries: Pick<JournalEntryRepository, 'findBySourceDocument'>;
   authorize: Authorizer;
   audit: AuditRecorder;
   createId: () => string;
@@ -147,6 +169,7 @@ export class CommissionsService {
       effectiveDate: command.effectiveDate,
       amount: command.amount,
       periodId: command.periodId,
+      status: 'CONFIRMADO',
       idempotencyKey: ctx.idempotencyKey,
       createdBy: ctx.actorUserId,
       createdAt: ctx.now,
@@ -300,6 +323,7 @@ export class CommissionsService {
       effectiveDate: command.effectiveDate,
       amount: totalMoney,
       periodId: command.periodId,
+      status: 'CONFIRMADO',
       idempotencyKey: ctx.idempotencyKey,
       createdBy: ctx.actorUserId,
       createdAt: ctx.now,
@@ -326,5 +350,147 @@ export class CommissionsService {
     });
 
     return { ok: true, value: payment };
+  }
+
+  async reverseCommissionRecord(
+    ctx: CommandContext,
+    command: ReverseCommissionRecordCommand
+  ): Promise<Result<CommissionRecord>> {
+    const authorized = await this.dependencies.authorize(ctx, 'REVERSE_RECORD');
+    if (!authorized.ok) return authorized;
+
+    if (command.reason.trim().length === 0) {
+      return {
+        ok: false,
+        error: domainError('MISSING_REASON', 'La reversión requiere un motivo.', true),
+      };
+    }
+
+    const record = await this.dependencies.commissions.findRecordById(command.recordId);
+    if (!record) {
+      return {
+        ok: false,
+        error: domainError('COMMISSION_RECORD_NOT_FOUND', 'El devengo no existe.', true, { recordId: command.recordId }),
+      };
+    }
+
+    if (record.status !== 'CONFIRMADO') {
+      return {
+        ok: false,
+        error: domainError('REVERSAL_ALREADY_EXISTS', 'El devengo ya está revertido.', true, {
+          recordId: record.id,
+          status: record.status,
+        }),
+      };
+    }
+
+    const entry = await this.dependencies.journalEntries.findBySourceDocument('commission_record', record.id);
+    if (!entry) {
+      return {
+        ok: false,
+        error: domainError('ENTRY_NOT_FOUND', 'El asiento del devengo no existe.', true, { recordId: record.id }),
+      };
+    }
+
+    const reversalEntry = await this.dependencies.journal.reverseEntry(ctx, {
+      originalEntryId: entry.id,
+      periodId: command.periodId,
+      entryDate: command.reversalDate,
+      reason: command.reason.trim(),
+    });
+    if (!reversalEntry.ok) return reversalEntry;
+
+    const updatedRecord: CommissionRecord = { ...record, status: 'REVERTIDO' };
+    await this.dependencies.commissions.updateRecord(updatedRecord);
+
+    await this.dependencies.audit.record({
+      entityType: 'commission_record',
+      entityId: record.id,
+      action: 'COMMISSION_ACCRUAL_REVERSED',
+      actorUserId: ctx.actorUserId,
+      occurredAt: ctx.now,
+      reason: command.reason.trim(),
+    });
+
+    return { ok: true, value: updatedRecord };
+  }
+
+  async reverseCommissionPayment(
+    ctx: CommandContext,
+    command: ReverseCommissionPaymentCommand
+  ): Promise<Result<CommissionPayment>> {
+    const authorized = await this.dependencies.authorize(ctx, 'REVERSE_RECORD');
+    if (!authorized.ok) return authorized;
+
+    if (command.reason.trim().length === 0) {
+      return {
+        ok: false,
+        error: domainError('MISSING_REASON', 'La reversión requiere un motivo.', true),
+      };
+    }
+
+    const payment = await this.dependencies.commissions.findPaymentById(command.paymentId);
+    if (!payment) {
+      return {
+        ok: false,
+        error: domainError('COMMISSION_PAYMENT_NOT_FOUND', 'El pago no existe.', true, { paymentId: command.paymentId }),
+      };
+    }
+
+    if (payment.status !== 'CONFIRMADO') {
+      return {
+        ok: false,
+        error: domainError('REVERSAL_ALREADY_EXISTS', 'El pago ya está revertido.', true, {
+          paymentId: payment.id,
+          status: payment.status,
+        }),
+      };
+    }
+
+    const entry = await this.dependencies.journalEntries.findBySourceDocument('commission_payment', payment.id);
+    if (!entry) {
+      return {
+        ok: false,
+        error: domainError('ENTRY_NOT_FOUND', 'El asiento del pago no existe.', true, { paymentId: payment.id }),
+      };
+    }
+
+    const reversalEntry = await this.dependencies.journal.reverseEntry(ctx, {
+      originalEntryId: entry.id,
+      periodId: command.periodId,
+      entryDate: command.reversalDate,
+      reason: command.reason.trim(),
+    });
+    if (!reversalEntry.ok) return reversalEntry;
+
+    const distributions = await this.dependencies.commissions.findPaymentDistributions(payment.id);
+    for (const distribution of distributions) {
+      await this.dependencies.movements.save({
+        id: this.dependencies.createId(),
+        accountId: distribution.accountId,
+        effectiveDate: command.reversalDate,
+        amount: distribution.amount,
+        direction: 'IN',
+        sourceDocumentType: 'commission_payment_reversal',
+        sourceDocumentId: payment.id,
+        journalEntryId: reversalEntry.value.id,
+        idempotencyKey: ctx.idempotencyKey,
+        createdAt: ctx.now,
+      });
+    }
+
+    const updatedPayment: CommissionPayment = { ...payment, status: 'REVERTIDO' };
+    await this.dependencies.commissions.updatePayment(updatedPayment);
+
+    await this.dependencies.audit.record({
+      entityType: 'commission_payment',
+      entityId: payment.id,
+      action: 'COMMISSION_PAYMENT_REVERSED',
+      actorUserId: ctx.actorUserId,
+      occurredAt: ctx.now,
+      reason: command.reason.trim(),
+    });
+
+    return { ok: true, value: updatedPayment };
   }
 }

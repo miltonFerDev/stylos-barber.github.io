@@ -6,7 +6,7 @@ import { isCurrentAt } from '../domain/masters';
 import { isPeriodOpen } from '../domain/periods';
 import { validatePositiveAmount } from '../domain/obligations';
 import type { Transfer } from '../domain/transfers';
-import type { AccountingPeriodRepository, JournalService } from './journal-service';
+import type { AccountingPeriodRepository, JournalEntryRepository, JournalService } from './journal-service';
 import type { MasterRepository } from './master-data-service';
 import type { Authorizer } from './permission-service';
 import type { CommandContext, Money, Result } from '../domain/types';
@@ -19,9 +19,19 @@ export type RegisterTransferCommand = {
   periodId: string;
 };
 
+export type ReverseTransferCommand = {
+  transferId: string;
+  reason: string;
+  reversalDate: string;
+  periodId: string;
+};
+
 export type TransferRepository = {
   findByIdempotencyKey(key: string): Promise<Transfer | null>;
+  findById(id: string): Promise<Transfer | null>;
+  findAll(): Promise<Transfer[]>;
   save(transfer: Transfer): Promise<Transfer>;
+  update(transfer: Transfer): Promise<Transfer>;
 };
 
 export type TransfersServiceDependencies = {
@@ -29,7 +39,8 @@ export type TransfersServiceDependencies = {
   movements: AccountMovementRepository;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
-  journal: Pick<JournalService, 'postEntry'>;
+  journal: Pick<JournalService, 'postEntry' | 'reverseEntry'>;
+  journalEntries: Pick<JournalEntryRepository, 'findBySourceDocument'>;
   authorize: Authorizer;
   audit: AuditRecorder;
   createId: () => string;
@@ -181,5 +192,90 @@ export class TransfersService {
     });
 
     return { ok: true, value: transfer };
+  }
+
+  async reverseTransfer(ctx: CommandContext, command: ReverseTransferCommand): Promise<Result<Transfer>> {
+    const authorized = await this.dependencies.authorize(ctx, 'REVERSE_RECORD');
+    if (!authorized.ok) return authorized;
+
+    if (command.reason.trim().length === 0) {
+      return {
+        ok: false,
+        error: domainError('MISSING_REASON', 'La reversión requiere un motivo.', true),
+      };
+    }
+
+    const transfer = await this.dependencies.transfers.findById(command.transferId);
+    if (!transfer) {
+      return {
+        ok: false,
+        error: domainError('TRANSFER_NOT_FOUND', 'La transferencia no existe.', true, { transferId: command.transferId }),
+      };
+    }
+
+    if (transfer.status !== 'CONFIRMADO') {
+      const code = transfer.status === 'REVERTIDO' ? 'REVERSAL_ALREADY_EXISTS' : 'INVALID_TRANSFER_STATE';
+      return {
+        ok: false,
+        error: domainError(code, 'La transferencia no se puede revertir en su estado actual.', true, {
+          transferId: transfer.id,
+          status: transfer.status,
+        }),
+      };
+    }
+
+    const entry = await this.dependencies.journalEntries.findBySourceDocument('transfer', transfer.id);
+    if (!entry) {
+      return {
+        ok: false,
+        error: domainError('ENTRY_NOT_FOUND', 'El asiento de la transferencia no existe.', true, { transferId: transfer.id }),
+      };
+    }
+
+    const reversalEntry = await this.dependencies.journal.reverseEntry(ctx, {
+      originalEntryId: entry.id,
+      periodId: command.periodId,
+      entryDate: command.reversalDate,
+      reason: command.reason.trim(),
+    });
+    if (!reversalEntry.ok) return reversalEntry;
+
+    const movementBase = {
+      effectiveDate: command.reversalDate,
+      amount: transfer.amount,
+      sourceDocumentType: 'transfer_reversal',
+      sourceDocumentId: transfer.id,
+      journalEntryId: reversalEntry.value.id,
+      idempotencyKey: ctx.idempotencyKey,
+      createdAt: ctx.now,
+    };
+
+    await this.dependencies.movements.save({
+      ...movementBase,
+      id: this.dependencies.createId(),
+      accountId: transfer.fromAccountId,
+      direction: 'IN',
+    });
+
+    await this.dependencies.movements.save({
+      ...movementBase,
+      id: this.dependencies.createId(),
+      accountId: transfer.toAccountId,
+      direction: 'OUT',
+    });
+
+    const updatedTransfer: Transfer = { ...transfer, status: 'REVERTIDO' };
+    await this.dependencies.transfers.update(updatedTransfer);
+
+    await this.dependencies.audit.record({
+      entityType: 'transfer',
+      entityId: transfer.id,
+      action: 'TRANSFER_REVERSED',
+      actorUserId: ctx.actorUserId,
+      occurredAt: ctx.now,
+      reason: command.reason.trim(),
+    });
+
+    return { ok: true, value: updatedTransfer };
   }
 }

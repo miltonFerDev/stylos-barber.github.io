@@ -112,6 +112,21 @@ function createService(options?: { authorize?: Authorizer }) {
     async findPaymentByIdempotencyKey(key) {
       return savedPayments.find((p) => p.idempotencyKey === key) ?? null;
     },
+    async findRecordById(id) {
+      return savedRecords.find((r) => r.id === id) ?? null;
+    },
+    async findPaymentById(id) {
+      return savedPayments.find((p) => p.id === id) ?? null;
+    },
+    async findAllRecords() {
+      return savedRecords;
+    },
+    async findAllPayments() {
+      return savedPayments;
+    },
+    async findPaymentDistributions(paymentId) {
+      return savedDistributions.filter((d) => d.commissionPaymentId === paymentId);
+    },
     async saveRecord(record) {
       savedRecords.push(record);
       return record;
@@ -123,6 +138,16 @@ function createService(options?: { authorize?: Authorizer }) {
     async saveDistribution(distribution) {
       savedDistributions.push(distribution);
       return distribution;
+    },
+    async updateRecord(record) {
+      const index = savedRecords.findIndex((r) => r.id === record.id);
+      if (index >= 0) savedRecords[index] = record;
+      return record;
+    },
+    async updatePayment(payment) {
+      const index = savedPayments.findIndex((p) => p.id === payment.id);
+      if (index >= 0) savedPayments[index] = payment;
+      return payment;
     },
   };
 
@@ -195,6 +220,7 @@ function createService(options?: { authorize?: Authorizer }) {
     masters: masterRepository,
     periods,
     journal,
+    journalEntries: entriesRepo,
     authorize,
     audit,
     createId,
@@ -315,5 +341,121 @@ describe('CommissionsService.registerCommissionPayment', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('ACCOUNT_NOT_AVAILABLE');
+  });
+});
+
+describe('CommissionsService.reverseCommissionRecord', () => {
+  const reversalCtx: CommandContext = ctxFor('rev-1');
+
+  it('revierte un devengo con asiento reverso y sin movimientos de cuenta', async () => {
+    const { service, savedRecords, savedEntries, auditEvents } = createService();
+
+    const reg = await service.registerCommissionDevengo(ctxFor('dev-1'), {
+      barberId: 'b1',
+      amount: { amount: '500.00', currency: 'ARS' },
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    });
+    expect(reg.ok).toBe(true);
+    if (!reg.ok) return;
+
+    const result = await service.reverseCommissionRecord(reversalCtx, {
+      recordId: reg.value.id,
+      reason: 'Error de importe',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.status).toBe('REVERTIDO');
+    expect(savedRecords[0].status).toBe('REVERTIDO');
+    expect(savedEntries).toHaveLength(2);
+    expect(savedEntries[1].reversesEntryId).toBe(savedEntries[0].id);
+    expect(auditEvents.some((e) => e.action === 'COMMISSION_ACCRUAL_REVERSED')).toBe(true);
+  });
+
+  it('rechaza una segunda reversión con REVERSAL_ALREADY_EXISTS', async () => {
+    const { service } = createService();
+
+    const reg = await service.registerCommissionDevengo(ctxFor('dev-1'), {
+      barberId: 'b1',
+      amount: { amount: '500.00', currency: 'ARS' },
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    });
+    expect(reg.ok).toBe(true);
+    if (!reg.ok) return;
+
+    const command = { recordId: reg.value.id, reason: 'x', reversalDate: '2026-10-14', periodId: 'period-1' };
+    const first = await service.reverseCommissionRecord(reversalCtx, command);
+    expect(first.ok).toBe(true);
+    const second = await service.reverseCommissionRecord(reversalCtx, command);
+    expect(second.ok).toBe(false);
+    if (!second.ok) expect(second.error.code).toBe('REVERSAL_ALREADY_EXISTS');
+  });
+
+  it('devuelve COMMISSION_RECORD_NOT_FOUND si no existe', async () => {
+    const { service } = createService();
+    const result = await service.reverseCommissionRecord(reversalCtx, {
+      recordId: 'missing',
+      reason: 'x',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('COMMISSION_RECORD_NOT_FOUND');
+  });
+});
+
+describe('CommissionsService.reverseCommissionPayment', () => {
+  const reversalCtx: CommandContext = ctxFor('rev-2');
+
+  it('revierte un pago con movimientos IN y asiento reverso', async () => {
+    const { service, savedPayments, savedMovements, savedEntries, auditEvents } = createService();
+
+    await service.registerCommissionDevengo(ctxFor('dev-1'), {
+      barberId: 'b1',
+      amount: { amount: '100.00', currency: 'ARS' },
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    });
+
+    const pay = await service.registerCommissionPayment(ctxFor('pay-1'), {
+      barberId: 'b1',
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+      distributions: [{ accountId: 'acc-1', amount: { amount: '100.00', currency: 'ARS' } }],
+    });
+    expect(pay.ok).toBe(true);
+    if (!pay.ok) return;
+
+    const result = await service.reverseCommissionPayment(reversalCtx, {
+      paymentId: pay.value.id,
+      reason: 'Pago duplicado',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.status).toBe('REVERTIDO');
+    expect(savedPayments[0].status).toBe('REVERTIDO');
+    expect(savedMovements).toHaveLength(2);
+    expect(savedMovements[1].direction).toBe('IN');
+    expect(savedEntries).toHaveLength(3); // devengo + pago + reversión
+    expect(auditEvents.some((e) => e.action === 'COMMISSION_PAYMENT_REVERSED')).toBe(true);
+  });
+
+  it('devuelve COMMISSION_PAYMENT_NOT_FOUND si no existe', async () => {
+    const { service } = createService();
+    const result = await service.reverseCommissionPayment(reversalCtx, {
+      paymentId: 'missing',
+      reason: 'x',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('COMMISSION_PAYMENT_NOT_FOUND');
   });
 });
