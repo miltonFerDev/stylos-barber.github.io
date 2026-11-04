@@ -10,7 +10,7 @@ import type { JournalLineDraft } from '../domain/journal';
 import { isCurrentAt } from '../domain/masters';
 import { isPeriodOpen } from '../domain/periods';
 import { validatePositiveAmount } from '../domain/obligations';
-import type { AccountingPeriodRepository, JournalService } from './journal-service';
+import type { AccountingPeriodRepository, JournalEntryRepository, JournalService } from './journal-service';
 import type { MasterRepository } from './master-data-service';
 import type { Authorizer } from './permission-service';
 import type { CommandContext, Money, Result } from '../domain/types';
@@ -45,9 +45,17 @@ export type RegisterCurrentAccountWithdrawalCommand = {
   note?: string;
 };
 
+export type ReverseSettlementCommand = {
+  settlementId: string;
+  reason: string;
+  reversalDate: string;
+  periodId: string;
+};
+
 export type ExternalSettlementRepository = {
   findByIdempotencyKey(key: string): Promise<ExternalSettlement | null>;
   findById(id: string): Promise<ExternalSettlement | null>;
+  findAll(): Promise<ExternalSettlement[]>;
   save(settlement: ExternalSettlement): Promise<ExternalSettlement>;
   update(settlement: ExternalSettlement): Promise<ExternalSettlement>;
 };
@@ -57,7 +65,8 @@ export type ExternalSettlementsServiceDependencies = {
   movements: AccountMovementRepository;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
-  journal: Pick<JournalService, 'postEntry'>;
+  journal: Pick<JournalService, 'postEntry' | 'reverseEntry'>;
+  journalEntries: Pick<JournalEntryRepository, 'findBySourceDocument'>;
   authorize: Authorizer;
   audit: AuditRecorder;
   createId: () => string;
@@ -419,5 +428,90 @@ export class ExternalSettlementsService {
     });
 
     return { ok: true, value: settlement };
+  }
+
+  async reverseSettlement(
+    ctx: CommandContext,
+    command: ReverseSettlementCommand
+  ): Promise<Result<ExternalSettlement>> {
+    const authorized = await this.dependencies.authorize(ctx, 'REVERSE_RECORD');
+    if (!authorized.ok) return authorized;
+
+    if (command.reason.trim().length === 0) {
+      return {
+        ok: false,
+        error: domainError('MISSING_REASON', 'La reversión requiere un motivo.', true),
+      };
+    }
+
+    const settlement = await this.dependencies.settlements.findById(command.settlementId);
+    if (!settlement) {
+      return {
+        ok: false,
+        error: domainError('SETTLEMENT_NOT_FOUND', 'El fondo no existe.', true, { settlementId: command.settlementId }),
+      };
+    }
+
+    if (settlement.status !== 'CONFIRMADO') {
+      return {
+        ok: false,
+        error: domainError('SETTLEMENT_ALREADY_REINTEGRADO', 'El fondo ya fue reintegrado.', true, {
+          settlementId: settlement.id,
+          status: settlement.status,
+        }),
+      };
+    }
+
+    // Retiro (result_line_id null) postea un movimiento OUT; la inyección solo asiento.
+    const isWithdrawal = settlement.resultLineId === null;
+    const sourceDocumentType = isWithdrawal ? 'current_account_withdrawal' : 'external_settlement';
+
+    const entry = await this.dependencies.journalEntries.findBySourceDocument(sourceDocumentType, settlement.id);
+    if (!entry) {
+      return {
+        ok: false,
+        error: domainError('ENTRY_NOT_FOUND', 'El asiento del fondo no existe.', true, { settlementId: settlement.id }),
+      };
+    }
+
+    const reversalEntry = await this.dependencies.journal.reverseEntry(ctx, {
+      originalEntryId: entry.id,
+      periodId: command.periodId,
+      entryDate: command.reversalDate,
+      reason: command.reason.trim(),
+    });
+    if (!reversalEntry.ok) return reversalEntry;
+
+    if (isWithdrawal) {
+      const movements = await this.dependencies.movements.findBySourceDocument(sourceDocumentType, settlement.id);
+      for (const movement of movements) {
+        await this.dependencies.movements.save({
+          id: this.dependencies.createId(),
+          accountId: movement.accountId,
+          effectiveDate: command.reversalDate,
+          amount: movement.amount,
+          direction: movement.direction === 'OUT' ? 'IN' : 'OUT',
+          sourceDocumentType: 'external_settlement_reversal',
+          sourceDocumentId: settlement.id,
+          journalEntryId: reversalEntry.value.id,
+          idempotencyKey: ctx.idempotencyKey,
+          createdAt: ctx.now,
+        });
+      }
+    }
+
+    const updated: ExternalSettlement = { ...settlement, status: 'REINTEGRADO' };
+    const saved = await this.dependencies.settlements.update(updated);
+
+    await this.dependencies.audit.record({
+      entityType: 'external_settlement',
+      entityId: saved.id,
+      action: 'EXTERNAL_SETTLEMENT_REVERSED',
+      actorUserId: ctx.actorUserId,
+      occurredAt: ctx.now,
+      reason: command.reason.trim(),
+    });
+
+    return { ok: true, value: saved };
   }
 }

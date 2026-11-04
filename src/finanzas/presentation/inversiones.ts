@@ -3,6 +3,7 @@ import type {
   DecideCommand,
   EvaluateCommand,
   RegisterInvestmentPaymentCommand,
+  ReverseInvestmentPaymentCommand,
 } from '../application/investments-service';
 import type { InvestmentDecision } from '../domain/investments';
 import type { ForecastScenario } from '../domain/forecast';
@@ -133,6 +134,35 @@ export async function handlePagar(
   const result = await container.investments.registerInvestmentPayment(ctx, command);
   if (!result.ok) {
     return json(statusFor(result.error.code), { error: result.error.code, message: result.error.message });
+  }
+  return json(200, { investment: result.value });
+}
+
+/**
+ * Reversión de un pago de inversión PAGADA → APROBADA (asiento reverso + movimiento inverso).
+ */
+export async function handleReversarInversion(
+  container: FinanzasContainer,
+  token: string | null,
+  investmentId: string,
+  body: unknown
+): Promise<Response> {
+  const userId = await resolveActor(container.supabase, token);
+  if (!userId) return json(401, { error: 'UNAUTHENTICATED' });
+
+  const b = (body ?? {}) as Record<string, unknown>;
+  const command: ReverseInvestmentPaymentCommand = {
+    investmentId,
+    reason: String(b.reason ?? ''),
+    reversalDate: String(b.reversalDate ?? ''),
+    periodId: String(b.periodId ?? ''),
+  };
+
+  const ctx = commandContext(userId, crypto.randomUUID());
+  const result = await container.investments.reverseInvestmentPayment(ctx, command);
+  if (!result.ok) {
+    const status = result.error.code === 'PERMISSION_DENIED' ? 403 : 400;
+    return json(status, { error: result.error.code, message: result.error.message });
   }
   return json(200, { investment: result.value });
 }

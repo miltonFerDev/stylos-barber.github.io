@@ -124,6 +124,9 @@ function createService(options: {
     async findByAccountIds(accountIds) {
       return savedMovements.filter((m) => accountIds.includes(m.accountId));
     },
+    async findBySourceDocument(sourceDocumentType, sourceDocumentId) {
+      return savedMovements.filter((m) => m.sourceDocumentType === sourceDocumentType && m.sourceDocumentId === sourceDocumentId);
+    },
     async save(movement) {
       savedMovements.push(movement);
       return movement;
@@ -191,6 +194,7 @@ function createService(options: {
     masters: masterRepository,
     periods,
     journal,
+    journalEntries: entriesRepo,
     capex: capexConfig,
     authorize,
     audit,
@@ -379,6 +383,62 @@ describe('InvestmentsService.registerInvestmentPayment', () => {
       periodId: 'period-1',
     });
 
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('INVALID_INVESTMENT_STATE');
+  });
+});
+
+describe('InvestmentsService.reverseInvestmentPayment', () => {
+  const reversalCtx: CommandContext = {
+    actorUserId: userId,
+    idempotencyKey: 'rev-1',
+    now: '2026-10-14T12:00:00.000Z',
+  };
+
+  it('revierte un pago capitalizado y vuelve a APROBADA', async () => {
+    const { service, savedInvestments, savedMovements, savedEntries, auditEvents } = createService();
+    const id = await createApprovedWithAmount(service, '2000.00');
+
+    const paid = await service.registerInvestmentPayment({ ...ctx, idempotencyKey: 'pay-1' }, {
+      investmentId: id,
+      accountId: 'acc-1',
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    });
+    expect(paid.ok).toBe(true);
+    if (!paid.ok) return;
+
+    const result = await service.reverseInvestmentPayment(reversalCtx, {
+      investmentId: id,
+      reason: 'Pago equivocado',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.status).toBe('APROBADA');
+    expect(result.value.paidAt).toBeNull();
+    expect(result.value.capitalized).toBeNull();
+    expect(savedInvestments[0].status).toBe('APROBADA');
+
+    expect(savedMovements).toHaveLength(2);
+    expect(savedMovements[1].direction).toBe('IN');
+    expect(savedEntries).toHaveLength(2);
+    expect(savedEntries[1].reversesEntryId).toBe(savedEntries[0].id);
+    expect(auditEvents.some((e) => e.action === 'INVESTMENT_PAYMENT_REVERSED')).toBe(true);
+  });
+
+  it('rechaza revertir una inversion no pagada', async () => {
+    const { service } = createService();
+    const id = await createApprovedWithAmount(service, '2000.00'); // queda APROBADA, no pagada
+
+    const result = await service.reverseInvestmentPayment(reversalCtx, {
+      investmentId: id,
+      reason: 'x',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('INVALID_INVESTMENT_STATE');
   });

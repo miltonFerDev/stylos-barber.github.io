@@ -1,6 +1,7 @@
 import type {
   RegisterCurrentAccountWithdrawalCommand,
   RegisterExternalPaymentCommand,
+  ReverseSettlementCommand,
 } from '../application/external-settlements-service';
 import type { ExternalSettlementNature } from '../domain/external-settlements';
 import { isPeriodOpen } from '../domain/periods';
@@ -106,4 +107,74 @@ export async function handleRetiro(
   }
 
   return json(201, { settlement: result.value });
+}
+
+/**
+ * Fondos reversibles (CONFIRMADO) + períodos abiertos. Gated por REVERSE_RECORD.
+ */
+export async function handleHistorialFondos(
+  container: FinanzasContainer,
+  token: string | null
+): Promise<Response> {
+  const userId = await resolveActor(container.supabase, token);
+  if (!userId) return json(401, { error: 'UNAUTHENTICATED' });
+
+  const ctx = commandContext(userId, crypto.randomUUID());
+  const authorized = await container.authorize(ctx, 'REVERSE_RECORD');
+  if (!authorized.ok) return json(403, { error: authorized.error.code });
+
+  const [allSettlements, persons, allPeriods] = await Promise.all([
+    container.settlementsRepo.findAll(),
+    container.masters.findAll('PERSON'),
+    container.periods.findAll(),
+  ]);
+
+  const personName = new Map(
+    persons.filter((m) => m.entityType === 'PERSON').map((m) => [m.id, m.displayName])
+  );
+
+  const settlements = allSettlements
+    .filter((s) => s.status === 'CONFIRMADO')
+    .map((s) => ({
+      id: s.id,
+      effectiveDate: s.effectiveDate,
+      amount: s.amount,
+      concept: s.concept,
+      nature: s.nature,
+      kind: s.resultLineId === null ? 'retiro' : 'inyeccion',
+      personName: personName.get(s.sourcePersonId) ?? s.sourcePersonId,
+    }));
+
+  return json(200, { settlements, periods: allPeriods.filter(isPeriodOpen) });
+}
+
+/**
+ * Reversión de un fondo CONFIRMADO (inyección o retiro) → REINTEGRADO.
+ */
+export async function handleReversarFondo(
+  container: FinanzasContainer,
+  token: string | null,
+  settlementId: string,
+  body: unknown
+): Promise<Response> {
+  const userId = await resolveActor(container.supabase, token);
+  if (!userId) return json(401, { error: 'UNAUTHENTICATED' });
+
+  const b = (body ?? {}) as Record<string, unknown>;
+  const command: ReverseSettlementCommand = {
+    settlementId,
+    reason: String(b.reason ?? ''),
+    reversalDate: String(b.reversalDate ?? ''),
+    periodId: String(b.periodId ?? ''),
+  };
+
+  const ctx = commandContext(userId, crypto.randomUUID());
+  const result = await container.settlements.reverseSettlement(ctx, command);
+
+  if (!result.ok) {
+    const status = result.error.code === 'PERMISSION_DENIED' ? 403 : 400;
+    return json(status, { error: result.error.code, message: result.error.message });
+  }
+
+  return json(200, { settlement: result.value });
 }

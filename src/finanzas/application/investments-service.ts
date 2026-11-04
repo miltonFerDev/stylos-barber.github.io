@@ -17,7 +17,7 @@ import { toMinor } from '../domain/money';
 import { validatePositiveAmount } from '../domain/obligations';
 import { isPeriodOpen } from '../domain/periods';
 import type { ForecastService } from './forecast-service';
-import type { AccountingPeriodRepository, JournalService } from './journal-service';
+import type { AccountingPeriodRepository, JournalEntryRepository, JournalService } from './journal-service';
 import type { MasterRepository } from './master-data-service';
 import type { Authorizer } from './permission-service';
 import type { CommandContext, Money, Result } from '../domain/types';
@@ -47,6 +47,13 @@ export type RegisterInvestmentPaymentCommand = {
   periodId: string;
 };
 
+export type ReverseInvestmentPaymentCommand = {
+  investmentId: string;
+  reason: string;
+  reversalDate: string;
+  periodId: string;
+};
+
 export type InvestmentRepository = {
   findById(id: string): Promise<Investment | null>;
   findAll(): Promise<Investment[]>;
@@ -66,7 +73,8 @@ export type InvestmentsServiceDependencies = {
   movements: AccountMovementRepository;
   masters: MasterRepository;
   periods: AccountingPeriodRepository;
-  journal: Pick<JournalService, 'postEntry'>;
+  journal: Pick<JournalService, 'postEntry' | 'reverseEntry'>;
+  journalEntries: Pick<JournalEntryRepository, 'findBySourceDocument'>;
   capex: CapexConfig;
   authorize: Authorizer;
   audit: AuditRecorder;
@@ -376,5 +384,95 @@ export class InvestmentsService {
     });
 
     return { ok: true, value: paid };
+  }
+
+  async reverseInvestmentPayment(
+    ctx: CommandContext,
+    command: ReverseInvestmentPaymentCommand
+  ): Promise<Result<Investment>> {
+    const authorized = await this.dependencies.authorize(ctx, 'REVERSE_RECORD');
+    if (!authorized.ok) return authorized;
+
+    if (command.reason.trim().length === 0) {
+      return {
+        ok: false,
+        error: domainError('MISSING_REASON', 'La reversión requiere un motivo.', true),
+      };
+    }
+
+    const investment = await this.dependencies.investments.findById(command.investmentId);
+    if (!investment) {
+      return {
+        ok: false,
+        error: domainError('INVESTMENT_NOT_FOUND', 'La inversion no existe.', true, { investmentId: command.investmentId }),
+      };
+    }
+
+    if (investment.status !== 'PAGADA') {
+      return {
+        ok: false,
+        error: domainError('INVALID_INVESTMENT_STATE', 'La inversion debe estar pagada para revertirse.', true, {
+          investmentId: investment.id,
+          status: investment.status,
+        }),
+      };
+    }
+
+    const entry = await this.dependencies.journalEntries.findBySourceDocument('investment_payment', investment.id);
+    if (!entry) {
+      return {
+        ok: false,
+        error: domainError('ENTRY_NOT_FOUND', 'El asiento del pago no existe.', true, { investmentId: investment.id }),
+      };
+    }
+
+    const reversalEntry = await this.dependencies.journal.reverseEntry(ctx, {
+      originalEntryId: entry.id,
+      periodId: command.periodId,
+      entryDate: command.reversalDate,
+      reason: command.reason.trim(),
+    });
+    if (!reversalEntry.ok) return reversalEntry;
+
+    const movements = await this.dependencies.movements.findBySourceDocument('investment_payment', investment.id);
+    for (const movement of movements) {
+      await this.dependencies.movements.save({
+        id: this.dependencies.createId(),
+        accountId: movement.accountId,
+        effectiveDate: command.reversalDate,
+        amount: movement.amount,
+        direction: movement.direction === 'OUT' ? 'IN' : 'OUT',
+        sourceDocumentType: 'investment_payment_reversal',
+        sourceDocumentId: investment.id,
+        journalEntryId: reversalEntry.value.id,
+        idempotencyKey: ctx.idempotencyKey,
+        createdAt: ctx.now,
+      });
+    }
+
+    // shortcut: no revierte la depreciación ya posteada de este activo. El cron
+    // agrega todas las depreciaciones en un asiento por período sin etiqueta por
+    // activo; revertirla por activo requiere rediseñar ese asiento. Al volver a
+    // APROBADA, findAllCapitalized ya no lo toma (deja de depreciar hacia adelante).
+    const reverted: Investment = {
+      ...investment,
+      status: 'APROBADA',
+      paidAt: null,
+      capitalized: null,
+      usefulLifeMonths: null,
+    };
+
+    await this.dependencies.investments.update(reverted);
+
+    await this.dependencies.audit.record({
+      entityType: 'investment',
+      entityId: reverted.id,
+      action: 'INVESTMENT_PAYMENT_REVERSED',
+      actorUserId: ctx.actorUserId,
+      occurredAt: ctx.now,
+      reason: command.reason.trim(),
+    });
+
+    return { ok: true, value: reverted };
   }
 }

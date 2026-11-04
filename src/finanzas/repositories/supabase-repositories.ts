@@ -278,6 +278,15 @@ export class SupabaseAccountMovementRepository implements AccountMovementReposit
     return (data ?? []).map((m) => mapAccountMovement(m as DbRow));
   }
 
+  async findBySourceDocument(sourceDocumentType: string, sourceDocumentId: string) {
+    const { data } = await this.supabase
+      .from('account_movements')
+      .select('*')
+      .eq('source_document_type', sourceDocumentType)
+      .eq('source_document_id', sourceDocumentId);
+    return (data ?? []).map((m) => mapAccountMovement(m as DbRow));
+  }
+
   async save(movement: ReturnType<typeof mapAccountMovement>) {
     await this.supabase.from('account_movements').insert({
       id: movement.id,
@@ -616,6 +625,11 @@ export class SupabaseExternalSettlementRepository implements ExternalSettlementR
   async findById(id: string) {
     const { data } = await this.supabase.from('external_settlements').select('*').eq('id', id).maybeSingle();
     return data ? mapExternalSettlement(data as DbRow) : null;
+  }
+
+  async findAll() {
+    const { data } = await this.supabase.from('external_settlements').select('*').order('created_at', { ascending: false });
+    return (data ?? []).map((s) => mapExternalSettlement(s as DbRow));
   }
 
   async save(settlement: ExternalSettlement) {

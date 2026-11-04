@@ -49,13 +49,18 @@ export function Inversiones() {
   const [tentativeDate, setTentativeDate] = useState(today());
 
   const [actionFor, setActionFor] = useState<string | null>(null);
-  const [actionType, setActionType] = useState<'aprobar' | 'rechazar' | 'pagar' | null>(null);
+  const [actionType, setActionType] = useState<'aprobar' | 'rechazar' | 'pagar' | 'revertir' | null>(null);
   const [reason, setReason] = useState('');
   const [payAccountId, setPayAccountId] = useState('');
   const [payDate, setPayDate] = useState(today());
   const [payPeriodId, setPayPeriodId] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   const [needsConfirm, setNeedsConfirm] = useState(false);
+  const [revertReason, setRevertReason] = useState('');
+  const [revertDate, setRevertDate] = useState(today());
+  const [revertPeriodId, setRevertPeriodId] = useState('');
+  const [revertSubmitting, setRevertSubmitting] = useState(false);
+  const [revertError, setRevertError] = useState<string | null>(null);
   // Acción en vuelo: 'create' | `evaluate:${id}` | `decide:${id}` | `pay:${id}` | null.
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -73,6 +78,7 @@ export function Inversiones() {
     const data: InversionesPayload = await res.json();
     setPayload(data);
     setPayPeriodId((prev) => prev || (data.periods?.[0]?.id ?? ''));
+    setRevertPeriodId((prev) => prev || (data.periods?.[0]?.id ?? ''));
     setStatus('ready');
   }, []);
 
@@ -182,6 +188,27 @@ export function Inversiones() {
     }
   }
 
+  async function onRevert(id: string) {
+    setRevertError(null);
+    setRevertSubmitting(true);
+    const token = await getFinanzasAccessToken();
+    const res = await fetch(`/api/finanzas/inversiones/${id}/revertir`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ reason: revertReason.trim(), periodId: revertPeriodId, reversalDate: revertDate }),
+    });
+    setRevertSubmitting(false);
+    if (res.ok) {
+      setActionFor(null);
+      setRevertReason('');
+      setSuccess('Pago de inversión revertido.');
+      load();
+    } else {
+      const err = await res.json().catch(() => null);
+      setRevertError(err?.message || 'No se pudo revertir el pago.');
+    }
+  }
+
   if (status === 'loading') {
     return <div className="p-8 text-center text-finMuted">Cargando inversiones…</div>;
   }
@@ -259,6 +286,11 @@ export function Inversiones() {
                       Pagar
                     </button>
                   )}
+                  {inv.status === 'PAGADA' && (
+                    <button type="button" onClick={() => { setActionFor(inv.id); setActionType('revertir'); setRevertReason(''); setRevertDate(today()); setRevertError(null); }} className="rounded-lg border border-finBorder px-3 py-2 text-sm font-semibold text-finDanger hover:bg-finDanger/10">
+                      Revertir pago
+                    </button>
+                  )}
                 </div>
 
                 {actionFor === inv.id && actionType === 'pagar' && (
@@ -295,6 +327,32 @@ export function Inversiones() {
                         {busy === `decide:${inv.id}` ? 'Guardando…' : needsConfirm ? 'Confirmar igual' : actionType === 'aprobar' ? 'Aprobar' : 'Rechazar'}
                       </button>
                       <button type="button" onClick={() => { setActionFor(null); setNeedsConfirm(false); }} className="min-h-12 rounded-lg border border-finBorder px-4 py-3 text-base font-semibold text-finMuted hover:text-finText">Cancelar</button>
+                    </div>
+                  </form>
+                )}
+
+                {actionFor === inv.id && actionType === 'revertir' && (
+                  <form className="mt-3 space-y-3 border-t border-finBorder pt-3" onSubmit={(e) => { e.preventDefault(); onRevert(inv.id); }}>
+                    {field('Motivo', (
+                      <input className={inputClass} value={revertReason} onChange={(e) => setRevertReason(e.target.value)} placeholder="¿Por qué se revierte?" required />
+                    ))}
+                    {field('Fecha de reversión', (
+                      <input className={inputClass} type="date" value={revertDate} onChange={(e) => setRevertDate(e.target.value)} required />
+                    ))}
+                    {field('Período', (
+                      <select className={inputClass} value={revertPeriodId} onChange={(e) => setRevertPeriodId(e.target.value)} required>
+                        <option value="">Elegí…</option>
+                        {payload.periods.map((p) => <option key={p.id} value={p.id}>{p.code}</option>)}
+                      </select>
+                    ))}
+                    {revertError && (
+                      <p role="alert" className="rounded-lg bg-finDanger/10 px-3 py-2 text-base text-finDanger">{revertError}</p>
+                    )}
+                    <div className="flex gap-2">
+                      <button type="submit" disabled={revertSubmitting || !revertReason.trim() || !revertPeriodId} className="min-h-12 flex-1 rounded-lg bg-finDanger px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-finDanger/90 disabled:opacity-50">
+                        {revertSubmitting ? 'Revirtiendo…' : 'Confirmar reversión'}
+                      </button>
+                      <button type="button" onClick={() => setActionFor(null)} className="min-h-12 rounded-lg border border-finBorder px-4 py-3 text-base font-semibold text-finMuted hover:text-finText">Cancelar</button>
                     </div>
                   </form>
                 )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getFinanzasAccessToken } from '../presentation/client';
 
 type Person = { id: string; displayName: string };
@@ -6,6 +6,17 @@ type ResultLine = { id: string; name: string };
 type Account = { id: string; name: string };
 type Period = { id: string; code: string };
 type FondosPayload = { persons: Person[]; resultLines: ResultLine[]; accounts: Account[]; periods: Period[] };
+
+type HistorialSettlement = {
+  id: string;
+  effectiveDate: string;
+  amount: { amount: string; currency: string };
+  concept: string;
+  nature: string;
+  kind: 'inyeccion' | 'retiro';
+  personName: string;
+};
+type HistorialPayload = { settlements: HistorialSettlement[]; periods: Period[] };
 
 type Mode = 'inyeccion' | 'retiro';
 type Nature = 'CUENTA_CORRIENTE' | 'PRESTAMO' | 'APORTE';
@@ -21,6 +32,18 @@ const inputClass =
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function formatMoney(amount: string, currency: string): string {
+  return new Intl.NumberFormat('es-AR', { style: 'currency', currency, minimumFractionDigits: 2 }).format(Number(amount));
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function natureLabel(nature: string): string {
+  return NATURES.find((n) => n.value === nature)?.label ?? nature;
 }
 
 export function Fondos() {
@@ -41,6 +64,15 @@ export function Fondos() {
   const [resultLineId, setResultLineId] = useState('');
   const [nature, setNature] = useState<Nature>('CUENTA_CORRIENTE');
   const [accountId, setAccountId] = useState('');
+
+  // Reversión
+  const [historial, setHistorial] = useState<HistorialPayload | null>(null);
+  const [revertFor, setRevertFor] = useState<string | null>(null);
+  const [revertReason, setRevertReason] = useState('');
+  const [revertDate, setRevertDate] = useState(today());
+  const [revertPeriodId, setRevertPeriodId] = useState('');
+  const [revertSubmitting, setRevertSubmitting] = useState(false);
+  const [revertError, setRevertError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +100,48 @@ export function Fondos() {
       cancelled = true;
     };
   }, []);
+
+  const loadHistorial = useCallback(async () => {
+    const token = await getFinanzasAccessToken();
+    if (!token) {
+      setHistorial(null);
+      return;
+    }
+    const res = await fetch('/api/finanzas/fondos/historial', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      setHistorial(null);
+      return;
+    }
+    const data: HistorialPayload = await res.json();
+    setHistorial(data);
+    setRevertPeriodId((prev) => prev || (data.periods?.[0]?.id ?? ''));
+  }, []);
+
+  useEffect(() => {
+    loadHistorial().catch(() => setHistorial(null));
+  }, [loadHistorial]);
+
+  async function onRevert(settlementId: string) {
+    setRevertError(null);
+    setRevertSubmitting(true);
+    const token = await getFinanzasAccessToken();
+    const res = await fetch(`/api/finanzas/fondos/${settlementId}/revertir`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ reason: revertReason.trim(), periodId: revertPeriodId, reversalDate: revertDate }),
+    });
+    setRevertSubmitting(false);
+    if (res.ok) {
+      setRevertFor(null);
+      setRevertReason('');
+      loadHistorial().catch(() => setHistorial(null));
+    } else {
+      const err = await res.json().catch(() => null);
+      setRevertError(err?.message || 'No se pudo revertir el fondo.');
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -235,6 +309,94 @@ export function Fondos() {
           {submitting ? 'Guardando…' : confirming ? `¿Confirmás ${isInyeccion ? 'inyectar' : 'retirar'} $${Number(amount).toFixed(2)}?` : isInyeccion ? 'Registrar inyección' : 'Registrar retiro'}
         </button>
       </form>
+
+      {historial && historial.settlements.length > 0 && (
+        <section className="mt-10">
+          <h2 className="mb-3 text-lg font-semibold text-finText">Fondos recientes</h2>
+          <ul className="space-y-2">
+            {historial.settlements.map((s) => (
+              <li key={s.id} className="rounded-xl border border-finBorder bg-finSurface px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-base font-medium text-finText">
+                      {formatDate(s.effectiveDate)} · {s.kind === 'retiro' ? 'Retiro' : 'Inyección'} · {s.personName}
+                    </p>
+                    <p className="text-sm text-finMuted">
+                      {formatMoney(s.amount.amount, s.amount.currency)} · {natureLabel(s.nature)} · {s.concept}
+                    </p>
+                  </div>
+                  {revertFor === s.id ? (
+                    <span className="text-sm font-semibold text-finMuted">Reversión…</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRevertFor(s.id);
+                        setRevertReason('');
+                        setRevertDate(today());
+                        setRevertError(null);
+                      }}
+                      className="min-h-12 rounded-lg border border-finBorder px-3 text-base font-semibold text-finDanger hover:bg-finDanger/10"
+                    >
+                      Revertir
+                    </button>
+                  )}
+                </div>
+
+                {revertFor === s.id && (
+                  <form
+                    className="mt-3 space-y-3 border-t border-finBorder pt-3"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      onRevert(s.id);
+                    }}
+                  >
+                    {field('Motivo', (
+                      <input
+                        className={inputClass}
+                        value={revertReason}
+                        onChange={(e) => setRevertReason(e.target.value)}
+                        placeholder="¿Por qué se revierte?"
+                        required
+                      />
+                    ))}
+                    {field('Fecha de reversión', (
+                      <input className={inputClass} type="date" value={revertDate} onChange={(e) => setRevertDate(e.target.value)} required />
+                    ))}
+                    {field('Período', (
+                      <select className={inputClass} value={revertPeriodId} onChange={(e) => setRevertPeriodId(e.target.value)} required>
+                        <option value="">Elegí…</option>
+                        {historial.periods.map((p) => (
+                          <option key={p.id} value={p.id}>{p.code}</option>
+                        ))}
+                      </select>
+                    ))}
+                    {revertError && (
+                      <p role="alert" className="rounded-lg bg-finDanger/10 px-3 py-2 text-base text-finDanger">{revertError}</p>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        disabled={revertSubmitting || !revertReason.trim() || !revertPeriodId}
+                        className="min-h-12 flex-1 rounded-lg bg-finDanger px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-finDanger/90 disabled:opacity-50"
+                      >
+                        {revertSubmitting ? 'Revirtiendo…' : 'Confirmar reversión'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRevertFor(null)}
+                        className="min-h-12 rounded-lg border border-finBorder px-4 py-3 text-base font-semibold text-finMuted hover:text-finText"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

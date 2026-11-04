@@ -77,6 +77,9 @@ function createService(options?: { authorize?: Authorizer }) {
     async findById(id) {
       return savedSettlements.find(s => s.id === id) ?? null;
     },
+    async findAll() {
+      return savedSettlements;
+    },
     async save(settlement) {
       savedSettlements.push(settlement);
       return settlement;
@@ -94,6 +97,9 @@ function createService(options?: { authorize?: Authorizer }) {
     },
     async findByAccountIds(accountIds) {
       return savedMovements.filter(m => accountIds.includes(m.accountId));
+    },
+    async findBySourceDocument(sourceDocumentType, sourceDocumentId) {
+      return savedMovements.filter(m => m.sourceDocumentType === sourceDocumentType && m.sourceDocumentId === sourceDocumentId);
     },
     async save(movement) {
       savedMovements.push(movement);
@@ -162,6 +168,7 @@ function createService(options?: { authorize?: Authorizer }) {
       masters: masterRepository,
       periods,
       journal,
+      journalEntries: entriesRepo,
       authorize,
       audit,
       createId,
@@ -378,5 +385,99 @@ describe('ExternalSettlementsService.registerCurrentAccountWithdrawal', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('PERMISSION_DENIED');
+  });
+});
+
+describe('ExternalSettlementsService.reverseSettlement', () => {
+  const reversalCtx: CommandContext = {
+    actorUserId: userId,
+    idempotencyKey: 'rev-1',
+    now: '2026-10-14T12:00:00.000Z',
+  };
+
+  it('revierte una inyección (sin movimientos) y marca REINTEGRADO', async () => {
+    const { service, savedSettlements, savedMovements, savedEntries, auditEvents } = createService();
+
+    const created = await service.registerExternalPayment(ctx, {
+      sourcePersonId: 'person-1',
+      resultLineId: 'rl-1',
+      concept: 'Insumos',
+      amount: { amount: '500.00', currency: 'ARS' },
+      nature: 'PRESTAMO',
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+
+    const result = await service.reverseSettlement(reversalCtx, {
+      settlementId: created.value.id,
+      reason: 'Error de carga',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.status).toBe('REINTEGRADO');
+    expect(savedSettlements[0].status).toBe('REINTEGRADO');
+    expect(savedMovements).toHaveLength(0); // la inyección no postea movimientos
+    expect(savedEntries).toHaveLength(2);
+    expect(savedEntries[1].reversesEntryId).toBe(savedEntries[0].id);
+    expect(auditEvents.some((e) => e.action === 'EXTERNAL_SETTLEMENT_REVERSED')).toBe(true);
+  });
+
+  it('revierte un retiro (movimiento OUT → IN) y marca REINTEGRADO', async () => {
+    const { service, savedMovements, savedEntries } = createService();
+
+    const created = await service.registerCurrentAccountWithdrawal(ctx, {
+      sourcePersonId: 'person-1',
+      accountId: 'acc-1',
+      concept: 'Retiro',
+      amount: { amount: '200.00', currency: 'ARS' },
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+
+    const result = await service.reverseSettlement(reversalCtx, {
+      settlementId: created.value.id,
+      reason: 'Retiro duplicado',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.value.status).toBe('REINTEGRADO');
+    expect(savedMovements).toHaveLength(2);
+    expect(savedMovements[1].direction).toBe('IN');
+    expect(savedMovements[1].accountId).toBe('acc-1');
+    expect(savedEntries).toHaveLength(2);
+    expect(savedEntries[1].reversesEntryId).toBe(savedEntries[0].id);
+  });
+
+  it('rechaza revertir un fondo ya reintegrado', async () => {
+    const { service } = createService();
+
+    const created = await service.registerExternalPayment(ctx, {
+      sourcePersonId: 'person-1',
+      resultLineId: 'rl-1',
+      concept: 'Insumos',
+      amount: { amount: '500.00', currency: 'ARS' },
+      nature: 'PRESTAMO',
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+
+    const command = { settlementId: created.value.id, reason: 'x', reversalDate: '2026-10-14', periodId: 'period-1' };
+    const first = await service.reverseSettlement(reversalCtx, command);
+    expect(first.ok).toBe(true);
+    const second = await service.reverseSettlement(reversalCtx, command);
+    expect(second.ok).toBe(false);
+    if (!second.ok) expect(second.error.code).toBe('SETTLEMENT_ALREADY_REINTEGRADO');
   });
 });

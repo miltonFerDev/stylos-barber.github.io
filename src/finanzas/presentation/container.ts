@@ -56,6 +56,7 @@ export type FinanzasContainer = {
   reconciliationsRepo: ReconciliationRepository;
   depreciation: DepreciationService;
   settlements: ExternalSettlementsService;
+  settlementsRepo: ExternalSettlementRepository;
   forecast: ForecastService;
   investments: InvestmentsService;
   investmentsRepo: InvestmentRepository;
@@ -187,18 +188,21 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     masters,
     periods,
     journal,
+    journalEntries: journalEntriesRepo,
     capex,
     authorize,
     audit,
     createId: () => crypto.randomUUID(),
   });
 
+  const settlementsRepo = new SupabaseExternalSettlementRepository(supabase);
   const settlements = new ExternalSettlementsService({
-    settlements: new SupabaseExternalSettlementRepository(supabase),
+    settlements: settlementsRepo,
     movements,
     masters,
     periods,
     journal,
+    journalEntries: journalEntriesRepo,
     authorize,
     audit,
     createId: () => crypto.randomUUID(),
@@ -259,6 +263,7 @@ export function buildContainer(client?: SupabaseClient): FinanzasContainer {
     reconciliationsRepo,
     depreciation,
     settlements,
+    settlementsRepo,
     forecast,
     investments,
     investmentsRepo,

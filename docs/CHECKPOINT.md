@@ -31,7 +31,7 @@
 - **UI (E5):** completa — Tablero, Agenda, Alta obligación, Pagar (con reversión), Cierre, Fondos externos (inyección/retiro), Inversiones, Transferencias, Ingresos, Comisiones.
 - **Decisiones de negocio:** cerradas (P-REC, P6, P7, P-CAP, P9, P10, P12, P13). Umbral P-CAP con placeholder `$1.000`.
 - **Depreciación automática:** dominio + servicio idempotente (`postDepreciation`) + endpoint catch-up `POST /api/finanzas/depreciacion` + **Vercel Cron** (`vercel.json`) con `CRON_SECRET`.
-- **Tests:** 422 unit tests verdes. `typecheck`, `lint` y `build` pasan.
+- **Tests:** 427 unit tests verdes. `typecheck`, `lint` y `build` pasan.
 
 ## ⚠️ Migraciones pendientes de aplicar en Supabase
 
@@ -48,7 +48,7 @@
 
 **Rápidos (UX, del audit):**
 1. ~~Reversibilidad F1 — Transferencias, Ingresos, Comisiones (spec sprint 42).~~ ✅ Hecho.
-2. Reversibilidad F2 — Fondos (inyección/retiro → reintegro) e Inversión (pago).
+2. ~~Reversibilidad F2 — Fondos (inyección/retiro → reintegro) e Inversión (pago).~~ ✅ Hecho. *Nota: la reversión de pago de inversión capitalizada no revierte la depreciación ya posteada (shortcut documentado: el cron agrega por período sin etiqueta por activo).*
 3. ~~Confirmación de submits de dinero.~~ ✅ Hecho (two-step confirm en Transferencias, Ingresos, Comisiones, Pagos, Fondos).
 4. ~~Traducir jerga ("Devengar" → "Registrar comisión", "Ajuste/Explicada" → "Ajustar saldo/Sin ajuste").~~ ✅ Hecho.
 5. ~~Carga batch de comisiones del día.~~ ✅ Hecho (un input por barbero, un solo envío).

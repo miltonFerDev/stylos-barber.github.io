@@ -182,6 +182,9 @@ function createService(options: { authorize?: Authorizer } = {}) {
     async findByAccountIds(accountIds: string[]) {
       return accountIds.flatMap((id) => movementsByAccount[id] ?? []);
     },
+    async findBySourceDocument() {
+      return [];
+    },
     async save(movement: AccountMovement) {
       return movement;
     },
