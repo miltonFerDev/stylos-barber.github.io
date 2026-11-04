@@ -1,6 +1,6 @@
 import type { AuditRecorder } from '../domain/audit';
 import type { AccountMovementRepository } from '../domain/account-movements';
-import type { CapexConfig } from '../domain/depreciation';
+import { accumulatedDepreciation, type CapexConfig } from '../domain/depreciation';
 import { domainError } from '../domain/errors';
 import { scenarioConfidence, type ForecastScenario } from '../domain/forecast';
 import {
@@ -450,10 +450,36 @@ export class InvestmentsService {
       });
     }
 
-    // shortcut: no revierte la depreciación ya posteada de este activo. El cron
-    // agrega todas las depreciaciones en un asiento por período sin etiqueta por
-    // activo; revertirla por activo requiere rediseñar ese asiento. Al volver a
-    // APROBADA, findAllCapitalized ya no lo toma (deja de depreciar hacia adelante).
+    // Reversión de la depreciación acumulada del activo (si capitalizó): un asiento
+    // corrector 1.3.9 Db / 5.9 Hr por el total acumulado, en vez de revertir asiento
+    // por asiento (el cron agrega la depreciación por período, sin etiqueta por activo).
+    if (investment.capitalized && investment.paidAt) {
+      const accumulated = accumulatedDepreciation(
+        investment.paidAt,
+        investment.amount,
+        investment.usefulLifeMonths ?? this.dependencies.capex.usefulLifeMonths,
+        this.dependencies.capex.residual,
+        ctx.now
+      );
+      if (toMinor(accumulated) > 0n) {
+        const zero: Money = { amount: '0.00', currency: accumulated.currency };
+        const depCtx: CommandContext = { ...ctx, idempotencyKey: `${ctx.idempotencyKey}:depreciation` };
+        const depReversal = await this.dependencies.journal.postEntry(depCtx, {
+          periodId: command.periodId,
+          entryDate: command.reversalDate,
+          sourceDocumentType: 'investment_depreciation_reversal',
+          sourceDocumentId: investment.id,
+          description: `Reversión de depreciación: ${investment.concept}`,
+          lines: [
+            { ledgerAccountId: this.dependencies.capex.accumulatedDepreciationLedgerAccountId, debit: accumulated, credit: zero },
+            { ledgerAccountId: this.dependencies.capex.depreciationExpenseLedgerAccountId, debit: zero, credit: accumulated },
+          ] as JournalLineDraft[],
+          createdBy: ctx.actorUserId,
+        });
+        if (!depReversal.ok) return depReversal;
+      }
+    }
+
     const reverted: Investment = {
       ...investment,
       status: 'APROBADA',

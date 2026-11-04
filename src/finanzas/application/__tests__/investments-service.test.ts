@@ -429,6 +429,37 @@ describe('InvestmentsService.reverseInvestmentPayment', () => {
     expect(auditEvents.some((e) => e.action === 'INVESTMENT_PAYMENT_REVERSED')).toBe(true);
   });
 
+  it('revierte la depreciación acumulada de un activo capitalizado', async () => {
+    const { service, savedEntries } = createService();
+    const id = await createApprovedWithAmount(service, '2000.00');
+
+    // Paga en el mes anterior: acumula 1 mes de depreciación al revertir.
+    const paid = await service.registerInvestmentPayment({ ...ctx, idempotencyKey: 'pay-1' }, {
+      investmentId: id,
+      accountId: 'acc-1',
+      effectiveDate: '2026-09-01',
+      periodId: 'period-1',
+    });
+    expect(paid.ok).toBe(true);
+    if (!paid.ok) return;
+
+    const reversalCtx: CommandContext = { actorUserId: userId, idempotencyKey: 'rev-1', now: '2026-10-14T12:00:00.000Z' };
+    const result = await service.reverseInvestmentPayment(reversalCtx, {
+      investmentId: id,
+      reason: 'Pago equivocado',
+      reversalDate: '2026-10-14',
+      periodId: 'period-1',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const depEntry = savedEntries.find((e) => e.sourceDocumentType === 'investment_depreciation_reversal');
+    expect(depEntry).toBeTruthy();
+    expect(depEntry!.lines[0].ledgerAccountId).toBe('1.3.9');
+    expect(depEntry!.lines[0].debit.amount).toBe('33.33');
+    expect(depEntry!.lines[1].ledgerAccountId).toBe('5.9');
+  });
+
   it('rechaza revertir una inversion no pagada', async () => {
     const { service } = createService();
     const id = await createApprovedWithAmount(service, '2000.00'); // queda APROBADA, no pagada

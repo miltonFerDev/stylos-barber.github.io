@@ -96,7 +96,11 @@ export class CommissionsService {
     const authorized = await this.dependencies.authorize(ctx, 'REGISTER_COMMISSION');
     if (!authorized.ok) return authorized;
 
-    const previous = await this.dependencies.commissions.findRecordByIdempotencyKey(ctx.idempotencyKey);
+    // Un devengo por barbero por día: key determinística para que el batch (o un
+    // retry) no duplique. El UNIQUE de idempotency_key refuerza la invariante.
+    const idempotencyKey = `commission:${command.effectiveDate}:${command.barberId}`;
+
+    const previous = await this.dependencies.commissions.findRecordByIdempotencyKey(idempotencyKey);
     if (previous) {
       return { ok: true, value: previous };
     }
@@ -170,7 +174,7 @@ export class CommissionsService {
       amount: command.amount,
       periodId: command.periodId,
       status: 'CONFIRMADO',
-      idempotencyKey: ctx.idempotencyKey,
+      idempotencyKey,
       createdBy: ctx.actorUserId,
       createdAt: ctx.now,
     };

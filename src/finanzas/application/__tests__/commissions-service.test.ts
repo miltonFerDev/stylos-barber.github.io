@@ -252,6 +252,25 @@ describe('CommissionsService.registerCommissionDevengo', () => {
     expect(auditEvents.some((e) => e.action === 'COMMISSION_ACCRUED')).toBe(true);
   });
 
+  it('es idempotente por barbero y día (el batch no duplica)', async () => {
+    const { service, savedRecords } = createService();
+
+    const command = {
+      barberId: 'b1',
+      amount: { amount: '500.00', currency: 'ARS' as const },
+      effectiveDate: '2026-10-13',
+      periodId: 'period-1',
+    };
+
+    const first = await service.registerCommissionDevengo(ctxFor('dev-1'), command);
+    const second = await service.registerCommissionDevengo(ctxFor('dev-2'), command);
+
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(true);
+    if (first.ok && second.ok) expect(second.value.id).toBe(first.value.id);
+    expect(savedRecords).toHaveLength(1);
+  });
+
   it('rechaza sin permiso', async () => {
     const denied: Authorizer = async () => ({
       ok: false,
