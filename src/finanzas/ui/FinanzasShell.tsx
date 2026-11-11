@@ -3,6 +3,7 @@ import { finanzasSupabase } from '../presentation/client';
 import { FinanzasNav, type FinanzasView } from './FinanzasNav';
 import { Login } from './Login';
 import { TableroDireccion } from './TableroDireccion';
+import { ReportarProblema } from './ReportarProblema';
 
 const AgendaTesorería = lazy(() =>
   import('./AgendaTesorería').then((m) => ({ default: m.AgendaTesorería }))
@@ -88,6 +89,7 @@ export function FinanzasShell() {
           )}
         </Suspense>
       </main>
+      <ReportarProblema view={view} />
     </div>
   );
 }

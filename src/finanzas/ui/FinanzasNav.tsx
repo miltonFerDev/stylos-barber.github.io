@@ -14,7 +14,7 @@ export type FinanzasView =
   | 'ingresos'
   | 'comisiones';
 
-const ITEMS: { view: FinanzasView; label: string }[] = [
+export const ITEMS: { view: FinanzasView; label: string }[] = [
   { view: 'tablero', label: 'Tablero' },
   { view: 'agenda', label: 'Agenda' },
   { view: 'nueva', label: 'Nueva obligación' },
