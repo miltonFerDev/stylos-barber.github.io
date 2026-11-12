@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { getFinanzasAccessToken } from '../presentation/client';
+import { Combobox, type ComboboxOption } from './Combobox';
 
-type Option = { id: string; label: string };
+type Option = ComboboxOption;
 
 type MaestrosPayload = {
   persons: Option[];
@@ -63,7 +64,11 @@ export function AltaObligacion() {
       const data = await res.json();
       if (!cancelled) {
         setMaestros({
-          persons: (data.persons ?? []).map((m: any) => ({ id: m.id, label: labelOf(m) })),
+          persons: (data.persons ?? []).map((m: any) => ({
+            id: m.id,
+            label: labelOf(m),
+            group: m.kind === 'EMPRESA' ? 'Proveedores' : 'Personas',
+          })),
           categories: (data.categories ?? []).map((m: any) => ({ id: m.id, label: labelOf(m) })),
           resultLines: (data.resultLines ?? []).map((m: any) => ({ id: m.id, label: labelOf(m) })),
           accounts: (data.accounts ?? []).map((m: any) => ({ id: m.id, label: labelOf(m) })),
@@ -198,70 +203,22 @@ export function AltaObligacion() {
 
         {field(
           'Persona / proveedor',
-          <select
-            className={inputClass}
-            value={personId}
-            onChange={(e) => setPersonId(e.target.value)}
-            required
-          >
-            <option value="">Elegí…</option>
-            {maestros.persons.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-          </select>
+          <Combobox value={personId} onChange={setPersonId} options={maestros.persons} required />
         )}
 
         {field(
           'Categoría',
-          <select
-            className={inputClass}
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            required
-          >
-            <option value="">Elegí…</option>
-            {maestros.categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+          <Combobox value={categoryId} onChange={setCategoryId} options={maestros.categories} required />
         )}
 
         {field(
           'Línea de resultado',
-          <select
-            className={inputClass}
-            value={resultLineId}
-            onChange={(e) => setResultLineId(e.target.value)}
-            required
-          >
-            <option value="">Elegí…</option>
-            {maestros.resultLines.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.label}
-              </option>
-            ))}
-          </select>
+          <Combobox value={resultLineId} onChange={setResultLineId} options={maestros.resultLines} required />
         )}
 
         {field(
           'Cuenta prevista',
-          <select
-            className={inputClass}
-            value={plannedAccountId}
-            onChange={(e) => setPlannedAccountId(e.target.value)}
-            required
-          >
-            <option value="">Elegí…</option>
-            {maestros.accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.label}
-              </option>
-            ))}
-          </select>
+          <Combobox value={plannedAccountId} onChange={setPlannedAccountId} options={maestros.accounts} required />
         )}
 
         <label className="flex items-center gap-2 text-base text-finText">

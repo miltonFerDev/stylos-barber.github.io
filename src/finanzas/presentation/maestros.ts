@@ -24,6 +24,13 @@ export async function handleMaestros(container: FinanzasContainer, token: string
   ]);
 
   const periods = allPeriods.filter(isPeriodOpen);
+  const active = <T extends { validTo: string | null }>(items: T[]) => items.filter((m) => m.validTo === null);
 
-  return json(200, { persons, categories, resultLines, accounts, periods });
+  return json(200, {
+    persons: active(persons),
+    categories: active(categories),
+    resultLines: active(resultLines),
+    accounts: active(accounts),
+    periods,
+  });
 }
