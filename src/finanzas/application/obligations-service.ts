@@ -19,6 +19,7 @@ export type CreateObligationCommand = {
   concept: string;
   personId: string;
   categoryId: string;
+  subcategoryId?: string;
   resultLineId: string;
   plannedAccountId: string;
   amount: Money;
@@ -113,6 +114,9 @@ export class ObligationsService {
       { entityType: 'RESULT_LINE', id: command.resultLineId, label: 'linea de resultado' },
       { entityType: 'ACCOUNT', id: command.plannedAccountId, label: 'cuenta prevista' },
     ];
+    if (command.subcategoryId && command.subcategoryId.trim().length > 0) {
+      references.push({ entityType: 'SUBCATEGORY', id: command.subcategoryId, label: 'subcategoria' });
+    }
 
     for (const ref of references) {
       const master = await this.dependencies.masters.findById(ref.entityType, ref.id);
@@ -131,6 +135,19 @@ export class ObligationsService {
           error: domainError('MASTER_NOT_CURRENT', `El maestro ${ref.label} no esta vigente a la fecha.`, true, {
             entityType: ref.entityType,
             id: ref.id,
+          }),
+        };
+      }
+    }
+
+    if (command.subcategoryId && command.subcategoryId.trim().length > 0) {
+      const sub = await this.dependencies.masters.findById('SUBCATEGORY', command.subcategoryId);
+      if (sub && sub.entityType === 'SUBCATEGORY' && sub.categoryId !== command.categoryId) {
+        return {
+          ok: false,
+          error: domainError('VALIDATION_FAILED', 'La subcategoría no pertenece a la categoría elegida.', true, {
+            subcategoryId: command.subcategoryId,
+            categoryId: command.categoryId,
           }),
         };
       }
@@ -160,6 +177,7 @@ export class ObligationsService {
       concept: command.concept.trim(),
       personId: command.personId,
       categoryId: command.categoryId,
+      subcategoryId: command.subcategoryId?.trim() || null,
       resultLineId: command.resultLineId,
       plannedAccountId: command.plannedAccountId,
       estimatedAmount: command.amount,

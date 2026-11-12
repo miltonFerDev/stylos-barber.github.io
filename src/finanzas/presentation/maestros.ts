@@ -15,9 +15,10 @@ export async function handleMaestros(container: FinanzasContainer, token: string
   const authorized = await container.authorize(ctx, 'VIEW_BALANCES');
   if (!authorized.ok) return json(403, { error: authorized.error.code });
 
-  const [persons, categories, resultLines, accounts, allPeriods] = await Promise.all([
+  const [persons, categories, subcategories, resultLines, accounts, allPeriods] = await Promise.all([
     container.masters.findAll('PERSON'),
     container.masters.findAll('CATEGORY'),
+    container.masters.findAll('SUBCATEGORY'),
     container.masters.findAll('RESULT_LINE'),
     container.masters.findAll('ACCOUNT'),
     container.periods.findAll(),
@@ -29,6 +30,7 @@ export async function handleMaestros(container: FinanzasContainer, token: string
   return json(200, {
     persons: active(persons),
     categories: active(categories),
+    subcategories: active(subcategories),
     resultLines: active(resultLines),
     accounts: active(accounts),
     periods,

@@ -30,6 +30,7 @@ export async function handleCreateObligacion(
     concept: String(b.concept ?? ''),
     personId: String(b.personId ?? ''),
     categoryId: String(b.categoryId ?? ''),
+    subcategoryId: b.subcategoryId ? String(b.subcategoryId) : undefined,
     resultLineId: String(b.resultLineId ?? ''),
     plannedAccountId: String(b.plannedAccountId ?? ''),
     amount: { amount: String(b.amount ?? ''), currency: b.currency === 'USD' ? 'USD' : 'ARS' },

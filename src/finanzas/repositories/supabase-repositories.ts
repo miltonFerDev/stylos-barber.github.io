@@ -397,6 +397,7 @@ export class SupabaseObligationRepository implements ObligationRepository {
       concept: obligation.concept,
       person_id: obligation.personId,
       category_id: obligation.categoryId,
+      subcategory_id: obligation.subcategoryId,
       result_line_id: obligation.resultLineId,
       planned_account_id: obligation.plannedAccountId,
       estimated_amount: moneyToDb(obligation.estimatedAmount),

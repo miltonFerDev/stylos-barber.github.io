@@ -17,8 +17,8 @@ function fakeSupabase(userId: string | null): SupabaseClient {
 }
 
 const persons = [
-  { id: 'b1', entityType: 'PERSON', displayName: 'Ezequiel', kind: 'PERSONA', taxId: null },
-  { id: 'prov1', entityType: 'PERSON', displayName: 'Proveedor', kind: 'EMPRESA', taxId: null },
+  { id: 'b1', entityType: 'PERSON', displayName: 'Ezequiel', kind: 'PERSONA', taxId: null, validTo: null },
+  { id: 'prov1', entityType: 'PERSON', displayName: 'Proveedor', kind: 'EMPRESA', taxId: null, validTo: null },
 ];
 const accounts = [
   { id: 'acc-1', entityType: 'ACCOUNT', name: 'Efectivo', ownership: 'PROPIA', isAvailable: true },

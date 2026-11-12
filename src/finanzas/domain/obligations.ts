@@ -18,6 +18,7 @@ export type Obligation = {
   concept: string;
   personId: string;
   categoryId: string;
+  subcategoryId: string | null;
   resultLineId: string;
   plannedAccountId: string;
   estimatedAmount: Money;

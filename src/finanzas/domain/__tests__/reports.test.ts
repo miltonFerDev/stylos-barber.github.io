@@ -59,6 +59,7 @@ function makeObligation(overrides: Partial<Obligation>): Obligation {
     concept: 'Proveedor',
     personId: 'person-1',
     categoryId: 'cat-1',
+    subcategoryId: null,
     resultLineId: 'rl-1',
     plannedAccountId: 'acc-1',
     estimatedAmount: { amount: '100.00', currency: 'ARS' },

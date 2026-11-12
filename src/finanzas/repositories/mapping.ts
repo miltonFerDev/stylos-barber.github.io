@@ -234,6 +234,7 @@ export function mapObligation(row: DbRow): Obligation {
     concept: String(row.concept),
     personId: String(row.person_id),
     categoryId: String(row.category_id),
+    subcategoryId: nullOrString(row.subcategory_id),
     resultLineId: String(row.result_line_id),
     plannedAccountId: String(row.planned_account_id),
     estimatedAmount: dbToMoney(row.estimated_amount, currency),

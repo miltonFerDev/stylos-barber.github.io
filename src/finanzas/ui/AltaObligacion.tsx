@@ -4,9 +4,12 @@ import { Combobox, type ComboboxOption } from './Combobox';
 
 type Option = ComboboxOption;
 
+type SubcategoryOption = { id: string; label: string; categoryId: string };
+
 type MaestrosPayload = {
   persons: Option[];
   categories: Option[];
+  subcategories: SubcategoryOption[];
   resultLines: Option[];
   accounts: Option[];
   periods: { id: string; code: string }[];
@@ -45,6 +48,7 @@ export function AltaObligacion() {
   const [isEstimated, setIsEstimated] = useState(false);
   const [personId, setPersonId] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [subcategoryId, setSubcategoryId] = useState('');
   const [resultLineId, setResultLineId] = useState('');
   const [plannedAccountId, setPlannedAccountId] = useState('');
 
@@ -70,6 +74,7 @@ export function AltaObligacion() {
             group: m.kind === 'EMPRESA' ? 'Proveedores' : 'Personas',
           })),
           categories: (data.categories ?? []).map((m: any) => ({ id: m.id, label: labelOf(m) })),
+          subcategories: (data.subcategories ?? []).map((m: any) => ({ id: m.id, label: labelOf(m), categoryId: m.categoryId })),
           resultLines: (data.resultLines ?? []).map((m: any) => ({ id: m.id, label: labelOf(m) })),
           accounts: (data.accounts ?? []).map((m: any) => ({ id: m.id, label: labelOf(m) })),
           periods: data.periods ?? [],
@@ -104,6 +109,7 @@ export function AltaObligacion() {
         isEstimated,
         personId,
         categoryId,
+        subcategoryId: subcategoryId || undefined,
         resultLineId,
         plannedAccountId,
         periodId: maestros?.periods[0]?.id,
@@ -208,7 +214,27 @@ export function AltaObligacion() {
 
         {field(
           'Categoría',
-          <Combobox value={categoryId} onChange={setCategoryId} options={maestros.categories} required />
+          <Combobox
+            value={categoryId}
+            onChange={(id) => {
+              setCategoryId(id);
+              setSubcategoryId('');
+            }}
+            options={maestros.categories}
+            required
+          />
+        )}
+
+        {field(
+          'Subcategoría',
+          <Combobox
+            value={subcategoryId}
+            onChange={setSubcategoryId}
+            options={maestros.subcategories
+              .filter((s) => s.categoryId === categoryId)
+              .map((s) => ({ id: s.id, label: s.label }))}
+            placeholder={categoryId ? 'Elegí subcategoría (opcional)' : 'Primero elegí la categoría'}
+          />
         )}
 
         {field(
