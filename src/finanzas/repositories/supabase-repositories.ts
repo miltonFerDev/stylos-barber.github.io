@@ -90,7 +90,7 @@ function mapMasterRow(table: string, row: DbRow) {
 function masterToRow(master: NonNullable<ReturnType<typeof mapMasterRow>>): { table: string; row: DbRow } {
   switch (master.entityType) {
     case 'PERSON':
-      return { table: 'persons', row: { id: master.id, display_name: master.displayName, kind: master.kind, tax_id: master.taxId, valid_from: master.validFrom, valid_to: master.validTo, created_by: master.createdBy } };
+      return { table: 'persons', row: { id: master.id, display_name: master.displayName, kind: master.kind, role: master.role, tax_id: master.taxId, valid_from: master.validFrom, valid_to: master.validTo, created_by: master.createdBy } };
     case 'CATEGORY':
       return { table: 'categories', row: { id: master.id, code: master.code, name: master.name, nature: master.nature, valid_from: master.validFrom, valid_to: master.validTo, created_by: master.createdBy } };
     case 'SUBCATEGORY':

@@ -1,6 +1,7 @@
 import type { UserId } from './types';
 
 export type PersonKind = 'PERSONA' | 'EMPRESA';
+export type PersonRole = 'BARBERO' | 'RECEPCIONISTA' | 'SOCIO';
 export type CategoryNature = 'OPERATIVA' | 'EXTRAORDINARIA' | 'FINANCIERA';
 export type ResultLineNature = 'INGRESO' | 'COSTO' | 'GASTO' | 'NO_RESULTADO';
 export type LedgerAccountNature = 'ACTIVO' | 'PASIVO' | 'PATRIMONIO' | 'INGRESO' | 'GASTO' | 'PUENTE';

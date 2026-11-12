@@ -30,6 +30,7 @@ const masters: Master[] = [
     entityType: 'PERSON',
     displayName: 'Proveedor SA',
     kind: 'EMPRESA',
+    role: null,
     taxId: null,
     validFrom: '2026-01-01',
     validTo: null,

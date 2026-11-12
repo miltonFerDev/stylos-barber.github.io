@@ -1,11 +1,12 @@
 import { domainError } from './errors';
-import type { MasterBase, PersonKind } from './masters';
+import type { MasterBase, PersonKind, PersonRole } from './masters';
 import type { Result } from './types';
 
 export type Person = MasterBase & {
   entityType: 'PERSON';
   displayName: string;
   kind: PersonKind;
+  role: PersonRole | null;
   taxId: string | null;
 };
 

@@ -210,6 +210,7 @@ function buildMaster(ctx: CommandContext, command: CreateMasterCommand, id: stri
         entityType: 'PERSON',
         displayName: command.displayName.trim(),
         kind: command.kind,
+        role: null,
         taxId: command.taxId ?? null,
       };
     case 'CATEGORY':

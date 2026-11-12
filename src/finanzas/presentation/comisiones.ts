@@ -34,7 +34,7 @@ export async function handleComisiones(container: FinanzasContainer, token: stri
 
   const barbers = persons
     .filter((m) => m.entityType === 'PERSON')
-    .filter((p) => p.kind === 'PERSONA')
+    .filter((p) => p.role === 'BARBERO')
     .filter((p) => p.validTo === null);
 
   const propias = accounts

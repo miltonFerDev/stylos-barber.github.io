@@ -49,6 +49,7 @@ export function mapPerson(row: DbRow): Person {
     entityType: 'PERSON',
     displayName: String(row.display_name),
     kind: row.kind as Person['kind'],
+    role: row.role == null ? null : (row.role as Person['role']),
     taxId: nullOrString(row.tax_id),
     validFrom: String(row.valid_from),
     validTo: nullOrString(row.valid_to),
