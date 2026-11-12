@@ -19,8 +19,7 @@ export type CreateObligationCommand = {
   concept: string;
   personId: string;
   categoryId: string;
-  subcategoryId?: string;
-  resultLineId: string;
+  subcategoryId: string;
   plannedAccountId: string;
   amount: Money;
   isEstimated: boolean;
@@ -81,11 +80,11 @@ export class ObligationsService {
     if (
       command.personId.trim().length === 0 ||
       command.categoryId.trim().length === 0 ||
-      command.resultLineId.trim().length === 0 ||
+      command.subcategoryId.trim().length === 0 ||
       command.plannedAccountId.trim().length === 0 ||
       command.periodId.trim().length === 0
     ) {
-      return missingField('personId/categoryId/resultLineId/plannedAccountId/periodId');
+      return missingField('personId/categoryId/subcategoryId/plannedAccountId/periodId');
     }
 
     const amount = validatePositiveAmount(command.amount);
@@ -111,12 +110,9 @@ export class ObligationsService {
     const references: Array<{ entityType: MasterEntityType; id: string; label: string }> = [
       { entityType: 'PERSON', id: command.personId, label: 'persona' },
       { entityType: 'CATEGORY', id: command.categoryId, label: 'categoria' },
-      { entityType: 'RESULT_LINE', id: command.resultLineId, label: 'linea de resultado' },
+      { entityType: 'SUBCATEGORY', id: command.subcategoryId, label: 'subcategoria' },
       { entityType: 'ACCOUNT', id: command.plannedAccountId, label: 'cuenta prevista' },
     ];
-    if (command.subcategoryId && command.subcategoryId.trim().length > 0) {
-      references.push({ entityType: 'SUBCATEGORY', id: command.subcategoryId, label: 'subcategoria' });
-    }
 
     for (const ref of references) {
       const master = await this.dependencies.masters.findById(ref.entityType, ref.id);
@@ -140,17 +136,24 @@ export class ObligationsService {
       }
     }
 
-    if (command.subcategoryId && command.subcategoryId.trim().length > 0) {
-      const sub = await this.dependencies.masters.findById('SUBCATEGORY', command.subcategoryId);
-      if (sub && sub.entityType === 'SUBCATEGORY' && sub.categoryId !== command.categoryId) {
-        return {
-          ok: false,
-          error: domainError('VALIDATION_FAILED', 'La subcategoría no pertenece a la categoría elegida.', true, {
-            subcategoryId: command.subcategoryId,
-            categoryId: command.categoryId,
-          }),
-        };
-      }
+    const sub = await this.dependencies.masters.findById('SUBCATEGORY', command.subcategoryId);
+    if (sub && sub.entityType === 'SUBCATEGORY' && sub.categoryId !== command.categoryId) {
+      return {
+        ok: false,
+        error: domainError('VALIDATION_FAILED', 'La subcategoría no pertenece a la categoría elegida.', true, {
+          subcategoryId: command.subcategoryId,
+          categoryId: command.categoryId,
+        }),
+      };
+    }
+    const resultLineId = sub && sub.entityType === 'SUBCATEGORY' ? sub.resultLineId : null;
+    if (resultLineId == null) {
+      return {
+        ok: false,
+        error: domainError('VALIDATION_FAILED', 'La subcategoría no tiene línea de resultado asignada.', true, {
+          subcategoryId: command.subcategoryId,
+        }),
+      };
     }
 
     const existing = await this.dependencies.obligations.findAll();
@@ -177,8 +180,8 @@ export class ObligationsService {
       concept: command.concept.trim(),
       personId: command.personId,
       categoryId: command.categoryId,
-      subcategoryId: command.subcategoryId?.trim() || null,
-      resultLineId: command.resultLineId,
+      subcategoryId: command.subcategoryId,
+      resultLineId: resultLineId,
       plannedAccountId: command.plannedAccountId,
       estimatedAmount: command.amount,
       estimatedAmountVersion: 1,

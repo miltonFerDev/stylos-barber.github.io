@@ -31,7 +31,7 @@ const validBody = {
   concept: 'Alquiler',
   personId: 'p1',
   categoryId: 'c1',
-  resultLineId: 'r1',
+  subcategoryId: 's1',
   plannedAccountId: 'a1',
   amount: '50000.00',
   currency: 'ARS',

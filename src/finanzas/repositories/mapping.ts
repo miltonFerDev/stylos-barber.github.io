@@ -78,6 +78,7 @@ export function mapSubcategory(row: DbRow): Subcategory {
     code: String(row.code),
     name: String(row.name),
     categoryId: String(row.category_id),
+    resultLineId: nullOrString(row.result_line_id),
     validFrom: String(row.valid_from),
     validTo: nullOrString(row.valid_to),
     createdAt: String(row.created_at),

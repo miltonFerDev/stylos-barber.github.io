@@ -227,6 +227,7 @@ function buildMaster(ctx: CommandContext, command: CreateMasterCommand, id: stri
         code: command.code.trim(),
         name: command.name.trim(),
         categoryId: command.categoryId,
+        resultLineId: null,
       };
     case 'RESULT_LINE':
       return {

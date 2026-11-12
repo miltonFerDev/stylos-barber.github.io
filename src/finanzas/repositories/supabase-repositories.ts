@@ -94,7 +94,7 @@ function masterToRow(master: NonNullable<ReturnType<typeof mapMasterRow>>): { ta
     case 'CATEGORY':
       return { table: 'categories', row: { id: master.id, code: master.code, name: master.name, nature: master.nature, valid_from: master.validFrom, valid_to: master.validTo, created_by: master.createdBy } };
     case 'SUBCATEGORY':
-      return { table: 'subcategories', row: { id: master.id, category_id: master.categoryId, code: master.code, name: master.name, valid_from: master.validFrom, valid_to: master.validTo, created_by: master.createdBy } };
+      return { table: 'subcategories', row: { id: master.id, category_id: master.categoryId, code: master.code, name: master.name, result_line_id: master.resultLineId, valid_from: master.validFrom, valid_to: master.validTo, created_by: master.createdBy } };
     case 'RESULT_LINE':
       return { table: 'result_lines', row: { id: master.id, code: master.code, name: master.name, nature: master.nature, order: master.order, ledger_account_id: master.ledgerAccountId, valid_from: master.validFrom, valid_to: master.validTo, created_by: master.createdBy } };
     case 'LEDGER_ACCOUNT':

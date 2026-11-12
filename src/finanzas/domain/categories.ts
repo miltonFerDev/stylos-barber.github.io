@@ -14,6 +14,7 @@ export type Subcategory = MasterBase & {
   code: string;
   name: string;
   categoryId: string;
+  resultLineId: string | null;
 };
 
 export type ResultLine = MasterBase & {
