@@ -1,0 +1,14 @@
+{
+  "name": "Stylo's Finanzas",
+  "short_name": "Finanzas",
+  "description": "Tablero financiero interno de Stylo's Barber.",
+  "start_url": "/finanzas",
+  "scope": "/finanzas",
+  "display": "standalone",
+  "theme_color": "#0F766E",
+  "background_color": "#F5F7FA",
+  "icons": [
+    { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

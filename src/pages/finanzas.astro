@@ -9,9 +9,21 @@ import '../styles/global.css';
     <link rel="icon" type="image/png" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, follow" />
-    <meta name="theme-color" content="#0f0f0f" />
+    <meta name="theme-color" content="#F5F7FA" />
+    <link rel="manifest" href="/finanzas/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Finanzas" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Finanzas · Stylo's Barber</title>
     <meta name="description" content="Tablero financiero interno de Stylo's Barber." />
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/finanzas/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </head>
   <body class="min-h-screen bg-finBg font-gothic text-finText">
     <FinanzasShell client:only="react" />
