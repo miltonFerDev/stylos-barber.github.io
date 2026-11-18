@@ -1,15 +1,11 @@
 ---
-import { getCollection } from 'astro:content';
+import AyudaNav from './AyudaNav.astro';
 
 interface Props {
   title: string;
   activeSlug?: string;
 }
 const { title, activeSlug } = Astro.props;
-
-const all = await getCollection('ayuda');
-const conceptos = all.filter((e) => e.data.section === 'conceptos').sort((a, b) => a.data.order - b.data.order);
-const recetas = all.filter((e) => e.data.section === 'recetas').sort((a, b) => a.data.order - b.data.order);
 ---
 
 <html lang="es">
@@ -30,45 +26,34 @@ const recetas = all.filter((e) => e.data.section === 'recetas').sort((a, b) => a
     </div>
 
     <div id="ayuda-contenido" hidden>
+      <!-- Header mobile (solo móvil) -->
+      <div class="sticky top-0 z-10 border-b border-finBorder bg-finSurface md:hidden">
+        <div class="flex items-center justify-between px-2 py-1">
+          <a
+            href="/finanzas"
+            class="flex min-h-12 items-center rounded-lg px-3 text-base font-semibold text-finMuted hover:text-finText"
+          >
+            ← Finanzas
+          </a>
+          <details class="relative">
+            <summary
+              class="flex min-h-12 cursor-pointer list-none items-center rounded-lg px-3 text-base font-semibold text-finAccent"
+            >
+              Índice
+            </summary>
+            <div
+              class="absolute right-0 top-full z-20 mt-1 max-h-[70vh] w-72 overflow-y-auto rounded-xl border border-finBorder bg-finSurface p-3 shadow-lg"
+            >
+              <AyudaNav activeSlug={activeSlug} />
+            </div>
+          </details>
+        </div>
+      </div>
+
       <div class="mx-auto flex max-w-5xl gap-8 px-4 py-8">
         <aside class="hidden w-64 shrink-0 md:block">
           <a href="/finanzas" class="mb-4 inline-block text-sm font-semibold text-finMuted hover:text-finText">← Volver a Finanzas</a>
-          <nav class="space-y-6">
-            <div>
-              <h2 class="mb-2 text-xs font-bold uppercase tracking-wide text-finMuted">Conceptos</h2>
-              <ul class="space-y-1">
-                {
-                  conceptos.map((e) => (
-                    <li>
-                      <a
-                        href={`/finanzas/ayuda/${e.slug}`}
-                        class={`block rounded-lg px-3 py-2 text-base ${e.slug === activeSlug ? 'bg-finAccent/10 font-semibold text-finAccent' : 'text-finMuted hover:text-finText'}`}
-                      >
-                        {e.data.title}
-                      </a>
-                    </li>
-                  ))
-                }
-              </ul>
-            </div>
-            <div>
-              <h2 class="mb-2 text-xs font-bold uppercase tracking-wide text-finMuted">Recetas</h2>
-              <ul class="space-y-1">
-                {
-                  recetas.map((e) => (
-                    <li>
-                      <a
-                        href={`/finanzas/ayuda/${e.slug}`}
-                        class={`block rounded-lg px-3 py-2 text-base ${e.slug === activeSlug ? 'bg-finAccent/10 font-semibold text-finAccent' : 'text-finMuted hover:text-finText'}`}
-                      >
-                        {e.data.title}
-                      </a>
-                    </li>
-                  ))
-                }
-              </ul>
-            </div>
-          </nav>
+          <AyudaNav activeSlug={activeSlug} />
         </aside>
         <main class="min-w-0 flex-1">
           <slot />
@@ -84,6 +69,8 @@ const recetas = all.filter((e) => e.data.section === 'recetas').sort((a, b) => a
     </script>
 
     <style is:global>
+      summary { list-style: none; }
+      summary::-webkit-details-marker { display: none; }
       .ayuda-prose h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
       .ayuda-prose h2 { font-size: 1.25rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
       .ayuda-prose h3 { font-size: 1.05rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
@@ -93,7 +80,7 @@ const recetas = all.filter((e) => e.data.section === 'recetas').sort((a, b) => a
       .ayuda-prose code { background: #e2e8f0; padding: 0.1rem 0.35rem; border-radius: 0.25rem; font-size: 0.9em; }
       .ayuda-prose strong { font-weight: 600; }
       .ayuda-prose blockquote { border-left: 3px solid #f59e0b; padding-left: 1rem; margin: 1rem 0; color: #475569; }
-      .ayuda-prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95em; }
+      .ayuda-prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95em; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .ayuda-prose th, .ayuda-prose td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; }
       .ayuda-prose th { background: #f1f5f9; }
     </style>

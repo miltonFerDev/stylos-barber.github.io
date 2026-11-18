@@ -9,6 +9,15 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+
+const all = await getCollection('ayuda');
+const ordered = [
+  ...all.filter((e) => e.data.section === 'conceptos').sort((a, b) => a.data.order - b.data.order),
+  ...all.filter((e) => e.data.section === 'recetas').sort((a, b) => a.data.order - b.data.order),
+];
+const idx = ordered.findIndex((e) => e.slug === entry.slug);
+const prev = idx > 0 ? ordered[idx - 1] : null;
+const next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null;
 ---
 
 <AyudaLayout title={entry.data.title} activeSlug={entry.slug}>
@@ -17,4 +26,31 @@ const { Content } = await render(entry);
     {entry.data.description && <p class="text-finMuted">{entry.data.description}</p>}
     <Content />
   </article>
+
+  <nav class="mt-10 flex items-stretch justify-between gap-3 border-t border-finBorder pt-6">
+    {
+      prev ? (
+        <a
+          href={`/finanzas/ayuda/${prev.slug}`}
+          class="flex min-h-12 flex-1 items-center rounded-lg border border-finBorder px-4 py-3 text-base font-semibold text-finMuted hover:text-finText"
+        >
+          ← {prev.data.title}
+        </a>
+      ) : (
+        <span class="flex-1" />
+      )
+    }
+    {
+      next ? (
+        <a
+          href={`/finanzas/ayuda/${next.slug}`}
+          class="flex min-h-12 flex-1 items-center justify-end rounded-lg border border-finBorder px-4 py-3 text-right text-base font-semibold text-finMuted hover:text-finText"
+        >
+          {next.data.title} →
+        </a>
+      ) : (
+        <span class="flex-1" />
+      )
+    }
+  </nav>
 </AyudaLayout>

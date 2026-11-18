@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+
+interface Props {
+  activeSlug?: string;
+}
+const { activeSlug } = Astro.props;
+
+const all = await getCollection('ayuda');
+const conceptos = all.filter((e) => e.data.section === 'conceptos').sort((a, b) => a.data.order - b.data.order);
+const recetas = all.filter((e) => e.data.section === 'recetas').sort((a, b) => a.data.order - b.data.order);
+---
+
+<nav class="space-y-6">
+  <div>
+    <h2 class="mb-2 text-xs font-bold uppercase tracking-wide text-finMuted">Conceptos</h2>
+    <ul class="space-y-1">
+      {
+        conceptos.map((e) => (
+          <li>
+            <a
+              href={`/finanzas/ayuda/${e.slug}`}
+              class={`block min-h-12 rounded-lg px-3 py-2 text-base ${e.slug === activeSlug ? 'bg-finAccent/10 font-semibold text-finAccent' : 'text-finMuted hover:bg-finBorder/60 hover:text-finText'}`}
+            >
+              {e.data.title}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <div>
+    <h2 class="mb-2 text-xs font-bold uppercase tracking-wide text-finMuted">Recetas</h2>
+    <ul class="space-y-1">
+      {
+        recetas.map((e) => (
+          <li>
+            <a
+              href={`/finanzas/ayuda/${e.slug}`}
+              class={`block min-h-12 rounded-lg px-3 py-2 text-base ${e.slug === activeSlug ? 'bg-finAccent/10 font-semibold text-finAccent' : 'text-finMuted hover:bg-finBorder/60 hover:text-finText'}`}
+            >
+              {e.data.title}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</nav>
