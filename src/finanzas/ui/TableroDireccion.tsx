@@ -47,6 +47,11 @@ export function TableroDireccion() {
 
   const { availability, obligations } = data;
 
+  const netAvailable: Money = {
+    amount: (Number(availability.totalAvailable.amount) - Number(obligations.pendingTotal.amount)).toFixed(2),
+    currency: availability.totalAvailable.currency,
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <header className="mb-6">
@@ -61,6 +66,12 @@ export function TableroDireccion() {
             {formatMoney(availability.totalAvailable)}
           </p>
           <p className="mt-1 text-base text-finMuted">Total disponible</p>
+          <p className="mt-3 border-t border-finBorder pt-3 text-2xl font-bold text-finText">
+            {formatMoney(netAvailable)}
+          </p>
+          <p className="mt-1 text-base text-finMuted">
+            Disponible neto · descontando {formatMoney(obligations.pendingTotal)} de obligaciones
+          </p>
         </div>
 
         <ul className="mt-3 space-y-2">

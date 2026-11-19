@@ -10,6 +10,7 @@ import {
   isOverdue,
   obligationAmount,
   overdueSummary,
+  pendingObligationsTotal,
   summarizeByStatus,
   type IncomeStatementTotals,
   type ObligationBucket,
@@ -60,6 +61,7 @@ export type ObligationsReport = {
   lines: ObligationLine[];
   byStatus: Partial<Record<ObligationStatus, ObligationBucket>>;
   overdue: ObligationBucket;
+  pendingTotal: Money;
   currency: Currency;
 };
 
@@ -178,6 +180,7 @@ export class ReportsService {
         lines,
         byStatus: summarizeByStatus(obligations),
         overdue: overdueSummary(obligations, ctx.now),
+        pendingTotal: minorToMoney(pendingObligationsTotal(obligations), 'ARS'),
         currency: 'ARS',
       },
     };

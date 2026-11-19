@@ -47,6 +47,13 @@ export function overdueSummary(obligations: Obligation[], at: string): Obligatio
     );
 }
 
+// Total que queda por pagar (obligaciones activas, no pagadas ni anuladas).
+export function pendingObligationsTotal(obligations: Obligation[]): bigint {
+  return obligations
+    .filter((o) => REPORTABLE_OBLIGATION_STATUSES.includes(o.status))
+    .reduce((sum, o) => sum + toMinor(obligationAmount(o)), 0n);
+}
+
 export type IncomeStatementLine = {
   resultLineId: string;
   code: string;

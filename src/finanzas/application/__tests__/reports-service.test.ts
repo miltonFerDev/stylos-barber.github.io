@@ -314,6 +314,7 @@ describe('ReportsService.obligationsReport', () => {
     expect(result.value.byStatus.PAGADA?.count).toBe(1);
     expect(result.value.overdue.count).toBe(1);
     expect(result.value.overdue.totalMinor).toBe(10000n);
+    expect(result.value.pendingTotal).toEqual({ amount: '200.00', currency: 'ARS' });
   });
 });
 

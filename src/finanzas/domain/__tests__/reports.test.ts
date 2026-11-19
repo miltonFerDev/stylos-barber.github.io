@@ -7,6 +7,7 @@ import {
   isOverdue,
   obligationAmount,
   overdueSummary,
+  pendingObligationsTotal,
   summarizeByStatus,
 } from '../reports';
 import type { UserId } from '../types';
@@ -127,6 +128,20 @@ describe('summarizeByStatus y overdueSummary', () => {
     const overdue = overdueSummary(obligations, '2026-10-13');
     expect(overdue.count).toBe(1);
     expect(overdue.totalMinor).toBe(10000n);
+  });
+});
+
+describe('pendingObligationsTotal', () => {
+  it('suma solo las obligaciones activas (no pagadas ni anuladas)', () => {
+    const obligations = [
+      makeObligation({ id: 'a', status: 'PENDIENTE', estimatedAmount: { amount: '100.00', currency: 'ARS' } }),
+      makeObligation({ id: 'b', status: 'PROGRAMADA', estimatedAmount: { amount: '50.00', currency: 'ARS' } }),
+      makeObligation({ id: 'c', status: 'VENCIDA', estimatedAmount: { amount: '25.00', currency: 'ARS' } }),
+      makeObligation({ id: 'd', status: 'PAGADA', estimatedAmount: { amount: '999.00', currency: 'ARS' } }),
+      makeObligation({ id: 'e', status: 'ANULADA', estimatedAmount: { amount: '999.00', currency: 'ARS' } }),
+    ];
+
+    expect(pendingObligationsTotal(obligations)).toBe(17500n);
   });
 });
 
