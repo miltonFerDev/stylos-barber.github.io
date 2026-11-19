@@ -81,6 +81,29 @@ describe('handleRegistrarIngreso', () => {
     expect(captured.distributions).toEqual([{ accountId: 'acc-1', amount: { amount: '100.00', currency: 'ARS' } }]);
   });
 
+  it('trata importes vacíos (servicios/productos) como cero', async () => {
+    let captured: any = null;
+    const container = fakeContainer('u1', {
+      incomes: {
+        registerDailyIncome: async (_c: unknown, cmd: unknown) => {
+          captured = cmd;
+          return { ok: true, value: { id: 'i1' } };
+        },
+      },
+    });
+    const res = await handleRegistrarIngreso(container, 'valid-token', {
+      serviceAmount: '100.00',
+      productAmount: '',
+      distributions: [{ accountId: 'acc-1', amount: '100.00' }],
+      currency: 'ARS',
+      effectiveDate: '2026-11-17',
+      periodId: 'period-1',
+    });
+    expect(res.status).toBe(201);
+    expect(captured.serviceAmount).toEqual({ amount: '100.00', currency: 'ARS' });
+    expect(captured.productAmount).toEqual({ amount: '0', currency: 'ARS' });
+  });
+
   it('mapea error del servicio a 400', async () => {
     const container = fakeContainer('u1', {
       incomes: {

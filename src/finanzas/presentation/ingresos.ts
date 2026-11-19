@@ -52,14 +52,20 @@ export async function handleRegistrarIngreso(
     ? (b.distributions as Array<{ accountId?: unknown; amount?: unknown }>)
     : [];
 
+  // Vacío = 0 (p. ej. un día sin venta de productos): el front manda "" y el dominio lo rechazaría.
+  const amountOrZero = (v: unknown): string => {
+    const s = String(v ?? '').trim();
+    return s === '' ? '0' : s;
+  };
+
   const command: RegisterDailyIncomeCommand = {
     effectiveDate: String(b.effectiveDate ?? ''),
     periodId: String(b.periodId ?? ''),
-    serviceAmount: { amount: String(b.serviceAmount ?? ''), currency },
-    productAmount: { amount: String(b.productAmount ?? ''), currency },
+    serviceAmount: { amount: amountOrZero(b.serviceAmount), currency },
+    productAmount: { amount: amountOrZero(b.productAmount), currency },
     distributions: rawDistributions.map((d) => ({
       accountId: String(d.accountId ?? ''),
-      amount: { amount: String(d.amount ?? ''), currency },
+      amount: { amount: amountOrZero(d.amount), currency },
     })),
     adjustmentNote: b.adjustmentNote ? String(b.adjustmentNote) : undefined,
   };

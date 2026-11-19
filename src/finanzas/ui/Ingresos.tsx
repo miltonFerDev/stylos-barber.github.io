@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { getFinanzasAccessToken } from '../presentation/client';
 
 type Account = { id: string; name: string };
-type Period = { id: string; code: string };
+type Period = { id: string; code: string; startsOn: string; endsOn: string };
 type IngresosPayload = { accounts: Account[]; periods: Period[] };
 
 type HistorialIncome = {
@@ -18,6 +18,11 @@ const inputClass =
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+// El período se deriva de la fecha: el período abierto que contiene esa fecha.
+function periodForDate(date: string, periods: Period[]): Period | null {
+  return periods.find((p) => p.startsOn <= date && date <= p.endsOn) ?? null;
 }
 
 function formatMoney(amount: string, currency: string): string {
@@ -77,7 +82,6 @@ export function Ingresos() {
       const data: IngresosPayload = await res.json();
       if (!cancelled) {
         setPayload(data);
-        setPeriodId(data.periods?.[0]?.id ?? '');
         setStatus('ready');
       }
     })().catch(() => {
@@ -87,6 +91,13 @@ export function Ingresos() {
       cancelled = true;
     };
   }, []);
+
+  // El período sigue a la fecha: se selecciona solo el período abierto que la contiene.
+  useEffect(() => {
+    if (!payload) return;
+    const match = periodForDate(effectiveDate, payload.periods);
+    setPeriodId(match?.id ?? '');
+  }, [effectiveDate, payload]);
 
   const loadHistorial = useCallback(async () => {
     const token = await getFinanzasAccessToken();
@@ -273,6 +284,11 @@ export function Ingresos() {
             ))}
           </select>
         ))}
+        {!periodForDate(effectiveDate, payload.periods) && (
+          <p className="rounded-lg bg-finDanger/10 px-3 py-2 text-sm text-finDanger">
+            No hay período abierto para esa fecha. Abrí el período del mes correspondiente.
+          </p>
+        )}
 
         {field('Nota (opcional)', (
           <input className={inputClass} value={note} onChange={(e) => setNote(e.target.value)} />
