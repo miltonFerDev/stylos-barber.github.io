@@ -64,7 +64,9 @@ export function TableroDireccion() {
         </div>
 
         <ul className="mt-3 space-y-2">
-          {availability.lines.map((line) => (
+          {availability.lines
+            .filter((l) => l.ownership === 'PROPIA' && l.isAvailable)
+            .map((line) => (
             <li
               key={line.accountId}
               className="flex min-h-12 flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl border border-finBorder bg-finSurface px-4 py-3"
