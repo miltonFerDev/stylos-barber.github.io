@@ -12,7 +12,8 @@ export type FinanzasView =
   | 'inversiones'
   | 'transferencias'
   | 'ingresos'
-  | 'comisiones';
+  | 'comisiones'
+  | 'libro';
 
 export const ITEMS: { view: FinanzasView; label: string }[] = [
   { view: 'tablero', label: 'Tablero' },
@@ -25,6 +26,7 @@ export const ITEMS: { view: FinanzasView; label: string }[] = [
   { view: 'cierre', label: 'Cierre' },
   { view: 'fondos', label: 'Fondos' },
   { view: 'inversiones', label: 'Inversiones' },
+  { view: 'libro', label: 'Libro diario' },
 ];
 
 function NavItem({

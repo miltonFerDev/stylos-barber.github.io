@@ -32,6 +32,9 @@ const Ingresos = lazy(() =>
 const Comisiones = lazy(() =>
   import('./Comisiones').then((m) => ({ default: m.Comisiones }))
 );
+const LibroDiario = lazy(() =>
+  import('./LibroDiario').then((m) => ({ default: m.LibroDiario }))
+);
 
 export function FinanzasShell() {
   const [view, setView] = useState<FinanzasView>('tablero');
@@ -84,6 +87,8 @@ export function FinanzasShell() {
             <Transferencias />
           ) : view === 'comisiones' ? (
             <Comisiones />
+          ) : view === 'libro' ? (
+            <LibroDiario />
           ) : (
             <Ingresos />
           )}

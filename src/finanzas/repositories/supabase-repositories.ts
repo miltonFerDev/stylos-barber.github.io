@@ -898,9 +898,7 @@ export class SupabaseAuditQueryRepository implements AuditQueryRepository {
 export class SupabaseJournalEntryQueryRepository implements JournalEntryQueryRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
-  async findByPeriod(periodId: string) {
-    const { data } = await this.supabase.from('journal_entries').select('*').eq('period_id', periodId);
-    const rows = data ?? [];
+  private async hydrateMany(rows: DbRow[]): Promise<JournalEntry[]> {
     const entryIds = rows.map((row) => row.id);
 
     const linesByEntry = new Map<string, JournalLineDraft[]>();
@@ -918,7 +916,21 @@ export class SupabaseJournalEntryQueryRepository implements JournalEntryQueryRep
       }
     }
 
-    return rows.map((row) => mapJournalEntry(row as DbRow, linesByEntry.get(String(row.id)) ?? []));
+    return rows.map((row) => mapJournalEntry(row, linesByEntry.get(String(row.id)) ?? []));
+  }
+
+  async findByPeriod(periodId: string) {
+    const { data } = await this.supabase.from('journal_entries').select('*').eq('period_id', periodId);
+    return this.hydrateMany((data ?? []) as DbRow[]);
+  }
+
+  async findAll() {
+    const { data } = await this.supabase
+      .from('journal_entries')
+      .select('*')
+      .order('entry_date', { ascending: false })
+      .order('posting_date', { ascending: false });
+    return this.hydrateMany((data ?? []) as DbRow[]);
   }
 }
 

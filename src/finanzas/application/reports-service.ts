@@ -28,6 +28,7 @@ export type AuditQueryRepository = {
 
 export type JournalEntryQueryRepository = {
   findByPeriod(periodId: string): Promise<JournalEntry[]>;
+  findAll(): Promise<JournalEntry[]>;
 };
 
 export type AvailabilityLine = {
@@ -96,6 +97,10 @@ export type IncomeStatementCommand = {
 export type IncomeStatement = IncomeStatementTotals & {
   periodId: string;
   currency: Currency;
+};
+
+export type LibroDiarioReport = {
+  entries: JournalEntry[];
 };
 
 export type ReportsServiceDependencies = {
@@ -262,5 +267,14 @@ export class ReportsService {
       ok: true,
       value: { periodId: command.periodId, currency: 'ARS', ...totals },
     };
+  }
+
+  /** Todos los asientos con sus líneas, ordenados por fecha (libro diario). */
+  async libroDiario(ctx: CommandContext): Promise<Result<LibroDiarioReport>> {
+    const authorized = await this.dependencies.authorize(ctx, 'VIEW_BALANCES');
+    if (!authorized.ok) return authorized;
+
+    const entries = await this.dependencies.journalEntries.findAll();
+    return { ok: true, value: { entries } };
   }
 }

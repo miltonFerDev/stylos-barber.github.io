@@ -44,4 +44,10 @@ describe('pendingBalanceMinor', () => {
   it('es negativo si se pagó más de lo devengado (caso teórico)', () => {
     expect(pendingBalanceMinor([record('50.00')], [payment('80.00')])).toBe(-3000n);
   });
+
+  it('excluye devengos y pagos REVERTIDO del saldo pendiente', () => {
+    const revertedRecord: CommissionRecord = { ...record('100.00'), status: 'REVERTIDO' };
+    const revertedPayment: CommissionPayment = { ...payment('40.00'), status: 'REVERTIDO' };
+    expect(pendingBalanceMinor([record('50.00'), revertedRecord], [payment('20.00'), revertedPayment])).toBe(3000n);
+  });
 });

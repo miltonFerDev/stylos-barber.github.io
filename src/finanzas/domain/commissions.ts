@@ -34,9 +34,13 @@ export type CommissionPaymentDistribution = {
   amount: Money;
 };
 
-/** Saldo pendiente por barbero (devengos − pagos), en unidades menores (exacto). */
+/**
+ * Saldo pendiente por barbero (devengos − pagos), en unidades menores (exacto).
+ * Solo cuenta registros CONFIRMADO: los REVERTIDO ya se cancelaron en el libro
+ * y no deben inflar el saldo pendiente.
+ */
 export function pendingBalanceMinor(records: CommissionRecord[], payments: CommissionPayment[]): bigint {
-  const accrued = records.reduce((sum, r) => sum + toMinor(r.amount), 0n);
-  const paid = payments.reduce((sum, p) => sum + toMinor(p.amount), 0n);
+  const accrued = records.filter((r) => r.status === 'CONFIRMADO').reduce((sum, r) => sum + toMinor(r.amount), 0n);
+  const paid = payments.filter((p) => p.status === 'CONFIRMADO').reduce((sum, p) => sum + toMinor(p.amount), 0n);
   return accrued - paid;
 }

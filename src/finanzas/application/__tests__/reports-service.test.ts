@@ -234,6 +234,9 @@ function createService(options: { authorize?: Authorizer } = {}) {
     async findByPeriod(periodId) {
       return journalEntries.filter((e) => e.periodId === periodId);
     },
+    async findAll() {
+      return journalEntries;
+    },
   };
 
   const applications: PaymentApplication[] = [
@@ -399,6 +402,29 @@ describe('ReportsService.incomeStatement', () => {
     const { service } = createService({ authorize: denied });
 
     const result = await service.incomeStatement(ctx, { periodId: 'period-1' });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('PERMISSION_DENIED');
+  });
+});
+
+describe('ReportsService.libroDiario', () => {
+  it('devuelve todos los asientos', async () => {
+    const { service } = createService();
+
+    const result = await service.libroDiario(ctx);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.entries).toHaveLength(2);
+  });
+
+  it('rechaza sin permiso', async () => {
+    const denied: Authorizer = async () => ({
+      ok: false,
+      error: { code: 'PERMISSION_DENIED', message: 'Sin permiso.', recoverable: false },
+    });
+    const { service } = createService({ authorize: denied });
+
+    const result = await service.libroDiario(ctx);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('PERMISSION_DENIED');
   });
